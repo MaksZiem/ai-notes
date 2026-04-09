@@ -1,0 +1,39 @@
+### Create a new user
+POST http://localhost:3000/auth/signup
+content-type: application/json
+
+{
+  "email": "user2@test.com",
+  "password": "2115"
+}
+
+### Sign in as existing user
+POST http://localhost:3000/auth/signin
+content-type: application/json
+
+{
+  "email": "user2@test.com",
+  "password": "2115"
+}
+
+### Get the current logged user
+GET http://localhost:3000/auth/whoami
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyMkB0ZXN0LmNvbSIsImlzQWRtaW4iOnRydWUsImlhdCI6MTc3NTc1NjI1MCwiZXhwIjoxNzc2MzYxMDUwfQ.Gxfj67NjDCRGY0l_qFq_3AQEuufN21tJbcUt2y9UBTQ
+
+### find a particular user with a given id
+GET http://localhost:3000/auth/2
+
+### find all users with a given email
+GET http://localhost:3000/auth?email=byk@test.com
+
+### delete user with a given id
+DELETE http://localhost:3000/auth/1
+
+### update user with given id
+PATCH http://localhost:3000/auth/14
+content-type: application/json
+
+{
+  "email": "byk@test.com",
+  "password": "byk321"
+}

@@ -29,7 +29,7 @@ export class AuthService {
 
     const user = await this.usersService.create(email, result);
 
-    const payload = { sub: user.id, email: user.email, isAdmin: user.isAdmin };
+    const payload = { id: user.id, email: user.email, isAdmin: user.isAdmin };
     const access_token = await this.jwtService.signAsync(payload);
 
     return { access_token };
@@ -41,17 +41,17 @@ export class AuthService {
       throw new NotFoundException('user not found');
     }
 
-    const [salt, storedHash] = user.password.split('.')
+    const [salt, storedHash] = user.password.split('.');
     const hash = (await scrypt(password, salt, 32)) as Buffer;
 
     if (storedHash !== hash.toString('hex')) {
       throw new BadRequestException('bad password');
     }
 
-    const payload = { sub: user.id, email: user.email, isAdmin: user.isAdmin };
+    const payload = { id: user.id, email: user.email, isAdmin: user.isAdmin };
 
-    const access_token = await this.jwtService.signAsync(payload)
+    const access_token = await this.jwtService.signAsync(payload);
 
-    return access_token
+    return { access_token };
   }
 }
