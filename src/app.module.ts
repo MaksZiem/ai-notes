@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/user.entity';
 import { APP_PIPE } from '@nestjs/core';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { APP_PIPE } from '@nestjs/core';
         synchronize: true,
       }),
     }),
-    UsersModule],
+    UsersModule,
+    NotesModule],
   controllers: [AppController],
   providers: [
     AppService,
