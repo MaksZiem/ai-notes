@@ -3,6 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     // usuń resolvePackageJsonExports całkowicie
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "isolatedModules": true,
     "declaration": true,

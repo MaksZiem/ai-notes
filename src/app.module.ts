@@ -7,12 +7,22 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/user.entity';
 import { APP_PIPE } from '@nestjs/core';
 import { NotesModule } from './notes/notes.module';
+import { I18nModule, AcceptLanguageResolver } from 'nestjs-i18n';
+import * as path from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env`,
+    }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'pl',
+      loaderOptions: {
+        path: path.join(__dirname, 'i18n/'),
+        watch: true,
+      },
+      resolvers: [AcceptLanguageResolver],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -28,7 +38,8 @@ import { NotesModule } from './notes/notes.module';
       }),
     }),
     UsersModule,
-    NotesModule],
+    NotesModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
