@@ -1,0 +1,13 @@
+{
+  "auth": {
+    "missing_token": "Missing authorization token",
+    "invalid_token": "Token invalid or expired",
+    "forbidden": "Admin privileges required",
+    "email_in_use": "Email already in use",
+    "user_not_found": "User not found",
+    "bad_password": "Bad password"
+  },
+  "users": {
+    "not_found": "User not found"
+  }
+}

@@ -1,0 +1,1 @@
+export const NOTE_DEFAULT_COLOR = "#6366f1";

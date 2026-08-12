@@ -1,0 +1,111 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJ1c2VyM0B0ZXN0LmNvbSIsInJvbGUiOiJVU0VSIiwibmFtZSI6IkphbiIsInN1cm5hbWUiOiJLb3dhbHNraSIsImlhdCI6MTc3ODAwNDgxMCwiZXhwIjoxNzc4NjA5NjEwfQ.OJRnj9WGVaTHgnwLHdf74Xu2ZEXN3-UmW5ttwV9ir6M
+
+### ===== NOTES IN PROJECT =====
+
+### Get all notes in project
+GET http://localhost:3000/projects/3/notes
+Authorization: Bearer {{token}}
+
+### Get pinned notes
+GET http://localhost:3000/projects/1/notes?pinned=true
+Authorization: Bearer {{token}}
+
+### Get favourite notes
+GET http://localhost:3000/projects/1/notes?favourite=true
+Authorization: Bearer {{token}}
+
+### Get single note
+GET http://localhost:3000/projects/1/notes/1
+Authorization: Bearer {{token}}
+
+### Create note w projekcie
+POST http://localhost:3000/projects/3/notes
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+  "title": "Moja notatka w projekcie",
+  "content": "Treść notatki"
+}
+
+### Update note
+PATCH http://localhost:3000/projects/1/notes/1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+  "title": "Zmieniony tytuł"
+}
+
+### Delete note
+DELETE http://localhost:3000/projects/1/notes/1
+Authorization: Bearer {{token}}
+
+### Toggle pin
+PATCH http://localhost:3000/projects/1/notes/1/pin
+Authorization: Bearer {{token}}
+
+### Toggle favourite
+PATCH http://localhost:3000/projects/1/notes/1/favourite
+Authorization: Bearer {{token}}
+
+### ===== NOTE ACCESS MANAGEMENT =====
+
+### Lista członków notatki
+GET http://localhost:3000/projects/1/notes/1/members
+Authorization: Bearer {{token}}
+
+### Nadaj dostęp (VIEW)
+POST http://localhost:3000/projects/1/notes/1/members
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+  "userId": 5
+}
+
+### Nadaj dostęp (EDIT)
+POST http://localhost:3000/projects/1/notes/1/members
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+  "userId": 5,
+  "accessLevel": "EDIT"
+}
+
+### Nadaj dostęp (DELETE)
+POST http://localhost:3000/projects/1/notes/1/members
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+  "userId": 5,
+  "accessLevel": "DELETE"
+}
+
+### Odbierz dostęp
+DELETE http://localhost:3000/projects/1/notes/1/members/5
+Authorization: Bearer {{token}}
+
+### ===== TESTY BEZPIECZENSTWA =====
+
+### Brak tokenu → 401
+GET http://localhost:3000/projects/1/notes
+
+### Brak dostępu do projektu → 403
+GET http://localhost:3000/projects/999/notes/999
+Authorization: Bearer {{token}}
+
+### Toggle favourite bez dostępu → 403
+PATCH http://localhost:3000/projects/999/notes/999/favourite
+Authorization: Bearer {{token}}
+
+### Nadanie dostępu bez bycia ownerem → 403
+POST http://localhost:3000/projects/999/notes/999/members
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+  "userId": 3
+}

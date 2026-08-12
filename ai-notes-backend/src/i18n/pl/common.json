@@ -1,0 +1,13 @@
+{
+  "auth": {
+    "missing_token": "Brak tokenu autoryzacyjnego",
+    "invalid_token": "Token nieważny lub wygasły",
+    "forbidden": "Brak uprawnień administratora",
+    "email_in_use": "Ten adres email jest już zajęty",
+    "user_not_found": "Użytkownik nie został znaleziony",
+    "bad_password": "Nieprawidłowe hasło"
+  },
+  "users": {
+    "not_found": "Użytkownik nie został znaleziony"
+  }
+}
