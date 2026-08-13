@@ -1,13 +1,14 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtService } from '@nestjs/jwt';
-import { randomBytes, scrypt as _scrypt } from 'crypto';
+import { randomBytes, scrypt as _scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { I18nService } from 'nestjs-i18n';
+import { hashPassword } from 'src/helpers/hash-password';
 
 const scrypt = promisify(_scrypt);
 
@@ -25,9 +26,7 @@ export class AuthService {
       throw new BadRequestException(this.i18n.t('common.auth.email_in_use'));
     }
 
-    const salt = randomBytes(8).toString('hex');
-    const hash = (await scrypt(password, salt, 32)) as Buffer;
-    const result = salt + '.' + hash.toString('hex');
+    const result = await hashPassword(password);
 
     const user = await this.usersService.create(email, result, name, surname);
 
@@ -40,14 +39,18 @@ export class AuthService {
   async signin(email: string, password: string) {
     const [user] = await this.usersService.find(email);
     if (!user) {
-      throw new NotFoundException(this.i18n.t('common.auth.user_not_found'));
+      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_credentials'));
     }
 
     const [salt, storedHash] = user.password.split('.');
     const hash = (await scrypt(password, salt, 32)) as Buffer;
+    const storedHashBuffer = Buffer.from(storedHash, 'hex');
 
-    if (storedHash !== hash.toString('hex')) {
-      throw new BadRequestException(this.i18n.t('common.auth.bad_password'));
+    if (
+      storedHashBuffer.length !== hash.length ||
+      !timingSafeEqual(storedHashBuffer, hash)
+    ) {
+      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_credentials'));
     }
 
     const payload = { id: user.id, email: user.email, role: user.role, name: user.name, surname: user.surname };

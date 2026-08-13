@@ -4,8 +4,7 @@
     "invalid_token": "Token invalid or expired",
     "forbidden": "Admin privileges required",
     "email_in_use": "Email already in use",
-    "user_not_found": "User not found",
-    "bad_password": "Bad password"
+    "invalid_credentials": "Invalid email or password"
   },
   "users": {
     "not_found": "User not found"

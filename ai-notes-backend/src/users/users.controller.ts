@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseIntPipe,
@@ -26,6 +27,8 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserDto } from './dtos/user.dto';
 import { SigninDto } from './dtos/signIn-user.dto';
 import { plainToInstance } from 'class-transformer';
+import { AdminGuard } from 'src/guards/admin.guard';
+import { UserRole } from 'src/enums/user-role.enum';
 
 @ApiTags('Auth & Users')
 @Controller('auth')
@@ -89,10 +92,9 @@ export class UsersController {
     description: 'Zalogowano pomyślnie — zwraca JWT access_token',
     schema: { example: { access_token: 'eyJhbGci...' } },
   })
-  @ApiResponse({ status: 400, description: 'Nieprawidłowe hasło' })
   @ApiResponse({
-    status: 404,
-    description: 'Użytkownik o podanym e-mailu nie istnieje',
+    status: 401,
+    description: 'Nieprawidłowy email lub hasło',
   })
   signin(@Body() body: SigninDto) {
     return this.authService.signin(body.email, body.password);
@@ -102,6 +104,7 @@ export class UsersController {
   // DELETE /auth/:id
   // ──────────────────────────────────────────────
   @Delete('/:id')
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Usuń użytkownika po ID' })
   @ApiParam({
     name: 'id',
@@ -118,6 +121,8 @@ export class UsersController {
   // PATCH /auth/:id
   // ──────────────────────────────────────────────
   @Patch('/:id')
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Zaktualizuj dane użytkownika',
     description: 'Pola pominięte w body pozostają bez zmian (partial update).',
@@ -136,7 +141,17 @@ export class UsersController {
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateUserDto,
+    @CurrentUser() currentUser: User
   ) {
+    const isAdmin = currentUser.role === UserRole.ADMIN
+    const isSelf = currentUser.id === id
+
+    if(!isAdmin && !isSelf) {
+      throw new ForbiddenException()
+    }
+    if (!isAdmin && body.role !== undefined) {
+      throw new ForbiddenException()
+    }
     return this.usersService.update(id, body);
   }
 }

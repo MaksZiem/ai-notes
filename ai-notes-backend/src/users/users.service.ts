@@ -4,6 +4,7 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { capitalize } from 'src/helpers/capitalize';
+import { hashPassword } from 'src/helpers/hash-password';
 
 @Injectable()
 export class UsersService {
@@ -35,8 +36,11 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(this.i18n.t('common.users.not_found'));
     }
-    Object.assign(user, attrs);
-    return this.repo.save(user);
+    if(attrs.password) {
+      attrs.password = await hashPassword(attrs.password)
+    }
+    Object.assign(user, attrs)
+    return this.repo.save(user)
   }
 
   async remove(id: number) {

@@ -9,12 +9,14 @@ import { JwtService } from '@nestjs/jwt';
 import { I18nService } from 'nestjs-i18n';
 import { Request } from 'express';
 import { UserRole } from 'src/enums/user-role.enum';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private i18n: I18nService,
+    private usersService: UsersService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,17 +27,23 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException(this.i18n.t('common.auth.missing_token'));
     }
 
+    let payload: { id: number };
     try {
-      const payload = await this.jwtService.verifyAsync(token);
-      request['currentUser'] = payload;
+      payload = await this.jwtService.verifyAsync(token);
     } catch {
       throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'));
     }
 
-    if (request['currentUser']?.role !== UserRole.ADMIN) {
+    const user = await this.usersService.findOne(payload.id);
+    if (!user) {
+      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'));
+    }
+
+    if (user.role !== UserRole.ADMIN) {
       throw new ForbiddenException(this.i18n.t('common.auth.forbidden'));
     }
 
+    request['currentUser'] = user;
     return true;
   }
 

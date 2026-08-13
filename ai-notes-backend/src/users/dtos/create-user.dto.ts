@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -27,5 +27,7 @@ export class CreateUserDto {
       'Hasło użytkownika (min. 1 znak); przechowywane jako hash scrypt',
   })
   @IsString()
+  @MinLength(8)
+  @MaxLength(24)
   password: string;
 }

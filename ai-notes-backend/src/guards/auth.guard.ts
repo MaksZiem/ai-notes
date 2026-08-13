@@ -7,12 +7,14 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { I18nService } from 'nestjs-i18n';
 import { Request } from 'express';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private i18n: I18nService,
+    private usersService: UsersService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,13 +25,18 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException(this.i18n.t('common.auth.missing_token'));
     }
 
+    let payload: {id: number}
     try {
-      const payload = await this.jwtService.verifyAsync(token);
-      request['currentUser'] = payload;
-    } catch {
-      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'));
+      payload =  await this.jwtService.verifyAsync(token)
+    } catch (error) {
+      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'))
     }
 
+    const user = await this.usersService.findOne(payload.id)
+    if(!user) {
+      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'));
+    }
+    request['currentUser'] = user
     return true;
   }
 
