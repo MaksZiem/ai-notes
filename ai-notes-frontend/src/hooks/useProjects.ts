@@ -24,7 +24,7 @@ export function useProjects(filters?: { pinned?: boolean; favourite?: boolean })
   });
 
   const createProject = useMutation({
-    mutationFn: (body: { name: string; description?: string }) =>
+    mutationFn: (body: { name: string; description?: string; color?: string }) =>
       api.post("/projects", body),
     onSuccess: invalidate,
   });

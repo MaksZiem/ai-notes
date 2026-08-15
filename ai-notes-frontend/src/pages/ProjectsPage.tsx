@@ -1,259 +1,98 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Search, Plus, LayoutGrid, List, Pin, Folder, Star,
-  Clock, Users, FileText, MoreHorizontal, ChevronRight,
+  Search, Plus, LayoutGrid, List, Pin, Folder, Star, Clock, X,
 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
+import { api } from "../api/client";
+import { useProjects } from "../hooks/useProjects";
+import type { Project } from "../types/project";
 import { NoteViewType } from "../enums/noteView";
+import { formatDate } from "../utils/formatDate";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface MockNote {
-  id: number;
-  title: string;
-  color?: string;
-  isPinned: boolean;
-  updatedAt: string;
+const PROJECT_DEFAULT_COLOR = "#6366f1";
+
+function useProjectQuickActions(projectId: number) {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["projects"] });
+
+  const togglePin = useMutation({
+    mutationFn: () => api.patch(`/projects/${projectId}/pin`),
+    onSuccess: invalidate,
+  });
+
+  const toggleFavourite = useMutation({
+    mutationFn: () => api.patch(`/projects/${projectId}/favourite`),
+    onSuccess: invalidate,
+  });
+
+  return { togglePin, toggleFavourite };
 }
 
-interface MockProject {
-  id: number;
-  name: string;
-  description?: string;
-  color: string;
-  membersCount: number;
-  isPinned: boolean;
-  isFavourite: boolean;
-  updatedAt: string;
-  tags?: string[];
-  notes: MockNote[];
-}
+function QuickActions({ projectId, pinned, favourite }: { projectId: number; pinned: boolean; favourite: boolean }) {
+  const { togglePin, toggleFavourite } = useProjectQuickActions(projectId);
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_PROJECTS: MockProject[] = [
-  {
-    id: 1,
-    name: "Redesign strony głównej",
-    description: "Przebudowa UI głównej strony produktu — nowe komponenty, responsywność, dark mode.",
-    color: "#6366f1",
-    membersCount: 4,
-    isPinned: true,
-    isFavourite: true,
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    tags: ["UI", "Frontend"],
-    notes: [
-      { id: 101, title: "Wireframe – hero section", color: "#6366f1", isPinned: true, updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString() },
-      { id: 102, title: "Paleta kolorów dark mode", color: "#a855f7", isPinned: false, updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
-      { id: 103, title: "Komponenty do przebudowy", isPinned: false, updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
-      { id: 104, title: "Responsywność – breakpointy", isPinned: false, updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    ],
-  },
-  {
-    id: 2,
-    name: "API v2 – migracja",
-    description: "Migracja endpointów REST do nowej wersji z zachowaniem wstecznej kompatybilności.",
-    color: "#ec4899",
-    membersCount: 3,
-    isPinned: true,
-    isFavourite: false,
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    tags: ["Backend", "API"],
-    notes: [
-      { id: 201, title: "Schemat wersjonowania URL", color: "#ec4899", isPinned: true, updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() },
-      { id: 202, title: "Breaking changes v1 → v2", isPinned: false, updatedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() },
-      { id: 203, title: "Migracja auth tokenów", isPinned: false, updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    ],
-  },
-  {
-    id: 3,
-    name: "Panel administracyjny",
-    description: "Dashboard dla adminów — zarządzanie użytkownikami, rolami i uprawnieniami.",
-    color: "#f59e0b",
-    membersCount: 2,
-    isPinned: false,
-    isFavourite: true,
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    tags: ["Admin", "Frontend"],
-    notes: [
-      { id: 301, title: "Role i uprawnienia – matryca", color: "#f59e0b", isPinned: false, updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 302, title: "Widok zarządzania użytkownikami", isPinned: false, updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-    ],
-  },
-  {
-    id: 4,
-    name: "Dokumentacja techniczna",
-    description: "Pełna dokumentacja architektury systemu, endpointów i schematu bazy danych.",
-    color: "#10b981",
-    membersCount: 6,
-    isPinned: false,
-    isFavourite: false,
-    updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    tags: ["Docs"],
-    notes: [
-      { id: 401, title: "Architektura systemu – overview", color: "#10b981", isPinned: true, updatedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 402, title: "Schemat bazy danych", isPinned: false, updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 403, title: "Instrukcja deploymentu", isPinned: false, updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 404, title: "Zmienne środowiskowe", isPinned: false, updatedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() },
-    ],
-  },
-  {
-    id: 5,
-    name: "Optymalizacja wydajności",
-    description: "Analiza i redukcja czasu ładowania stron, lazy loading, code splitting.",
-    color: "#0ea5e9",
-    membersCount: 2,
-    isPinned: false,
-    isFavourite: false,
-    updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    tags: ["Performance"],
-    notes: [
-      { id: 501, title: "Lighthouse – wyniki bazowe", color: "#0ea5e9", isPinned: false, updatedAt: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 502, title: "Plan optymalizacji", isPinned: false, updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() },
-    ],
-  },
-  {
-    id: 6,
-    name: "System powiadomień",
-    description: "Powiadomienia real-time przez WebSocket — dla notatek, komentarzy i udostępnień.",
-    color: "#a855f7",
-    membersCount: 3,
-    isPinned: false,
-    isFavourite: true,
-    updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    tags: ["Backend", "WebSocket"],
-    notes: [
-      { id: 601, title: "Protokół WebSocket – design", color: "#a855f7", isPinned: true, updatedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 602, title: "Typy zdarzeń", isPinned: false, updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 603, title: "Kolejka powiadomień – Redis", isPinned: false, updatedAt: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() },
-    ],
-  },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMin = Math.floor((now.getTime() - date.getTime()) / 60_000);
-  const diffH = Math.floor(diffMin / 60);
-  const diffD = Math.floor(diffH / 24);
-  if (diffMin < 60) return `${diffMin} min.`;
-  if (diffH < 24) return `${diffH} godz.`;
-  if (diffD === 1) return "wczoraj";
-  if (diffD < 7) return `${diffD} dni`;
-  return date.toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
-}
-
-const TAG_PALETTE: Record<string, { bg: string; text: string }> = {
-  UI:          { bg: "rgba(99,102,241,0.12)",  text: "#a5b4fc" },
-  Frontend:    { bg: "rgba(139,92,246,0.12)",  text: "#c4b5fd" },
-  Backend:     { bg: "rgba(20,184,166,0.12)",  text: "#5eead4" },
-  API:         { bg: "rgba(14,165,233,0.12)",  text: "#7dd3fc" },
-  Admin:       { bg: "rgba(245,158,11,0.12)",  text: "#fcd34d" },
-  Docs:        { bg: "rgba(16,185,129,0.12)",  text: "#6ee7b7" },
-  Performance: { bg: "rgba(244,63,94,0.12)",   text: "#fda4af" },
-  WebSocket:   { bg: "rgba(168,85,247,0.12)",  text: "#d8b4fe" },
-};
-function tagStyle(tag: string) {
-  return TAG_PALETTE[tag] ?? { bg: "rgba(99,102,241,0.12)", text: "#a5b4fc" };
+  return (
+    <div className="flex items-center gap-0.5 flex-shrink-0">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); togglePin.mutate(); }}
+        disabled={togglePin.isPending}
+        title={pinned ? "Odepnij" : "Przypnij"}
+        className={`p-1 rounded-md transition-colors ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+      >
+        <Pin size={13} className={pinned ? "fill-amber-400/30" : ""} />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); toggleFavourite.mutate(); }}
+        disabled={toggleFavourite.isPending}
+        title={favourite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+        className={`p-1 rounded-md transition-colors ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+      >
+        <Star size={13} className={favourite ? "fill-amber-400" : ""} />
+      </button>
+    </div>
+  );
 }
 
 // ─── ProjectCard (grid) ───────────────────────────────────────────────────────
-function ProjectCard({ project, pinned = false, onClick }: {
-  project: MockProject;
+function ProjectCard({ project, pinned = false, favourite = false, onClick }: {
+  project: Project;
   pinned?: boolean;
+  favourite?: boolean;
   onClick: () => void;
 }) {
-  const previewNotes = project.notes.slice(0, 3);
-  const remaining = project.notes.length - previewNotes.length;
-  const NOTE_DEFAULT_COLOR = "#6366f1";
+  const color = project.color ?? PROJECT_DEFAULT_COLOR;
 
   return (
     <div
       onClick={onClick}
       className="group flex flex-col bg-[#1a1b23] border border-white/[0.06] rounded-2xl p-5 hover:border-indigo-500/30 hover:bg-[#1e1f29] transition-all duration-200 cursor-pointer"
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          {pinned && <Pin size={13} className="text-amber-400/80 flex-shrink-0" />}
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: project.color + "22" }}
+            style={{ backgroundColor: color + "22" }}
           >
-            <Folder size={14} style={{ color: project.color }} />
+            <Folder size={14} style={{ color }} />
           </div>
           <h3 className="text-[14px] font-semibold text-gray-100 leading-snug truncate">
             {project.name}
           </h3>
         </div>
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-white/10 text-gray-500 hover:text-gray-300 flex-shrink-0"
-        >
-          <MoreHorizontal size={14} />
-        </button>
+        <QuickActions projectId={project.id} pinned={pinned} favourite={favourite} />
       </div>
 
-      {/* Description */}
-      <p className="text-[12.5px] text-gray-500 leading-relaxed line-clamp-2 mb-3">
-        {project.description ?? "Brak opisu"}
+      <p className="text-[12.5px] text-gray-500 leading-relaxed line-clamp-3 flex-1 mb-4">
+        {project.description || "Brak opisu"}
       </p>
 
-      {/* Tags */}
-      {project.tags && project.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-4">
-          {project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
-              style={{ backgroundColor: tagStyle(tag).bg, color: tagStyle(tag).text }}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* ── Note previews ── */}
-      {previewNotes.length > 0 && (
-        <div className="mt-auto pt-3 border-t border-white/[0.05] flex flex-col gap-1">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-700 mb-1">
-            Ostatnie notatki
-          </span>
-          {previewNotes.map((note) => (
-            <div
-              key={note.id}
-              className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-white/[0.04] transition-colors"
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: note.color ?? NOTE_DEFAULT_COLOR }}
-              />
-              <span className="flex-1 text-[12px] text-gray-400 truncate">
-                {note.isPinned && <Pin size={9} className="inline mr-1 text-amber-400/70 -mt-px" />}
-                {note.title}
-              </span>
-              <span className="text-[10.5px] text-gray-700 flex-shrink-0 flex items-center gap-0.5">
-                <Clock size={9} />{formatDate(note.updatedAt)}
-              </span>
-            </div>
-          ))}
-          {remaining > 0 && (
-            <span className="text-[11px] text-gray-700 pl-2 pt-0.5">
-              +{remaining} więcej
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Footer meta */}
-      <div className="pt-3 mt-2 border-t border-white/[0.04] flex items-center justify-between">
-        <div className="flex items-center gap-3 text-[11px] text-gray-600">
-          <span className="flex items-center gap-1"><FileText size={11} />{project.notes.length} notatek</span>
-          <span className="flex items-center gap-1"><Users size={11} />{project.membersCount}</span>
-        </div>
+      <div className="pt-3 mt-auto border-t border-white/[0.04] flex items-center justify-end">
         <span className="flex items-center gap-1 text-[11px] text-gray-600">
-          <Clock size={11} />{formatDate(project.updatedAt)} temu
+          <Clock size={11} />{formatDate(project.updatedAt)}
         </span>
       </div>
     </div>
@@ -261,74 +100,40 @@ function ProjectCard({ project, pinned = false, onClick }: {
 }
 
 // ─── ProjectRow (list) ────────────────────────────────────────────────────────
-function ProjectRow({ project, pinned = false, onClick }: {
-  project: MockProject;
+function ProjectRow({ project, pinned = false, favourite = false, onClick }: {
+  project: Project;
   pinned?: boolean;
+  favourite?: boolean;
   onClick: () => void;
 }) {
-  const previewNotes = project.notes.slice(0, 2);
-  const NOTE_DEFAULT_COLOR = "#6366f1";
+  const color = project.color ?? PROJECT_DEFAULT_COLOR;
 
   return (
     <div
       onClick={onClick}
       className="group flex items-start gap-4 px-5 py-4 bg-[#1a1b23] border border-white/[0.06] rounded-xl hover:border-indigo-500/30 hover:bg-[#1e1f29] transition-all duration-200 cursor-pointer"
     >
-      {/* Color bar */}
-      <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: project.color }} />
+      <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: color }} />
 
-      {/* Icon */}
       <div
         className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-        style={{ backgroundColor: project.color + "22" }}
+        style={{ backgroundColor: color + "22" }}
       >
-        <Folder size={13} style={{ color: project.color }} />
+        <Folder size={13} style={{ color }} />
       </div>
 
-      {/* Main content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          {pinned && <Pin size={12} className="text-amber-400/70 flex-shrink-0" />}
           <span className="text-[13.5px] font-semibold text-gray-100 truncate">{project.name}</span>
-          {project.tags?.map((tag) => (
-            <span
-              key={tag}
-              className="hidden group-hover:inline text-[10px] font-medium px-1.5 py-0.5 rounded-md"
-              style={{ backgroundColor: tagStyle(tag).bg, color: tagStyle(tag).text }}
-            >
-              {tag}
-            </span>
-          ))}
         </div>
-        <p className="text-[12px] text-gray-500 truncate mb-2">{project.description ?? "Brak opisu"}</p>
-
-        {/* Note previews in list mode */}
-        {previewNotes.length > 0 && (
-          <div className="flex items-center gap-3">
-            {previewNotes.map((note) => (
-              <div key={note.id} className="flex items-center gap-1.5 text-[11.5px] text-gray-600">
-                <span
-                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: note.color ?? NOTE_DEFAULT_COLOR }}
-                />
-                <span className="truncate max-w-[140px]">{note.title}</span>
-              </div>
-            ))}
-            {project.notes.length > 2 && (
-              <span className="text-[11px] text-gray-700">+{project.notes.length - 2}</span>
-            )}
-          </div>
-        )}
+        <p className="text-[12px] text-gray-500 truncate">{project.description || "Brak opisu"}</p>
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-4 text-[11px] text-gray-600 flex-shrink-0 self-center">
-        <span className="flex items-center gap-1"><FileText size={11} />{project.notes.length}</span>
-        <span className="flex items-center gap-1"><Users size={11} />{project.membersCount}</span>
-        <span className="flex items-center gap-1"><Clock size={11} />{formatDate(project.updatedAt)}</span>
+      <div className="flex items-center gap-1 text-[11px] text-gray-600 flex-shrink-0 self-center">
+        <Clock size={11} />{formatDate(project.updatedAt)}
       </div>
 
-      <ChevronRight size={14} className="text-gray-700 group-hover:text-indigo-500/70 transition-colors flex-shrink-0 self-center" />
+      <QuickActions projectId={project.id} pinned={pinned} favourite={favourite} />
     </div>
   );
 }
@@ -339,37 +144,74 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
   const [showFavourites, setShowFavourites] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+
+  const { projects, createProject } = useProjects();
+  const { projects: pinnedProjects } = useProjects({ pinned: true });
+  const { projects: favouriteProjects } = useProjects({ favourite: true });
+
+  const allProjects = projects.data ?? [];
+  const pinnedIds = new Set((pinnedProjects.data ?? []).map((p) => p.id));
+  const favouriteIds = new Set((favouriteProjects.data ?? []).map((p) => p.id));
 
   const handleProjectClick = (projectId: number) => {
-    // W przyszłości: navigate(`/notes?projectId=${projectId}`)
     navigate(`/notes?projectId=${projectId}`);
   };
 
-  const filtered = MOCK_PROJECTS.filter((p) => {
+  const handleCreateProject = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    createProject.mutate(
+      { name: newName.trim(), description: newDescription.trim() || undefined },
+      {
+        onSuccess: () => {
+          setNewName("");
+          setNewDescription("");
+          setIsCreateOpen(false);
+        },
+      }
+    );
+  };
+
+  const filtered = allProjects.filter((p) => {
     const matchesSearch =
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesFav = !showFavourites || p.isFavourite;
+      !!p.description?.toLowerCase().includes(search.toLowerCase());
+    const matchesFav = !showFavourites || favouriteIds.has(p.id);
     return matchesSearch && matchesFav;
   });
 
-  const pinned = filtered.filter((p) => p.isPinned);
-  const rest = filtered.filter((p) => !p.isPinned);
+  const pinned = filtered.filter((p) => pinnedIds.has(p.id));
+  const rest = filtered.filter((p) => !pinnedIds.has(p.id));
   const hasResults = pinned.length + rest.length > 0;
 
-  const renderGrid = (projects: MockProject[], isPinned = false) => (
+  const renderGrid = (list: Project[], isPinned = false) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-      {projects.map((p) => (
-        <ProjectCard key={p.id} project={p} pinned={isPinned} onClick={() => handleProjectClick(p.id)} />
+      {list.map((p) => (
+        <ProjectCard
+          key={p.id}
+          project={p}
+          pinned={isPinned}
+          favourite={favouriteIds.has(p.id)}
+          onClick={() => handleProjectClick(p.id)}
+        />
       ))}
     </div>
   );
 
-  const renderList = (projects: MockProject[], isPinned = false) => (
+  const renderList = (list: Project[], isPinned = false) => (
     <div className="flex flex-col gap-2">
-      {projects.map((p) => (
-        <ProjectRow key={p.id} project={p} pinned={isPinned} onClick={() => handleProjectClick(p.id)} />
+      {list.map((p) => (
+        <ProjectRow
+          key={p.id}
+          project={p}
+          pinned={isPinned}
+          favourite={favouriteIds.has(p.id)}
+          onClick={() => handleProjectClick(p.id)}
+        />
       ))}
     </div>
   );
@@ -383,7 +225,7 @@ export default function ProjectsPage() {
         <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
           <div>
             <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">Projekty</h1>
-            <p className="text-xs text-gray-600 mt-1 m-0">{MOCK_PROJECTS.length} projektów łącznie</p>
+            <p className="text-xs text-gray-600 mt-1 m-0">{allProjects.length} projektów łącznie</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -424,7 +266,10 @@ export default function ProjectsPage() {
               </button>
             </div>
 
-            <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors">
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+            >
               <Plus size={15} />
               Nowy projekt
             </button>
@@ -462,6 +307,62 @@ export default function ProjectsPage() {
           )}
         </div>
       </main>
+
+      {isCreateOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setIsCreateOpen(false)}
+        >
+          <form
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={handleCreateProject}
+            className="w-full max-w-sm bg-[#1a1b23] border border-white/[0.08] rounded-2xl p-5 flex flex-col gap-3"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm font-semibold text-gray-100 m-0">Nowy projekt</h2>
+              <button type="button" onClick={() => setIsCreateOpen(false)} className="text-gray-500 hover:text-gray-300">
+                <X size={16} />
+              </button>
+            </div>
+
+            <input
+              autoFocus
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nazwa projektu"
+              className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none"
+            />
+            <textarea
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              placeholder="Opis (opcjonalnie)"
+              rows={3}
+              className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none resize-none"
+            />
+
+            {createProject.isError && (
+              <p className="text-xs text-red-400">Nie udało się utworzyć projektu</p>
+            )}
+
+            <div className="flex justify-end gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-gray-200"
+              >
+                Anuluj
+              </button>
+              <button
+                type="submit"
+                disabled={!newName.trim() || createProject.isPending}
+                className="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+              >
+                {createProject.isPending ? "Tworzenie..." : "Utwórz"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

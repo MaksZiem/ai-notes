@@ -8,26 +8,13 @@ import {
   Star,
 } from "lucide-react";
 import { useNotes } from "../../../hooks/useNotes";
+import { useProjects } from "../../../hooks/useProjects";
 import Section from "./Section";
 import NavItem from "./NavItem";
 import Projects from "./Projects";
 import SideBarFooter from "./SideBarFooter";
 
 // ─── Mock data ───────────────────────────────────────────────
-const RECENT_PROJECTS: Project2[] = [
-  { id: 1, name: "Redesign strony głównej", color: "bg-indigo-500", updatedAt: "2 godz. temu" },
-  { id: 2, name: "API v2 – migracja", color: "bg-pink-500", updatedAt: "wczoraj" },
-  { id: 3, name: "Panel administracyjny", color: "bg-amber-500", updatedAt: "3 dni temu" },
-  { id: 4, name: "Dokumentacja techniczna", color: "bg-emerald-500", updatedAt: "tydzień temu" },
-];
-
-export type Project2 = {
-  id: number,
-  name: string,
-  color: string
-  updatedAt: string
-}
-
 const NOTIFICATIONS = [
   { id: 1, text: "Anna nadała Ci dostęp do projektu", time: "5 min", unread: true },
   { id: 2, text: "Nowa notatka w API v2 – migracja", time: "1 godz.", unread: true },
@@ -40,6 +27,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
   const { notes: { data: recentNotes = [], isLoading: notesLoading } } = useNotes({ limit: 5 });
+  const { recentProjects: { data: recentProjects = [], isLoading: projectsLoading } } = useProjects();
 
   return (
     <aside className="w-60 min-w-60 h-screen bg-[#13141a] border-r border-white/[0.07] flex flex-col overflow-hidden sticky top-0">
@@ -73,8 +61,8 @@ export default function Sidebar() {
         <hr className="border-white/[0.07] my-2" />
 
         {/* Projects */}
-        <Projects projects={RECENT_PROJECTS} />
-      
+        <Projects projects={recentProjects} loading={projectsLoading} />
+
 
         <hr className="border-white/[0.07] my-2" />
 

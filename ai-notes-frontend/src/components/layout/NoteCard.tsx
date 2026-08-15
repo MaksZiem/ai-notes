@@ -1,4 +1,6 @@
-import { Pin, Clock } from "lucide-react";
+import { Pin, Star, Clock } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../../api/client";
 import type { Note } from "../../types/note";
 import { tagColor } from "../../utils/noteColors";
 import { formatDate } from "../../utils/formatDate";
@@ -8,9 +10,54 @@ interface NoteCardProps {
   note: Note;
   list?: boolean;
   pinned?: boolean;
+  favourite?: boolean;
 }
 
-export function NoteCard({ note, list = false, pinned = false }: NoteCardProps) {
+function useNoteQuickActions(noteId: number) {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["notes"] });
+
+  const togglePin = useMutation({
+    mutationFn: () => api.patch(`/notes/${noteId}/pin`),
+    onSuccess: invalidate,
+  });
+
+  const toggleFavourite = useMutation({
+    mutationFn: () => api.patch(`/notes/${noteId}/favourite`),
+    onSuccess: invalidate,
+  });
+
+  return { togglePin, toggleFavourite };
+}
+
+function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: boolean; favourite: boolean }) {
+  const { togglePin, toggleFavourite } = useNoteQuickActions(noteId);
+
+  return (
+    <div className="flex items-center gap-0.5 flex-shrink-0">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); togglePin.mutate(); }}
+        disabled={togglePin.isPending}
+        title={pinned ? "Odepnij" : "Przypnij"}
+        className={`p-1 rounded-md transition-colors ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+      >
+        <Pin size={13} className={pinned ? "fill-amber-400/30" : ""} />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); toggleFavourite.mutate(); }}
+        disabled={toggleFavourite.isPending}
+        title={favourite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+        className={`p-1 rounded-md transition-colors ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+      >
+        <Star size={13} className={favourite ? "fill-amber-400" : ""} />
+      </button>
+    </div>
+  );
+}
+
+export function NoteCard({ note, list = false, pinned = false, favourite = false }: NoteCardProps) {
   const noteColor = note.color ?? NOTE_DEFAULT_COLOR;
   const projectColor = note.project?.color ?? NOTE_DEFAULT_COLOR;
   const keywords = note.keywords ?? [];
@@ -22,7 +69,6 @@ export function NoteCard({ note, list = false, pinned = false }: NoteCardProps) 
         <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: noteColor }} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {pinned && <Pin size={13} className="text-amber-400/70 flex-shrink-0" />}
             <h3 className="text-[14px] font-semibold text-gray-100 truncate">{note.title}</h3>
           </div>
           <p className="text-[12.5px] text-gray-500 truncate">{note.content}</p>
@@ -43,6 +89,7 @@ export function NoteCard({ note, list = false, pinned = false }: NoteCardProps) 
           <div className="flex items-center gap-1 text-[11px] text-gray-600">
             <Clock size={11} />{formatDate(note.updatedAt)}
           </div>
+          <QuickActions noteId={note.id} pinned={pinned} favourite={favourite} />
         </div>
       </div>
     );
@@ -52,10 +99,12 @@ export function NoteCard({ note, list = false, pinned = false }: NoteCardProps) 
     <div className="group flex flex-col bg-[#1a1b23] border border-white/[0.06] rounded-2xl p-5 hover:border-indigo-500/30 hover:bg-[#1e1f29] transition-all duration-200 cursor-pointer h-full">
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          {pinned && <Pin size={13} className="text-amber-400/80 flex-shrink-0" />}
           <h3 className="text-[14px] font-semibold text-gray-100 leading-snug truncate">{note.title}</h3>
         </div>
-        <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: noteColor }} />
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <QuickActions noteId={note.id} pinned={pinned} favourite={favourite} />
+          <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: noteColor }} />
+        </div>
       </div>
 
       <p className="text-[12.5px] text-gray-500 leading-relaxed line-clamp-3 flex-1 mb-4">
