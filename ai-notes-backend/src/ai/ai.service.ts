@@ -19,4 +19,15 @@ export class AiService {
     })
     return response.text ?? ''
   }
+
+  async summarizeText(content: string): Promise<string> {
+    const prompt = [
+    'Streść poniższą notatkę w maksymalnie 3 krótkich zdaniach, po polsku.',
+    'Zwróć wyłącznie streszczenie, bez wstępów typu "Oto streszczenie:".',
+    '',
+    'Notatka:',
+    content,
+  ].join('\n');
+  return this.generateText(prompt)
+  }
 }

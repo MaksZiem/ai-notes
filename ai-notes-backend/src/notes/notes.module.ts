@@ -8,11 +8,18 @@ import { ProjectMember } from 'src/projects/entities/project-member.entity';
 import { UserNotePreference } from './entities/note-user-preference.entity';
 import { Note } from './entities/note.entity';
 import { SingleNoteController } from './single-note.controller';
+import { AiModule } from 'src/ai/ai.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Note, NoteMember, ProjectMember, UserNotePreference]),
+    TypeOrmModule.forFeature([
+      Note,
+      NoteMember,
+      ProjectMember,
+      UserNotePreference,
+    ]),
     forwardRef(() => ProjectsModule),
+    AiModule,
   ],
   controllers: [NotesController, SingleNoteController],
   providers: [NotesService],

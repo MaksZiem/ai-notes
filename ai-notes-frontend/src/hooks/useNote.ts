@@ -37,6 +37,10 @@ export function useNote(noteId: number) {
     onSuccess: invalidateAll,
   });
 
+  const summarizeNote = useMutation({
+    mutationFn: () => api.post<{summary: string}>(`/notes/${noteId}/summarize`)
+  })
+
   const deleteNote = useMutation({
     mutationFn: () => api.delete(`/notes/${noteId}`),
     onSuccess: invalidateAll,
@@ -64,5 +68,5 @@ export function useNote(noteId: number) {
     onSuccess: invalidateAll,
   });
 
-  return { note, members, updateNote, deleteNote, grantAccess, revokeAccess, togglePin, toggleFavourite };
+  return { note, members, updateNote, summarizeNote, deleteNote, grantAccess, revokeAccess, togglePin, toggleFavourite };
 }

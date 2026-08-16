@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -27,13 +28,17 @@ import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dtos/create-note.dto';
 import { UpdateNoteDto } from './dtos/update-note.dto';
 import { GrantAccessDto } from 'src/projects/dtos/grant-access.dto';
+import { AiService } from 'src/ai/ai.service';
 
 @ApiTags('Notes')
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard)
 @Controller('notes')
 export class SingleNoteController {
-  constructor(private readonly notesService: NotesService) {}
+  constructor(
+    private readonly notesService: NotesService,
+    private readonly aiService: AiService,
+  ) {}
 
   // ──────────────────────────────────────────────
   // GET /notes
@@ -76,7 +81,7 @@ export class SingleNoteController {
       user.role,
       { pinned, favourite },
       limit || undefined,
-      search || undefined
+      search || undefined,
     );
   }
 
@@ -116,6 +121,21 @@ export class SingleNoteController {
   @ApiResponse({ status: 404, description: 'Notatka nie znaleziona' })
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
     return this.notesService.findOne(id, null, user.id, user.role);
+  }
+
+  // ──────────────────────────────────────────────
+  // POST /notes/:id/summarize
+  // ──────────────────────────────────────────────
+  @Post(':id/summarize')
+  @ApiOperation({ summary: 'Wygeneruj krótkie streszczenie notatki' })
+  @ApiParam({ name: 'id', example: 5 })
+  async summarize(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+    const note = await this.notesService.findOne(id, null, user.id, user.role)
+    if(!note.content?.trim()) {
+      throw new BadRequestException('Notatka jest pusta')
+    }
+    const summary = await this.aiService.summarizeText(note.content)
+    return {summary}
   }
 
   // ──────────────────────────────────────────────

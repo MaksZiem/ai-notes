@@ -12,7 +12,6 @@ import TextAlign from "@tiptap/extension-text-align";
 import { TableKit } from "@tiptap/extension-table";
 import ImageExtension from "@tiptap/extension-image";
 import { Markdown } from "tiptap-markdown";
-import { ArrowLeft, Trash2, Pin, Star, Loader2, Check, X } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { EditorToolbar } from "../components/editor/EditorToolbar";
 import { SlashCommand } from "../components/editor/SlashCommand";
@@ -21,6 +20,16 @@ import { useNote } from "../hooks/useNote";
 import { useNotes } from "../hooks/useNotes";
 import { useProjects } from "../hooks/useProjects";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
+import {
+  ArrowLeft,
+  Trash2,
+  Pin,
+  Star,
+  Loader2,
+  Check,
+  X,
+  Sparkles,
+} from "lucide-react";
 
 const COLOR_PALETTE = NOTE_ACCENT_COLORS;
 
@@ -30,14 +39,16 @@ function SaveStatusIndicator({ status }: { status: SaveStatus }) {
   if (status === "saving") {
     return (
       <span className="flex items-center gap-1.5 text-xs text-gray-500">
-        <Loader2 size={12} className="animate-spin" />Zapisywanie...
+        <Loader2 size={12} className="animate-spin" />
+        Zapisywanie...
       </span>
     );
   }
   if (status === "saved") {
     return (
       <span className="flex items-center gap-1.5 text-xs text-emerald-500">
-        <Check size={12} />Zapisano
+        <Check size={12} />
+        Zapisano
       </span>
     );
   }
@@ -47,7 +58,12 @@ function SaveStatusIndicator({ status }: { status: SaveStatus }) {
   return null;
 }
 
-function AutoResizeTitle({ value, onChange, placeholder, color }: {
+function AutoResizeTitle({
+  value,
+  onChange,
+  placeholder,
+  color,
+}: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
@@ -87,17 +103,29 @@ function NoteEditor({ routeId }: { routeId: string }) {
     return raw ? Number(raw) : undefined;
   })();
 
-  const [savedId, setSavedId] = useState<number | null>(isNew ? null : Number(routeId));
+  const [summary, setSummary] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<number | null>(
+    isNew ? null : Number(routeId),
+  );
   const [title, setTitle] = useState("");
   const [color, setColor] = useState<string | undefined>(undefined);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordDraft, setKeywordDraft] = useState("");
-  const [projectId, setProjectId] = useState<number | undefined>(isNew ? initialProjectId : undefined);
+  const [projectId, setProjectId] = useState<number | undefined>(
+    isNew ? initialProjectId : undefined,
+  );
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [hasSyncedFields, setHasSyncedFields] = useState(false);
   const hasSyncedContentRef = useRef(false);
 
-  const { note, updateNote, togglePin, toggleFavourite, deleteNote } = useNote(savedId ?? 0);
+  const {
+    note,
+    updateNote,
+    togglePin,
+    toggleFavourite,
+    deleteNote,
+    summarizeNote,
+  } = useNote(savedId ?? 0);
   const { createNote } = useNotes();
   const { notes: pinnedNotes } = useNotes({ pinned: true });
   const { notes: favouriteNotes } = useNotes({ favourite: true });
@@ -106,7 +134,9 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ link: { openOnClick: false, autolink: true } }),
-      Placeholder.configure({ placeholder: "Napisz coś, albo wpisz „/” po komendy…" }),
+      Placeholder.configure({
+        placeholder: "Napisz coś, albo wpisz „/” po komendy…",
+      }),
       TaskList,
       TaskItem.configure({ nested: true }),
       TextStyle,
@@ -114,7 +144,9 @@ function NoteEditor({ routeId }: { routeId: string }) {
       Highlight.configure({ multicolor: true }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TableKit.configure({ table: { resizable: true } }),
-      ImageExtension.configure({ HTMLAttributes: { class: "note-editor-image" } }),
+      ImageExtension.configure({
+        HTMLAttributes: { class: "note-editor-image" },
+      }),
       Markdown.configure({ html: true, transformPastedText: true }),
       SlashCommand,
     ],
@@ -136,7 +168,9 @@ function NoteEditor({ routeId }: { routeId: string }) {
 
   useEffect(() => {
     if (!isNew && note.data && editor && !hasSyncedContentRef.current) {
-      editor.commands.setContent(note.data.content ?? "", { emitUpdate: false });
+      editor.commands.setContent(note.data.content ?? "", {
+        emitUpdate: false,
+      });
       hasSyncedContentRef.current = true;
     }
   }, [note.data, isNew, editor]);
@@ -156,7 +190,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
         });
         setSavedId(res.data.id);
       } else {
-        await updateNote.mutateAsync({ title: title.trim() || "Bez tytułu", content });
+        await updateNote.mutateAsync({
+          title: title.trim() || "Bez tytułu",
+          content,
+        });
       }
       setSaveStatus("saved");
     } catch {
@@ -174,7 +211,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
     triggerAutosave();
   };
 
-  const persistField = async (patch: { color?: string | null; keywords?: string[] }) => {
+  const persistField = async (patch: {
+    color?: string | null;
+    keywords?: string[];
+  }) => {
     setSaveStatus("saving");
     try {
       if (!savedId) {
@@ -225,13 +265,18 @@ function NoteEditor({ routeId }: { routeId: string }) {
       navigate(backToNotesPath);
       return;
     }
-    if (!window.confirm("Usunąć tę notatkę? Tej operacji nie można cofnąć.")) return;
-    deleteNote.mutate(undefined, { onSuccess: () => navigate(backToNotesPath) });
+    if (!window.confirm("Usunąć tę notatkę? Tej operacji nie można cofnąć."))
+      return;
+    deleteNote.mutate(undefined, {
+      onSuccess: () => navigate(backToNotesPath),
+    });
   };
 
   const currentProject = projects.data?.find((p) => p.id === projectId);
-  const isPinned = !!savedId && (pinnedNotes.data ?? []).some((n) => n.id === savedId);
-  const isFavourite = !!savedId && (favouriteNotes.data ?? []).some((n) => n.id === savedId);
+  const isPinned =
+    !!savedId && (pinnedNotes.data ?? []).some((n) => n.id === savedId);
+  const isFavourite =
+    !!savedId && (favouriteNotes.data ?? []).some((n) => n.id === savedId);
 
   return (
     <div className="flex h-screen bg-[#0f1014]">
@@ -259,7 +304,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   title="Przypnij / odepnij"
                   className={`p-1.5 rounded-md transition-colors ${isPinned ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
                 >
-                  <Pin size={15} className={isPinned ? "fill-amber-400/30" : ""} />
+                  <Pin
+                    size={15}
+                    className={isPinned ? "fill-amber-400/30" : ""}
+                  />
                 </button>
                 <button
                   onClick={() => toggleFavourite.mutate()}
@@ -267,7 +315,26 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   title="Dodaj / usuń z ulubionych"
                   className={`p-1.5 rounded-md transition-colors ${isFavourite ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
                 >
-                  <Star size={15} className={isFavourite ? "fill-amber-400" : ""} />
+                  <Star
+                    size={15}
+                    className={isFavourite ? "fill-amber-400" : ""}
+                  />
+                </button>
+                <button
+                  onClick={() =>
+                    summarizeNote.mutate(undefined, {
+                      onSuccess: (res) => setSummary(res.data.summary),
+                    })
+                  }
+                  disabled={summarizeNote.isPending}
+                  title="Streść notatkę"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 transition-colors"
+                >
+                  {summarizeNote.isPending ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={15} />
+                  )}
                 </button>
               </>
             )}
@@ -287,7 +354,9 @@ function NoteEditor({ routeId }: { routeId: string }) {
           <div className="max-w-5xl mx-auto px-10 py-10">
             {/* Color + project meta */}
             <div className="flex items-center flex-wrap gap-4 mb-6">
-              <span className="text-[11px] text-gray-600 uppercase tracking-wide">Kolor notatki</span>
+              <span className="text-[11px] text-gray-600 uppercase tracking-wide">
+                Kolor notatki
+              </span>
               <div className="flex items-center gap-2">
                 {COLOR_PALETTE.map((c) => (
                   <button
@@ -295,11 +364,15 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     onClick={() => handleColorSelect(c)}
                     title={c}
                     className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center transition-transform ${
-                      color === c ? "ring-2 ring-offset-2 ring-offset-[#0f1014] ring-white scale-110" : "hover:scale-110"
+                      color === c
+                        ? "ring-2 ring-offset-2 ring-offset-[#0f1014] ring-white scale-110"
+                        : "hover:scale-110"
                     }`}
                     style={{ backgroundColor: c }}
                   >
-                    {color === c && <Check size={12} className="text-white" strokeWidth={3} />}
+                    {color === c && (
+                      <Check size={12} className="text-white" strokeWidth={3} />
+                    )}
                   </button>
                 ))}
                 {color && (
@@ -318,12 +391,18 @@ function NoteEditor({ routeId }: { routeId: string }) {
               {isNew && !savedId ? (
                 <select
                   value={projectId ?? ""}
-                  onChange={(e) => setProjectId(e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    setProjectId(
+                      e.target.value ? Number(e.target.value) : undefined,
+                    )
+                  }
                   className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-2.5 py-1 text-xs text-gray-300 outline-none"
                 >
                   <option value="">Notatka prywatna</option>
                   {(projects.data ?? []).map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
                   ))}
                 </select>
               ) : (
@@ -334,7 +413,27 @@ function NoteEditor({ routeId }: { routeId: string }) {
             </div>
 
             {/* Title */}
-            <AutoResizeTitle value={title} onChange={handleTitleChange} placeholder="Bez tytułu" color={color} />
+            {summary && (
+              <div className="flex items-start gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-3 mb-6 text-sm text-gray-200">
+                <Sparkles
+                  size={15}
+                  className="text-indigo-400 flex-shrink-0 mt-0.5"
+                />
+                <p className="flex-1 m-0">{summary}</p>
+                <button
+                  onClick={() => setSummary(null)}
+                  className="text-gray-500 hover:text-gray-300 flex-shrink-0"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+            <AutoResizeTitle
+              value={title}
+              onChange={handleTitleChange}
+              placeholder="Bez tytułu"
+              color={color}
+            />
 
             {/* Keywords */}
             <div className="flex items-center flex-wrap gap-1.5 mt-4 mb-6">
@@ -344,7 +443,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md bg-white/[0.06] text-gray-300"
                 >
                   {kw}
-                  <button onClick={() => removeKeyword(kw)} className="text-gray-500 hover:text-gray-200">
+                  <button
+                    onClick={() => removeKeyword(kw)}
+                    className="text-gray-500 hover:text-gray-200"
+                  >
                     <X size={10} />
                   </button>
                 </span>
