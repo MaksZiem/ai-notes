@@ -10,7 +10,7 @@ export function useNote(noteId: number) {
     queryClient.invalidateQueries({ queryKey: ["notes", noteId] });
   const invalidateAll = () => {
     invalidateNote();
-    queryClient.invalidateQueries({ queryKey: ["notes", "all"] });
+    queryClient.invalidateQueries({ queryKey: ["notes"] });
   };
 
   const note = useQuery<Note>({

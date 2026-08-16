@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -80,14 +80,19 @@ function AutoResizeTitle({ value, onChange, placeholder, color }: {
 
 function NoteEditor({ routeId }: { routeId: string }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isNew = routeId === "new";
+  const initialProjectId = (() => {
+    const raw = searchParams.get("projectId");
+    return raw ? Number(raw) : undefined;
+  })();
 
   const [savedId, setSavedId] = useState<number | null>(isNew ? null : Number(routeId));
   const [title, setTitle] = useState("");
   const [color, setColor] = useState<string | undefined>(undefined);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordDraft, setKeywordDraft] = useState("");
-  const [projectId, setProjectId] = useState<number | undefined>(undefined);
+  const [projectId, setProjectId] = useState<number | undefined>(isNew ? initialProjectId : undefined);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [hasSyncedFields, setHasSyncedFields] = useState(false);
   const hasSyncedContentRef = useRef(false);
@@ -213,13 +218,15 @@ function NoteEditor({ routeId }: { routeId: string }) {
     persistField({ keywords: next });
   };
 
+  const backToNotesPath = projectId ? `/notes?projectId=${projectId}` : "/notes";
+
   const handleDelete = () => {
     if (!savedId) {
-      navigate("/notes");
+      navigate(backToNotesPath);
       return;
     }
     if (!window.confirm("Usunąć tę notatkę? Tej operacji nie można cofnąć.")) return;
-    deleteNote.mutate(undefined, { onSuccess: () => navigate("/notes") });
+    deleteNote.mutate(undefined, { onSuccess: () => navigate(backToNotesPath) });
   };
 
   const currentProject = projects.data?.find((p) => p.id === projectId);
@@ -234,7 +241,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
         {/* Top bar */}
         <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06] flex-shrink-0">
           <button
-            onClick={() => navigate("/notes")}
+            onClick={() => navigate(backToNotesPath)}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-200 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
           >
             <ArrowLeft size={15} />

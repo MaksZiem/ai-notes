@@ -1,29 +1,65 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, Plus, LayoutGrid, List, Pin } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useNotes } from "../hooks/useNotes";
+import { useProjectNotes } from "../hooks/useProjectNotes";
+import { useProject } from "../hooks/useProject";
 import { useDebounce } from "../hooks/useDebounce";
 import type { Note } from "../types/note";
 import { NoteCard } from "../components/layout/NoteCard";
 import { NoteViewType } from "../enums/noteView";
 
+function noteMatchesSearch(note: Note, query: string) {
+  const q = query.toLowerCase();
+  return (
+    note.title.toLowerCase().includes(q) ||
+    !!note.content?.toLowerCase().includes(q) ||
+    (note.keywords ?? []).some((k) => k.toLowerCase().includes(q))
+  );
+}
+
 export default function NotesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectIdParam = searchParams.get("projectId");
+  const projectId = projectIdParam ? Number(projectIdParam) : undefined;
+  const isProjectScoped = projectId !== undefined && !Number.isNaN(projectId);
+
   const [search, setSearch] = useState("");
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
 
   const debouncedSearch = useDebounce(search, 300);
 
+  const { project } = useProject(isProjectScoped ? projectId! : 0);
+
   const {
-    notes: { data: pinnedNotes = [] },
-  } = useNotes({ pinned: true });
+    notes: { data: globalPinnedNotes = [] },
+  } = useNotes({ pinned: true }, { enabled: !isProjectScoped });
   const {
-    notes: { data: favouriteNotes = [] },
-  } = useNotes({ favourite: true });
+    notes: { data: globalFavouriteNotes = [] },
+  } = useNotes({ favourite: true }, { enabled: !isProjectScoped });
   const {
-    notes: { data: allNotes = [] },
-  } = useNotes({ search: debouncedSearch || undefined });
+    notes: { data: globalAllNotes = [] },
+  } = useNotes({ search: debouncedSearch || undefined }, { enabled: !isProjectScoped });
+
+  const {
+    notes: { data: projectPinnedNotes = [] },
+  } = useProjectNotes(isProjectScoped ? projectId! : 0, { pinned: true });
+  const {
+    notes: { data: projectFavouriteNotes = [] },
+  } = useProjectNotes(isProjectScoped ? projectId! : 0, { favourite: true });
+  const {
+    notes: { data: projectAllNotesRaw = [] },
+  } = useProjectNotes(isProjectScoped ? projectId! : 0);
+
+  const projectAllNotes = debouncedSearch
+    ? projectAllNotesRaw.filter((n) => noteMatchesSearch(n, debouncedSearch))
+    : projectAllNotesRaw;
+
+  const pinnedNotes = isProjectScoped ? projectPinnedNotes : globalPinnedNotes;
+  const favouriteNotes = isProjectScoped ? projectFavouriteNotes : globalFavouriteNotes;
+  const allNotes = isProjectScoped ? projectAllNotes : globalAllNotes;
 
   const pinnedIds = new Set(pinnedNotes.map((n) => n.id));
   const favouriteIds = new Set(favouriteNotes.map((n) => n.id));
@@ -34,6 +70,7 @@ export default function NotesPage() {
   const hasResults = filteredPinned.length + filteredRest.length > 0;
 
   const openNote = (noteId: number) => navigate(`/notes/${noteId}`);
+  const createNotePath = isProjectScoped ? `/notes/new?projectId=${projectId}` : "/notes/new";
 
   const renderGrid = (notes: Note[], pinned = false) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -58,11 +95,20 @@ export default function NotesPage() {
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
           <div>
+            {isProjectScoped && (
+              <button
+                onClick={() => navigate("/projects")}
+                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-200 transition-colors mb-1.5"
+              >
+                <ArrowLeft size={13} />
+                Projekty
+              </button>
+            )}
             <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">
-              Notatki
+              {isProjectScoped ? project.data?.name ?? "Projekt" : "Notatki"}
             </h1>
             <p className="text-xs text-gray-600 mt-1 m-0">
-              {totalCount} notatek łącznie
+              {totalCount} notatek {isProjectScoped ? "w projekcie" : "łącznie"}
             </p>
           </div>
 
@@ -101,7 +147,7 @@ export default function NotesPage() {
             </div>
 
             <button
-              onClick={() => navigate("/notes/new")}
+              onClick={() => navigate(createNotePath)}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors duration-150"
             >
               <Plus size={15} />

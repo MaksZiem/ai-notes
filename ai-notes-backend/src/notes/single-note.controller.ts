@@ -68,7 +68,7 @@ export class SingleNoteController {
     pinned?: boolean,
     @Query('favourite', new DefaultValuePipe(false), ParseBoolPipe)
     favourite?: boolean,
-    @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('search') search?: string,
   ) {
     return this.notesService.findAllNotes(

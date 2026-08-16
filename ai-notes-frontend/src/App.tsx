@@ -5,6 +5,7 @@ import { PermissionsProvider } from './context/PermissionsContext'
 import LoginPage from './pages/Auth/LoginPage'
 import { PrivateRoute } from './components/routes/PrivateRoute'
 import { AdminRoute } from './components/routes/AdminRoute'
+import DashboardPage from './pages/DashboardPage'
 import NotesPage from './pages/NotesPage'
 import NoteEditorPage from './pages/NoteEditorPage'
 import ProjectsPage from './pages/ProjectsPage'
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/register" element={<RegisterPage />} />
 
               <Route element={<PrivateRoute />}>
+                <Route path="/" element={<DashboardPage />} />
                 <Route path="/notes" element={<NotesPage />} />
                 <Route path="/notes/:id" element={<NoteEditorPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />

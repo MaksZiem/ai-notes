@@ -7,7 +7,7 @@ export function useProjectNotes(projectId: number, filters?: { pinned?: boolean;
   const queryClient = useQueryClient();
   const base = `/projects/${projectId}/notes`;
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["notes", "project", projectId] });
+    queryClient.invalidateQueries({ queryKey: ["notes"] });
 
   const notes = useQuery<Note[]>({
     queryKey: ["notes", "project", projectId, filters],

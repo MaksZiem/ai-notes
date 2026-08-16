@@ -3,10 +3,13 @@ import { api } from "../api/client";
 import type { Note } from "../types/note";
 
 // useNotes lista wszystkich notatek + createNote
-export function useNotes(filters?: { pinned?: boolean; favourite?: boolean; limit?: number; search?: string }) {
+export function useNotes(
+  filters?: { pinned?: boolean; favourite?: boolean; limit?: number; search?: string },
+  options?: { enabled?: boolean }
+) {
   const queryClient = useQueryClient();
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["notes", "all"] });
+    queryClient.invalidateQueries({ queryKey: ["notes"] });
 
   const notes = useQuery<Note[]>({
     queryKey: ["notes", "all", filters],
@@ -14,6 +17,7 @@ export function useNotes(filters?: { pinned?: boolean; favourite?: boolean; limi
       const { data } = await api.get("/notes", { params: filters });
       return data;
     },
+    enabled: options?.enabled ?? true,
   });
 
   const createNote = useMutation({
