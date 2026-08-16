@@ -13,6 +13,7 @@ import { ProjectMember } from './entities/project-member.entity';
 import { AccessLevel, hasAccess } from 'src/enums/access-level.enum';
 import { GrantAccessDto } from './dtos/grant-access.dto';
 import { UserProjectPreference } from './entities/project-user-preference.entity';
+import { assignDefined } from 'src/helpers/assign-defined';
 
 @Injectable()
 export class ProjectsService {
@@ -143,7 +144,7 @@ export class ProjectsService {
     callerRole: UserRole,
   ): Promise<Project> {
     const project = await this.findOne(id, callerId, callerRole, AccessLevel.EDIT);
-    Object.assign(project, dto);
+    assignDefined(project, dto);
     return this.repo.save(project);
   }
 

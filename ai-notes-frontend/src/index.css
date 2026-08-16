@@ -108,3 +108,156 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ── Note editor (Tiptap) ───────────────────────────────────────────────── */
+.note-editor-content {
+  min-height: 50vh;
+  color: #d1d5db;
+  font-size: 15px;
+  line-height: 1.7;
+  outline: none;
+}
+.note-editor-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #4b5563;
+  pointer-events: none;
+  height: 0;
+}
+.note-editor-content > * + * {
+  margin-top: 0.5em;
+}
+.note-editor-content h1 {
+  font-size: 1.7em;
+  font-weight: 700;
+  color: #f3f4f6;
+  margin: 0.7em 0 0.2em;
+  letter-spacing: normal;
+}
+.note-editor-content h2 {
+  font-size: 1.35em;
+  font-weight: 700;
+  color: #f3f4f6;
+  margin: 0.6em 0 0.2em;
+}
+.note-editor-content h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #f3f4f6;
+  margin: 0.5em 0 0.2em;
+}
+.note-editor-content ul,
+.note-editor-content ol {
+  padding-left: 1.4em;
+}
+.note-editor-content ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+.note-editor-content ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+.note-editor-content ul[data-type="taskList"] li > label {
+  margin-top: 0.35em;
+  user-select: none;
+}
+.note-editor-content ul[data-type="taskList"] input[type="checkbox"] {
+  accent-color: #6366f1;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+.note-editor-content ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  color: #6b7280;
+  text-decoration: line-through;
+}
+.note-editor-content blockquote {
+  border-left: 3px solid #6366f1;
+  padding-left: 0.9em;
+  color: #9ca3af;
+  font-style: italic;
+}
+.note-editor-content pre {
+  background: #1f2028;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  overflow-x: auto;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.85em;
+}
+.note-editor-content code {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  color: #e5e7eb;
+}
+.note-editor-content pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+.note-editor-content hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 1.2em 0;
+}
+.note-editor-content a {
+  color: #818cf8;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.note-editor-content mark {
+  border-radius: 3px;
+  padding: 0.05em 0.15em;
+  color: inherit;
+}
+.note-editor-content img,
+.note-editor-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.4em 0;
+}
+.note-editor-content img.ProseMirror-selectednode {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+.note-editor-content table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0.5em 0;
+  overflow: hidden;
+}
+.note-editor-content th,
+.note-editor-content td {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.4em 0.6em;
+  vertical-align: top;
+  position: relative;
+}
+.note-editor-content th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  text-align: left;
+  color: #e5e7eb;
+}
+.note-editor-content .selectedCell {
+  background: rgba(99, 102, 241, 0.15);
+}
+.note-editor-content .tableWrapper {
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+.note-editor-content .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #6366f1;
+  pointer-events: none;
+}

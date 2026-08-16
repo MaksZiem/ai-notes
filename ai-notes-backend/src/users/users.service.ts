@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { capitalize } from 'src/helpers/capitalize';
 import { hashPassword } from 'src/helpers/hash-password';
+import { assignDefined } from 'src/helpers/assign-defined';
 
 @Injectable()
 export class UsersService {
@@ -39,7 +40,7 @@ export class UsersService {
     if(attrs.password) {
       attrs.password = await hashPassword(attrs.password)
     }
-    Object.assign(user, attrs)
+    assignDefined(user, attrs)
     return this.repo.save(user)
   }
 

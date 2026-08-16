@@ -17,7 +17,7 @@ export function useNotes(filters?: { pinned?: boolean; favourite?: boolean; limi
   });
 
   const createNote = useMutation({
-    mutationFn: (body: { title: string; content?: string; projectId?: number }) =>
+    mutationFn: (body: { title: string; content?: string; projectId?: number; color?: string; keywords?: string[] }) =>
       api.post("/notes", body),
     onSuccess: invalidate,
   });

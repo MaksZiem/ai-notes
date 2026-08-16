@@ -75,6 +75,7 @@ export default function Sidebar() {
               {recentNotes.map((n) => (
                 <button
                   key={n.id}
+                  onClick={() => navigate(`/notes/${n.id}`)}
                   className="w-full flex flex-col items-start pl-7 pr-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors duration-100"
                 >
                   <span className="text-[12.5px] text-gray-300 font-medium truncate w-full text-left">{n.title}</span>

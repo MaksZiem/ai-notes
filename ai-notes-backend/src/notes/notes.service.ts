@@ -15,6 +15,7 @@ import { GrantAccessDto } from 'src/projects/dtos/grant-access.dto';
 import { ProjectMember } from 'src/projects/entities/project-member.entity';
 import { UserNotePreference } from './entities/note-user-preference.entity';
 import { Note } from './entities/note.entity';
+import { assignDefined } from 'src/helpers/assign-defined';
 
 @Injectable()
 export class NotesService {
@@ -305,7 +306,7 @@ export class NotesService {
     if (dto.keywords) {
       dto.keywords = dto.keywords.map((k) => k.toUpperCase());
     }
-    Object.assign(note, dto);
+    assignDefined(note, dto);
     return this.repo.save(note);
   }
 

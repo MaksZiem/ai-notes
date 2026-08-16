@@ -1,33 +1,16 @@
 import { Pin, Star, Clock } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../api/client";
 import type { Note } from "../../types/note";
 import { tagColor } from "../../utils/noteColors";
 import { formatDate } from "../../utils/formatDate";
 import { NOTE_DEFAULT_COLOR } from "../../consts/noteColor";
+import { useNoteQuickActions } from "../../hooks/useNoteQuickActions";
 
 interface NoteCardProps {
   note: Note;
   list?: boolean;
   pinned?: boolean;
   favourite?: boolean;
-}
-
-function useNoteQuickActions(noteId: number) {
-  const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["notes"] });
-
-  const togglePin = useMutation({
-    mutationFn: () => api.patch(`/notes/${noteId}/pin`),
-    onSuccess: invalidate,
-  });
-
-  const toggleFavourite = useMutation({
-    mutationFn: () => api.patch(`/notes/${noteId}/favourite`),
-    onSuccess: invalidate,
-  });
-
-  return { togglePin, toggleFavourite };
+  onClick?: () => void;
 }
 
 function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: boolean; favourite: boolean }) {
@@ -57,7 +40,7 @@ function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: b
   );
 }
 
-export function NoteCard({ note, list = false, pinned = false, favourite = false }: NoteCardProps) {
+export function NoteCard({ note, list = false, pinned = false, favourite = false, onClick }: NoteCardProps) {
   const noteColor = note.color ?? NOTE_DEFAULT_COLOR;
   const projectColor = note.project?.color ?? NOTE_DEFAULT_COLOR;
   const keywords = note.keywords ?? [];
@@ -65,7 +48,10 @@ export function NoteCard({ note, list = false, pinned = false, favourite = false
 
   if (list) {
     return (
-      <div className="group flex items-start gap-4 px-5 py-4 bg-[#1a1b23] border border-white/[0.06] rounded-xl hover:border-indigo-500/30 hover:bg-[#1e1f29] transition-all duration-200 cursor-pointer">
+      <div
+        onClick={onClick}
+        className="group flex items-start gap-4 px-5 py-4 bg-[#1a1b23] border border-white/[0.06] rounded-xl hover:border-indigo-500/30 hover:bg-[#1e1f29] transition-all duration-200 cursor-pointer"
+      >
         <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: noteColor }} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -96,7 +82,10 @@ export function NoteCard({ note, list = false, pinned = false, favourite = false
   }
 
   return (
-    <div className="group flex flex-col bg-[#1a1b23] border border-white/[0.06] rounded-2xl p-5 hover:border-indigo-500/30 hover:bg-[#1e1f29] transition-all duration-200 cursor-pointer h-full">
+    <div
+      onClick={onClick}
+      className="group flex flex-col bg-[#1a1b23] border border-white/[0.06] rounded-2xl p-5 hover:border-indigo-500/30 hover:bg-[#1e1f29] transition-all duration-200 cursor-pointer h-full"
+    >
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
           <h3 className="text-[14px] font-semibold text-gray-100 leading-snug truncate">{note.title}</h3>

@@ -32,7 +32,7 @@ export function useNote(noteId: number) {
   });
 
   const updateNote = useMutation({
-    mutationFn: (body: { title?: string; content?: string }) =>
+    mutationFn: (body: { title?: string; content?: string; color?: string | null; keywords?: string[] }) =>
       api.patch(`/notes/${noteId}`, body),
     onSuccess: invalidateAll,
   });

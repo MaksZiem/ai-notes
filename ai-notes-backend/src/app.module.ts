@@ -7,6 +7,7 @@ import { APP_PIPE } from '@nestjs/core';
 import { NotesModule } from './notes/notes.module';
 import { I18nModule, AcceptLanguageResolver } from 'nestjs-i18n';
 import { ProjectsModule } from './projects/projects.module';
+import { UploadsModule } from './uploads/uploads.module';
 import * as path from 'path';
 import { Project } from './projects/entities/project.entity';
 import { ProjectMember } from './projects/entities/project-member.entity';
@@ -53,6 +54,7 @@ import { Note } from './notes/entities/note.entity';
     UsersModule,
     NotesModule,
     ProjectsModule,
+    UploadsModule,
   ],
   providers: [
     {

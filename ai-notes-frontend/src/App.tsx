@@ -6,6 +6,7 @@ import LoginPage from './pages/Auth/LoginPage'
 import { PrivateRoute } from './components/routes/PrivateRoute'
 import { AdminRoute } from './components/routes/AdminRoute'
 import NotesPage from './pages/NotesPage'
+import NoteEditorPage from './pages/NoteEditorPage'
 import ProjectsPage from './pages/ProjectsPage'
 import AdminPage from './pages/AdminPage'
 import RegisterPage from './pages/Auth/RegisterPage'
@@ -28,6 +29,7 @@ export default function App() {
 
               <Route element={<PrivateRoute />}>
                 <Route path="/notes" element={<NotesPage />} />
+                <Route path="/notes/:id" element={<NoteEditorPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
 
                 <Route element={<AdminRoute />}>
