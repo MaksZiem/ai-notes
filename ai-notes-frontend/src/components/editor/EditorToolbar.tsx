@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from "react";
-import type { Editor } from "@tiptap/react";
+import { useEditorState, type Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
@@ -34,6 +34,8 @@ import { ColorPickerButton } from "./ColorPickerButton";
 import { HIGHLIGHT_COLORS } from "./editorColors";
 import { useImageUpload } from "../../hooks/useImageUpload";
 import { useAiContinue } from "../../hooks/useAiContinue";
+import { useAiRewrite } from "../../hooks/useAiRewrite";
+import { AiRewriteButton, type RewriteMode } from "./AiRewriteButton";
 
 interface ToolbarButtonProps {
   active?: boolean;
@@ -83,6 +85,11 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
     | undefined;
   const inTable = editor.isActive("table");
   const aiContinue = useAiContinue();
+  const aiRewrite = useAiRewrite();
+  const { hasSelection } = useEditorState({
+    editor,
+    selector: ({ editor }) => ({ hasSelection: !editor.state.selection.empty }),
+  });
   const handleImagePick = () => fileInputRef.current?.click();
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +113,20 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         editor.chain().focus().insertContentAt(from, continuation).run();
       },
     });
+  };
+
+  const handleRewrite = (mode: RewriteMode) => {
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to, "\n", "\n");
+    if (!selectedText.trim()) return;
+    aiRewrite.mutate(
+      { text: selectedText, mode },
+      {
+        onSuccess: (result) => {
+          editor.chain().focus().insertContentAt({ from, to }, result).run();
+        },
+      },
+    );
   };
 
   return (
@@ -331,6 +352,12 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       >
         <Redo2 size={14} />
       </ToolbarButton>
+      <Divider />
+      <AiRewriteButton
+        disabled={!hasSelection || aiRewrite.isPending}
+        loading={aiRewrite.isPending}
+        onSelect={handleRewrite}
+      />
       <Divider />
       <ToolbarButton
         title="Kontynuuj pisanie (AI)"
