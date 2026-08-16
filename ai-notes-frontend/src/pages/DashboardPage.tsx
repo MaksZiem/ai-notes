@@ -125,7 +125,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="flex flex-col gap-2">
                   {(recentProjects.data ?? []).map((p) => (
-                    <RecentProjectRow key={p.id} project={p} onClick={() => navigate(`/notes?projectId=${p.id}`)} />
+                    <RecentProjectRow key={p.id} project={p} onClick={() => navigate(`/projects/${p.id}/notes`)} />
                   ))}
                 </div>
               )}

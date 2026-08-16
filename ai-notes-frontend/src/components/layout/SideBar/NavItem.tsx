@@ -1,16 +1,19 @@
 import { useLocation } from "react-router-dom";
 
 export default function NavItem({
-  label, path, icon, badge, onClick,
+  label, path, icon, badge, onClick, matchPrefix = false,
 }: {
   label: string;
   path: string;
   icon: React.ReactNode;
   badge?: number;
   onClick: () => void;
+  matchPrefix?: boolean;
 }) {
   const location = useLocation();
-  const active = location.pathname === path;
+  const active =
+    location.pathname === path ||
+    (matchPrefix && location.pathname.startsWith(`${path}/`));
 
   return (
     <button

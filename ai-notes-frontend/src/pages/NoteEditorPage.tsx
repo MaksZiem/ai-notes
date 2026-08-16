@@ -218,7 +218,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
     persistField({ keywords: next });
   };
 
-  const backToNotesPath = projectId ? `/notes?projectId=${projectId}` : "/notes";
+  const backToNotesPath = projectId ? `/projects/${projectId}/notes` : "/notes";
 
   const handleDelete = () => {
     if (!savedId) {

@@ -54,8 +54,8 @@ export default function Sidebar() {
         {/* Main links */}
         <div className="flex flex-col gap-0.5 mb-2">
           <NavItem label="Strona główna"  path="/"               icon={<Home size={15} />}      onClick={() => navigate("/")} />
-          <NavItem label="Notatki"        path="/notes"         icon={<FileText size={15} />}  onClick={() => navigate("/notes")} />
-          <NavItem label="Projekty"       path="/projects"      icon={<Folder size={15} />}    onClick={() => navigate("/projects")} />
+          <NavItem label="Notatki"        path="/notes"         icon={<FileText size={15} />}  onClick={() => navigate("/notes")} matchPrefix />
+          <NavItem label="Projekty"       path="/projects"      icon={<Folder size={15} />}    onClick={() => navigate("/projects")} matchPrefix />
           <NavItem label="Powiadomienia"  path="/notifications" icon={<Bell size={15} />}       badge={unreadCount} onClick={() => navigate("/notifications")} />
           <NavItem label="Ustawienia"     path="/settings"      icon={<Settings size={15} />}   onClick={() => navigate("/settings")} />
         </div>

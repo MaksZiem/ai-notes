@@ -157,7 +157,7 @@ export default function ProjectsPage() {
   const favouriteIds = new Set((favouriteProjects.data ?? []).map((p) => p.id));
 
   const handleProjectClick = (projectId: number) => {
-    navigate(`/notes?projectId=${projectId}`);
+    navigate(`/projects/${projectId}/notes`);
   };
 
   const handleCreateProject = (e: FormEvent) => {

@@ -33,6 +33,7 @@ export default function App() {
                 <Route path="/notes" element={<NotesPage />} />
                 <Route path="/notes/:id" element={<NoteEditorPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/projects/:id/notes" element={<NotesPage />} />
 
                 <Route element={<AdminRoute />}>
                   <Route path="/admin" element={<AdminPage />} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useNotes } from "../hooks/useNotes";
@@ -21,8 +21,7 @@ function noteMatchesSearch(note: Note, query: string) {
 
 export default function NotesPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const projectIdParam = searchParams.get("projectId");
+  const { id: projectIdParam } = useParams<{ id: string }>();
   const projectId = projectIdParam ? Number(projectIdParam) : undefined;
   const isProjectScoped = projectId !== undefined && !Number.isNaN(projectId);
 

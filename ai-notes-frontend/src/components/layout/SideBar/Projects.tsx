@@ -17,7 +17,7 @@ export default function Projects({ projects, loading = false }: { projects: Proj
           projects.map((p) => (
             <button
               key={p.id}
-              onClick={() => navigate(`/notes?projectId=${p.id}`)}
+              onClick={() => navigate(`/projects/${p.id}/notes`)}
               className="w-full flex items-center gap-2 pl-7 pr-2.5 py-1.5 rounded-lg text-[12.5px] text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-colors duration-100 text-left"
             >
               <span
