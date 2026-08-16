@@ -39,16 +39,25 @@ export class AiController {
       throw new BadRequestException('Nieprawidłowy tryb');
     }
 
-    const result = await this.aiService.rewriteText(text, mode)
-    return {result}
+    const result = await this.aiService.rewriteText(text, mode);
+    return { result };
   }
 
   @Post('title')
   async generateTitle(@Body('content') content: string) {
-    if(!content?.trim()) {
-      throw new BadRequestException('Brak treści')
+    if (!content?.trim()) {
+      throw new BadRequestException('Brak treści');
     }
-    const title = await this.aiService.generateTitle(content)
-    return {title}
+    const title = await this.aiService.generateTitle(content);
+    return { title };
+  }
+
+  @Post('keywords')
+  async suggestKeywords(@Body('content') content: string) {
+    if (!content?.trim()) {
+      throw new BadRequestException('Brak treści');
+    }
+    const keywords = await this.aiService.suggestKeywords(content)
+    return {keywords}
   }
 }

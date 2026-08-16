@@ -76,4 +76,19 @@ export class AiService {
     ].join('\n');
     return this.generateText(prompt);
   }
+
+  async suggestKeywords(content: string): Promise<string[]> {
+    const prompt = [
+      'Zaproponuj 3-5 krótkich słów kluczowych (po polsku) opisujących poniższą notatkę.',
+      'Zwróć je jako listę oddzieloną przecinkami, bez numeracji i bez komentarzy.',
+      '',
+      'Notatka:',
+      content,
+    ].join('\n');
+    const result = await this.generateText(prompt);
+    return result
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
+  }
 }

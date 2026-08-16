@@ -21,6 +21,7 @@ import { useNotes } from "../hooks/useNotes";
 import { useProjects } from "../hooks/useProjects";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import { useAiTitle } from "../hooks/useAiTitle";
+import { useAiKeywords } from "../hooks/useAiKeywords";
 import {
   ArrowLeft,
   Trash2,
@@ -132,6 +133,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const { notes: favouriteNotes } = useNotes({ favourite: true });
   const { projects } = useProjects();
   const aiTitle = useAiTitle();
+  const aiKeywords = useAiKeywords();
 
   const editor = useEditor({
     extensions: [
@@ -266,6 +268,24 @@ function NoteEditor({ routeId }: { routeId: string }) {
     const next = keywords.filter((k) => k !== value);
     setKeywords(next);
     persistField({ keywords: next });
+  };
+
+  const handleSuggestKeywords = () => {
+    const content = editor?.storage.markdown.getMarkdown() ?? "";
+    if (!content.trim()) return;
+    aiKeywords.mutate(content, {
+      onSuccess: (suggested) => {
+        const merged = [...keywords];
+        for (const kw of suggested) {
+          const clean = kw.trim();
+          if (clean && !merged.some((k) => k.toLowerCase() === clean.toLowerCase())) {
+            merged.push(clean);
+          }
+        }
+        setKeywords(merged);
+        persistField({ keywords: merged });
+      },
+    });
   };
 
   const backToNotesPath = projectId ? `/projects/${projectId}/notes` : "/notes";
@@ -488,6 +508,19 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 placeholder="+ słowo kluczowe"
                 className="bg-transparent text-[11px] text-gray-400 placeholder-gray-600 outline-none py-1 px-1 w-32"
               />
+              <button
+                onClick={handleSuggestKeywords}
+                disabled={aiKeywords.isPending}
+                title="Zasugeruj słowa kluczowe (AI)"
+                className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40"
+              >
+                {aiKeywords.isPending ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <Sparkles size={12} />
+                )}
+                Zasugeruj
+              </button>
             </div>
 
             {/* Toolbar */}
