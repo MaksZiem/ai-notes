@@ -15,6 +15,7 @@ import { NoteMember } from './notes/entities/note-member.entity';
 import { UserProjectPreference } from './projects/entities/project-user-preference.entity';
 import { UserNotePreference } from './notes/entities/note-user-preference.entity';
 import { Note } from './notes/entities/note.entity';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { Note } from './notes/entities/note.entity';
     NotesModule,
     ProjectsModule,
     UploadsModule,
+    AiModule
   ],
   providers: [
     {

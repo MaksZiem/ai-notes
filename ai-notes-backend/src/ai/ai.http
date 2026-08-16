@@ -1,0 +1,26 @@
+### Zaloguj się w src/users/request.http (POST /auth/signin), skopiuj access_token z odpowiedzi i wklej poniżej
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiZW1haWwiOiJtYWtzQG1haWwuY29tIiwicm9sZSI6IlVTRVIiLCJuYW1lIjoiTWF4Iiwic3VybmFtZSI6IlppZW1iaWNraSIsImlhdCI6MTc4NjkwMTQxNywiZXhwIjoxNzg3NTA2MjE3fQ._JjC0W8d13aYyKuZU4H4B4qRhLnODvNV3MkAdJiX-wc
+
+### Ping - happy path
+POST http://localhost:3000/ai/ping
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+  "prompt": "Powiedz cześć jednym krótkim zdaniem"
+}
+
+### Ping bez promptu
+POST http://localhost:3000/ai/ping
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{}
+
+### Ping bez tokenu -> 401
+POST http://localhost:3000/ai/ping
+content-type: application/json
+
+{
+  "prompt": "To nie powinno przejść"
+}
