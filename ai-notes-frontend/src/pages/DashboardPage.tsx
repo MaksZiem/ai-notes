@@ -108,32 +108,6 @@ export default function DashboardPage() {
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">
-                  Ostatnio aktualizowane projekty
-                </h2>
-                <button
-                  onClick={() => navigate("/projects")}
-                  className="flex items-center gap-1 text-[11.5px] text-indigo-400 hover:text-indigo-300 transition-colors"
-                >
-                  Zobacz wszystkie <ArrowRight size={12} />
-                </button>
-              </div>
-
-              {recentProjects.isLoading ? (
-                <p className="text-xs text-gray-600">Ładowanie...</p>
-              ) : (recentProjects.data ?? []).length === 0 ? (
-                <EmptyState icon={<Folder size={28} className="opacity-30" />} text="Brak projektów. Utwórz pierwszy!" />
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {(recentProjects.data ?? []).map((p) => (
-                    <RecentProjectRow key={p.id} project={p} onClick={() => navigate(`/projects/${p.id}/notes`)} />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">
                   Ostatnio aktualizowane notatki
                 </h2>
                 <button
@@ -152,6 +126,31 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-2">
                   {(recentNotes.data ?? []).map((n) => (
                     <NoteCard key={n.id} note={n} onClick={() => navigate(`/notes/${n.id}`)} list />
+                  ))}
+                </div>
+              )}
+            </section>
+                        <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">
+                  Ostatnio aktualizowane projekty
+                </h2>
+                <button
+                  onClick={() => navigate("/projects")}
+                  className="flex items-center gap-1 text-[11.5px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Zobacz wszystkie <ArrowRight size={12} />
+                </button>
+              </div>
+
+              {recentProjects.isLoading ? (
+                <p className="text-xs text-gray-600">Ładowanie...</p>
+              ) : (recentProjects.data ?? []).length === 0 ? (
+                <EmptyState icon={<Folder size={28} className="opacity-30" />} text="Brak projektów. Utwórz pierwszy!" />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {(recentProjects.data ?? []).map((p) => (
+                    <RecentProjectRow key={p.id} project={p} onClick={() => navigate(`/projects/${p.id}/notes`)} />
                   ))}
                 </div>
               )}
