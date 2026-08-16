@@ -65,4 +65,15 @@ export class AiService {
     ].join('\n');
     return this.generateText(prompt);
   }
+
+  async generateTitle(content: string): Promise<string> {
+    const prompt = [
+      'Wygeneruj krótki, zwięzły tytuł (maksymalnie 6 słów) dla poniższej notatki, po polsku.',
+      'Zwróć wyłącznie sam tytuł — bez cudzysłowów, bez kropki na końcu, bez komentarzy.',
+      '',
+      'Notatka:',
+      content,
+    ].join('\n');
+    return this.generateText(prompt);
+  }
 }

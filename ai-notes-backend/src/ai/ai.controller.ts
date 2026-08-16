@@ -42,4 +42,13 @@ export class AiController {
     const result = await this.aiService.rewriteText(text, mode)
     return {result}
   }
+
+  @Post('title')
+  async generateTitle(@Body('content') content: string) {
+    if(!content?.trim()) {
+      throw new BadRequestException('Brak treści')
+    }
+    const title = await this.aiService.generateTitle(content)
+    return {title}
+  }
 }

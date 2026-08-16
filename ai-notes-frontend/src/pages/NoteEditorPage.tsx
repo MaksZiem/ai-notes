@@ -20,6 +20,7 @@ import { useNote } from "../hooks/useNote";
 import { useNotes } from "../hooks/useNotes";
 import { useProjects } from "../hooks/useProjects";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
+import { useAiTitle } from "../hooks/useAiTitle";
 import {
   ArrowLeft,
   Trash2,
@@ -130,6 +131,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const { notes: pinnedNotes } = useNotes({ pinned: true });
   const { notes: favouriteNotes } = useNotes({ favourite: true });
   const { projects } = useProjects();
+  const aiTitle = useAiTitle();
 
   const editor = useEditor({
     extensions: [
@@ -209,6 +211,14 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const handleTitleChange = (value: string) => {
     setTitle(value);
     triggerAutosave();
+  };
+
+  const handleGenerateTitle = () => {
+    const content = editor?.storage.markdown.getMarkdown() ?? "";
+    if (!content.trim()) return;
+    aiTitle.mutate(content, {
+      onSuccess: (generatedTitle) => handleTitleChange(generatedTitle),
+    });
   };
 
   const persistField = async (patch: {
@@ -410,6 +420,20 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   {currentProject ? currentProject.name : "Notatka prywatna"}
                 </span>
               )}
+
+              <button
+                onClick={handleGenerateTitle}
+                disabled={aiTitle.isPending}
+                title="Wygeneruj tytuł z treści (AI)"
+                className="ml-auto flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40"
+              >
+                {aiTitle.isPending ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <Sparkles size={12} />
+                )}
+                Generuj tytuł
+              </button>
             </div>
 
             {/* Title */}
