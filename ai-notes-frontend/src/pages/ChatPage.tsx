@@ -3,48 +3,81 @@ import { useNavigate } from "react-router-dom";
 import { Send, Sparkles, Loader2 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useRagChat } from "../hooks/useRagChat";
+import { useAgentChat } from "../hooks/useAgentChat";
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   sources?: { id: number; title: string }[];
+  steps?: { tool: string; args: unknown }[];
 }
 
 export default function ChatPage() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [agentMode, setAgentMode] = useState(false);
   const ragChat = useRagChat();
+  const agentChat = useAgentChat();
+  const isPending = ragChat.isPending || agentChat.isPending;
 
   const handleSend = () => {
     const question = input.trim();
-    if (!question || ragChat.isPending) return;
+    if (!question || isPending) return;
     setMessages((prev) => [...prev, { role: "user", content: question }]);
     setInput("");
-    ragChat.mutate(question, {
-      onSuccess: (result) => {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: result.answer, sources: result.sources },
-        ]);
-      },
-      onError: () => {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "Coś poszło nie tak, spróbuj ponownie." },
-        ]);
-      },
-    });
+
+    if (agentMode) {
+      agentChat.mutate(question, {
+        onSuccess: (result) => {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: result.answer, steps: result.steps },
+          ]);
+        },
+        onError: () => {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Coś poszło nie tak, spróbuj ponownie." },
+          ]);
+        },
+      });
+    } else {
+      ragChat.mutate(question, {
+        onSuccess: (result) => {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: result.answer, sources: result.sources },
+          ]);
+        },
+        onError: () => {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Coś poszło nie tak, spróbuj ponownie." },
+          ]);
+        },
+      });
+    }
   };
 
   return (
     <div className="flex h-screen bg-[#0f1014]">
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex items-center px-8 py-5 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
           <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">
             Chat z notatkami
           </h1>
+          <button
+            onClick={() => setAgentMode((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+              agentMode
+                ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-400"
+                : "bg-white/[0.04] border-white/[0.07] text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            Tryb agenta {agentMode ? "(WŁ)" : "(WYŁ)"}
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-4">
@@ -77,12 +110,19 @@ export default function ChatPage() {
                   ))}
                 </div>
               )}
+              {m.steps && m.steps.length > 0 && (
+                <div className="flex flex-col gap-1 mt-2 text-[11px] text-gray-500">
+                  {m.steps.map((s, i) => (
+                    <span key={i}>🔧 {s.tool}({JSON.stringify(s.args)})</span>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
-          {ragChat.isPending && (
+          {isPending && (
             <div className="self-start flex items-center gap-2 text-gray-500 text-sm">
               <Loader2 size={14} className="animate-spin" />
-              Szukam w notatkach...
+              {agentMode ? "Agent pracuje..." : "Szukam w notatkach..."}
             </div>
           )}
         </div>
@@ -99,7 +139,7 @@ export default function ChatPage() {
           />
           <button
             onClick={handleSend}
-            disabled={ragChat.isPending || !input.trim()}
+            disabled={isPending || !input.trim()}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors duration-150"
           >
             <Send size={15} />
