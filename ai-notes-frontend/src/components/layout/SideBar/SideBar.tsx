@@ -7,6 +7,7 @@ import {
   Settings,
   Search,
   Star,
+  MessageCircle,
 } from "lucide-react";
 import { useNotes } from "../../../hooks/useNotes";
 import { useProjects } from "../../../hooks/useProjects";
@@ -55,6 +56,7 @@ export default function Sidebar() {
         <div className="flex flex-col gap-0.5 mb-2">
           <NavItem label="Strona główna"  path="/"               icon={<Home size={15} />}      onClick={() => navigate("/")} />
           <NavItem label="Notatki"        path="/notes"         icon={<FileText size={15} />}  onClick={() => navigate("/notes")} matchPrefix />
+          <NavItem label="Chat AI"        path="/chat"          icon={<MessageCircle size={15} />} onClick={() => navigate("/chat")} />
           <NavItem label="Projekty"       path="/projects"      icon={<Folder size={15} />}    onClick={() => navigate("/projects")} matchPrefix />
           <NavItem label="Powiadomienia"  path="/notifications" icon={<Bell size={15} />}       badge={unreadCount} onClick={() => navigate("/notifications")} />
           <NavItem label="Ustawienia"     path="/settings"      icon={<Settings size={15} />}   onClick={() => navigate("/settings")} />

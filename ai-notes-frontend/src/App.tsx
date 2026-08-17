@@ -11,6 +11,7 @@ import NoteEditorPage from './pages/NoteEditorPage'
 import ProjectsPage from './pages/ProjectsPage'
 import AdminPage from './pages/AdminPage'
 import RegisterPage from './pages/Auth/RegisterPage'
+import ChatPage from './pages/ChatPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ export default function App() {
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/notes" element={<NotesPage />} />
                 <Route path="/notes/:id" element={<NoteEditorPage />} />
+                <Route path="/chat" element={<ChatPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:id/notes" element={<NotesPage />} />
 

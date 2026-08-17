@@ -117,10 +117,16 @@ export class SingleNoteController {
   async semanticSearch(
     @Query('q') query: string,
     @CurrentUser() user: User,
-    @Query('projectId', new ParseIntPipe({ optional: true })) projectId?: number,
+    @Query('projectId', new ParseIntPipe({ optional: true }))
+    projectId?: number,
   ) {
     if (!query?.trim()) return [];
-    return this.notesService.semanticSearch(query, user.id, user.role, projectId);
+    return this.notesService.semanticSearch(
+      query,
+      user.id,
+      user.role,
+      projectId,
+    );
   }
 
   // ──────────────────────────────────────────────
@@ -128,10 +134,23 @@ export class SingleNoteController {
   // ──────────────────────────────────────────────
   @Post('reindex')
   @ApiOperation({
-    summary: 'Przelicz embeddingi wszystkich dostępnych notatek (jednorazowy backfill)',
+    summary:
+      'Przelicz embeddingi wszystkich dostępnych notatek (jednorazowy backfill)',
   })
   async reindex(@CurrentUser() user: User) {
     return this.notesService.reindexEmbeddings(user.id, user.role);
+  }
+
+  // ──────────────────────────────────────────────
+  // POST /notes/chat
+  // ──────────────────────────────────────────────
+  @Post('chat')
+  @ApiOperation({ summary: 'Zadaj pytanie do własnych notatek (RAG chat)' })
+  async chat(@Body('question') question: string, @CurrentUser() user: User) {
+    if (!question?.trim()) {
+      throw new BadRequestException('Brak pytania');
+    }
+    return this.notesService.ragChat(question, user.id, user.role);
   }
 
   // ──────────────────────────────────────────────
@@ -158,13 +177,16 @@ export class SingleNoteController {
   @Post(':id/summarize')
   @ApiOperation({ summary: 'Wygeneruj krótkie streszczenie notatki' })
   @ApiParam({ name: 'id', example: 5 })
-  async summarize(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
-    const note = await this.notesService.findOne(id, null, user.id, user.role)
-    if(!note.content?.trim()) {
-      throw new BadRequestException('Notatka jest pusta')
+  async summarize(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ) {
+    const note = await this.notesService.findOne(id, null, user.id, user.role);
+    if (!note.content?.trim()) {
+      throw new BadRequestException('Notatka jest pusta');
     }
-    const summary = await this.aiService.summarizeText(note.content)
-    return {summary}
+    const summary = await this.aiService.summarizeText(note.content);
+    return { summary };
   }
 
   // ──────────────────────────────────────────────

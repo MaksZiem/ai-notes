@@ -103,4 +103,25 @@ export class AiService {
     });
     return response.embeddings?.[0]?.values ?? [];
   }
+
+  async answerFromContext(
+    question: string,
+    notes: { id: number; title: string; content: string }[],
+  ): Promise<string> {
+    const context = notes
+      .map((n, i) => `[Notatka ${i + 1}: "${n.title}"]\n${n.content}`)
+      .join('\n\n---\n\n');
+    const prompt = [
+      'Jesteś asystentem odpowiadającym na pytania na podstawie notatek użytkownika.',
+      'Odpowiadaj WYŁĄCZNIE na podstawie treści notatek podanych poniżej. Jeśli odpowiedzi nie ma w notatkach, powiedz to wprost — nie zmyślaj.',
+      'Odpowiadaj po polsku, zwięźle.',
+      '',
+      'Notatki:',
+      context,
+      '',
+      'Pytanie użytkownika:',
+      question,
+    ].join('\n');
+    return this.generateText(prompt)
+  }
 }

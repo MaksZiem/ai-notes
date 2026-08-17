@@ -468,37 +468,77 @@ export class NotesService {
     return pref;
   }
 
-  async semanticSearch(
-  query: string,
-  callerId: number,
-  callerRole: UserRole,
-  projectId?: number,
-): Promise<Note[]> {
-  const queryEmbedding = await this.aiService.embedText(query);
-  const candidates = await this.findAllNotes(callerId, callerRole);
+  async ragChat(
+    question: string,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<{ answer: string; sources: { id: number; title: string }[] }> {
+    const relevant = await this.semanticSearch(question, callerId, callerRole);
+    const topNotes = relevant.slice(0, 5);
 
-  return candidates
-    .filter((n) => n.embedding && (projectId == null || n.projectId === projectId))
-    .map((n) => ({ note: n, score: cosineSimilarity(queryEmbedding, n.embedding as number[]) }))
-    .filter((s) => s.score > 0.5)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 15)
-    .map((s) => s.note);
-}
-
-async reindexEmbeddings(callerId: number, callerRole: UserRole): Promise<{ updated: number }> {
-  const notes = await this.findAllNotes(callerId, callerRole);
-  let updated = 0;
-  for (const note of notes) {
-    if (!note.title?.trim() && !note.content?.trim()) continue;
-    try {
-      note.embedding = await this.aiService.embedText(`${note.title}\n\n${note.content ?? ''}`);
-      await this.repo.save(note);
-      updated++;
-    } catch {
-      // pomijamy notatkę, spróbujemy przy następnym zapisie
+    if (topNotes.length === 0) {
+      return {
+        answer: 'Nie znalazłem żadnych notatek pasujących do tego pytania.',
+        sources: [],
+      };
     }
+
+    const answer = await this.aiService.answerFromContext(
+      question,
+      topNotes.map((n) => ({
+        id: n.id,
+        title: n.title,
+        content: n.content ?? '',
+      })),
+    );
+
+    return {
+      answer,
+      sources: topNotes.map((n) => ({ id: n.id, title: n.title })),
+    };
   }
-  return { updated };
-}
+
+  async semanticSearch(
+    query: string,
+    callerId: number,
+    callerRole: UserRole,
+    projectId?: number,
+  ): Promise<Note[]> {
+    const queryEmbedding = await this.aiService.embedText(query);
+    const candidates = await this.findAllNotes(callerId, callerRole);
+
+    return candidates
+      .filter(
+        (n) => n.embedding && (projectId == null || n.projectId === projectId),
+      )
+      .map((n) => ({
+        note: n,
+        score: cosineSimilarity(queryEmbedding, n.embedding as number[]),
+      }))
+      .filter((s) => s.score > 0.5)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 15)
+      .map((s) => s.note);
+  }
+
+  async reindexEmbeddings(
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<{ updated: number }> {
+    const notes = await this.findAllNotes(callerId, callerRole);
+    let updated = 0;
+    for (const note of notes) {
+      if (!note.title?.trim() && !note.content?.trim()) continue;
+      try {
+        note.embedding = await this.aiService.embedText(
+          `${note.title}\n\n${note.content ?? ''}`,
+        );
+        await this.repo.save(note);
+        updated++;
+      } catch {
+        // pomijamy notatkę, spróbujemy przy następnym zapisie
+      }
+    }
+    return { updated };
+  }
 }
