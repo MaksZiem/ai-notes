@@ -106,6 +106,35 @@ export class SingleNoteController {
   }
 
   // ──────────────────────────────────────────────
+  // GET /notes/search
+  // (musi być zadeklarowane przed GET /notes/:id, inaczej Nest
+  // potraktuje "search" jako :id)
+  // ──────────────────────────────────────────────
+  @Get('search')
+  @ApiOperation({ summary: 'Wyszukiwanie semantyczne notatek (AI)' })
+  @ApiQuery({ name: 'q', required: true, type: String })
+  @ApiQuery({ name: 'projectId', required: false, type: Number })
+  async semanticSearch(
+    @Query('q') query: string,
+    @CurrentUser() user: User,
+    @Query('projectId', new ParseIntPipe({ optional: true })) projectId?: number,
+  ) {
+    if (!query?.trim()) return [];
+    return this.notesService.semanticSearch(query, user.id, user.role, projectId);
+  }
+
+  // ──────────────────────────────────────────────
+  // POST /notes/reindex
+  // ──────────────────────────────────────────────
+  @Post('reindex')
+  @ApiOperation({
+    summary: 'Przelicz embeddingi wszystkich dostępnych notatek (jednorazowy backfill)',
+  })
+  async reindex(@CurrentUser() user: User) {
+    return this.notesService.reindexEmbeddings(user.id, user.role);
+  }
+
+  // ──────────────────────────────────────────────
   // GET /notes/:id
   // ──────────────────────────────────────────────
   @Get(':id')

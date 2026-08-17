@@ -16,6 +16,8 @@ import { ProjectMember } from 'src/projects/entities/project-member.entity';
 import { UserNotePreference } from './entities/note-user-preference.entity';
 import { Note } from './entities/note.entity';
 import { assignDefined } from 'src/helpers/assign-defined';
+import { AiService } from 'src/ai/ai.service';
+import { cosineSimilarity } from 'src/helpers/cosine-similarity';
 
 @Injectable()
 export class NotesService {
@@ -27,6 +29,7 @@ export class NotesService {
     private projectMemberRepo: Repository<ProjectMember>,
     @InjectRepository(UserNotePreference)
     private notePrefRepo: Repository<UserNotePreference>,
+    private aiService: AiService,
   ) {}
 
   // ── findAll w projekcie ───────────────────────────────────────────────────
@@ -286,6 +289,13 @@ export class NotesService {
       projectId: resolvedProjectId,
       ownerId: callerId,
     });
+    if (note.title?.trim() || note.content?.trim()) {
+      try {
+        note.embedding = await this.aiService.embedText(
+          `${note.title}\n\n${note.content ?? ''}`,
+        );
+      } catch {}
+    }
     return this.repo.save(note);
   }
 
@@ -307,6 +317,13 @@ export class NotesService {
       dto.keywords = dto.keywords.map((k) => k.toUpperCase());
     }
     assignDefined(note, dto);
+    if (dto.title !== undefined || dto.content !== undefined) {
+      try {
+        note.embedding = await this.aiService.embedText(
+          `${note.title}\n\n${note.content ?? ''}`,
+        );
+      } catch {}
+    }
     return this.repo.save(note);
   }
 
@@ -450,4 +467,38 @@ export class NotesService {
     }
     return pref;
   }
+
+  async semanticSearch(
+  query: string,
+  callerId: number,
+  callerRole: UserRole,
+  projectId?: number,
+): Promise<Note[]> {
+  const queryEmbedding = await this.aiService.embedText(query);
+  const candidates = await this.findAllNotes(callerId, callerRole);
+
+  return candidates
+    .filter((n) => n.embedding && (projectId == null || n.projectId === projectId))
+    .map((n) => ({ note: n, score: cosineSimilarity(queryEmbedding, n.embedding as number[]) }))
+    .filter((s) => s.score > 0.5)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 15)
+    .map((s) => s.note);
+}
+
+async reindexEmbeddings(callerId: number, callerRole: UserRole): Promise<{ updated: number }> {
+  const notes = await this.findAllNotes(callerId, callerRole);
+  let updated = 0;
+  for (const note of notes) {
+    if (!note.title?.trim() && !note.content?.trim()) continue;
+    try {
+      note.embedding = await this.aiService.embedText(`${note.title}\n\n${note.content ?? ''}`);
+      await this.repo.save(note);
+      updated++;
+    } catch {
+      // pomijamy notatkę, spróbujemy przy następnym zapisie
+    }
+  }
+  return { updated };
+}
 }

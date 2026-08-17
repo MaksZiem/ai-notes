@@ -8,12 +8,15 @@ export type RewriteMode = 'fix' | 'improve' | 'shorten' | 'expand';
 export class AiService {
   private readonly client: GoogleGenAI;
   private readonly model: string;
+  private readonly embeddingModel: string;
 
   constructor(private readonly config: ConfigService) {
     this.client = new GoogleGenAI({
       apiKey: this.config.get<string>('GEMINI_API_KEY'),
     });
     this.model = this.config.get<string>('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+    this.embeddingModel =
+      this.config.get<string>('GEMINI_EMBEDDING_MODEL') ?? 'gemini-embedding-2';
   }
 
   async generateText(prompt: string): Promise<string> {
@@ -90,5 +93,14 @@ export class AiService {
       .split(',')
       .map((k) => k.trim())
       .filter(Boolean);
+  }
+
+  async embedText(text: string): Promise<number[]> {
+    const response = await this.client.models.embedContent({
+      model: this.embeddingModel,
+      contents: text,
+      config: { outputDimensionality: 768 },
+    });
+    return response.embeddings?.[0]?.values ?? [];
   }
 }

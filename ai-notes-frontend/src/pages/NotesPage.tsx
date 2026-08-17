@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft } from "lucide-react";
+import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft, Sparkles } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useNotes } from "../hooks/useNotes";
 import { useProjectNotes } from "../hooks/useProjectNotes";
 import { useProject } from "../hooks/useProject";
 import { useDebounce } from "../hooks/useDebounce";
+import { useSemanticSearch } from "../hooks/useSemanticSearch";
 import type { Note } from "../types/note";
 import { NoteCard } from "../components/layout/NoteCard";
 import { NoteViewType } from "../enums/noteView";
@@ -27,8 +28,15 @@ export default function NotesPage() {
 
   const [search, setSearch] = useState("");
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
+  const [aiMode, setAiMode] = useState(false);
 
   const debouncedSearch = useDebounce(search, 300);
+
+  const semanticSearch = useSemanticSearch(
+    debouncedSearch,
+    isProjectScoped ? projectId : undefined,
+    aiMode && debouncedSearch.trim().length > 0,
+  );
 
   const { project } = useProject(isProjectScoped ? projectId! : 0);
 
@@ -122,6 +130,19 @@ export default function NotesPage() {
               />
             </div>
 
+            <button
+              onClick={() => setAiMode((v) => !v)}
+              title="Wyszukiwanie semantyczne (AI)"
+              className={`flex items-center gap-1 px-2.5 py-2 rounded-lg border text-xs font-medium transition-colors ${
+                aiMode
+                  ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-400"
+                  : "bg-white/[0.04] border-white/[0.07] text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              <Sparkles size={13} />
+              AI
+            </button>
+
             <div className="flex items-center gap-0.5 bg-white/[0.04] border border-white/[0.07] rounded-lg p-1">
               <button
                 onClick={() => setView(NoteViewType.GRID)}
@@ -156,7 +177,25 @@ export default function NotesPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-8 py-6">
-          {!hasResults && debouncedSearch ? (
+          {aiMode && debouncedSearch ? (
+            semanticSearch.isLoading ? (
+              <p className="text-sm text-gray-600">Szukam...</p>
+            ) : (semanticSearch.data ?? []).length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-600">
+                <p className="text-lg font-medium">Brak wyników</p>
+                <p className="text-sm mt-1">Spróbuj innej frazy</p>
+              </div>
+            ) : (
+              <section>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-3 m-0">
+                  Wyniki AI
+                </h2>
+                {view === "grid"
+                  ? renderGrid(semanticSearch.data ?? [])
+                  : renderList(semanticSearch.data ?? [])}
+              </section>
+            )
+          ) : !hasResults && debouncedSearch ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-600">
               <p className="text-lg font-medium">Brak wyników</p>
               <p className="text-sm mt-1">Spróbuj innej frazy</p>

@@ -46,6 +46,9 @@ export class Note {
   @OneToMany(() => NoteMember, (member) => member.note)
   members: NoteMember[];
 
+  @Column({ type: 'jsonb', nullable: true })
+  embedding: number[] | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
