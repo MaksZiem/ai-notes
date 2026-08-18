@@ -11,25 +11,26 @@ import {
 } from "lucide-react";
 import { useNotes } from "../../../hooks/useNotes";
 import { useProjects } from "../../../hooks/useProjects";
+import { useNotifications } from "../../../hooks/useNotifications";
+import { notificationMessage } from "../../../utils/notificationMessage";
+import { formatDate } from "../../../utils/formatDate";
 import Section from "./Section";
 import NavItem from "./NavItem";
 import Projects from "./Projects";
 import SideBarFooter from "./SideBarFooter";
 
-// ─── Mock data ───────────────────────────────────────────────
-const NOTIFICATIONS = [
-  { id: 1, text: "Anna nadała Ci dostęp do projektu", time: "5 min", unread: true },
-  { id: 2, text: "Nowa notatka w API v2 – migracja", time: "1 godz.", unread: true },
-  { id: 3, text: "Projekt Redesign zaktualizowany", time: "3 godz.", unread: false },
-];
-
-
 // ─── Main Sidebar ─────────────────────────────────────────────
 export default function Sidebar() {
   const navigate = useNavigate();
-  const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
   const { notes: { data: recentNotes = [], isLoading: notesLoading } } = useNotes({ limit: 5 });
   const { recentProjects: { data: recentProjects = [], isLoading: projectsLoading } } = useProjects();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const recentNotifications = (notifications.data ?? []).slice(0, 5);
+
+  const handleNotificationClick = (id: number, noteId?: number) => {
+    markAsRead.mutate(id);
+    if (noteId) navigate(`/notes/${noteId}`);
+  };
 
   return (
     <aside className="w-60 min-w-60 h-screen bg-[#13141a] border-r border-white/[0.07] flex flex-col overflow-hidden sticky top-0">
@@ -58,7 +59,7 @@ export default function Sidebar() {
           <NavItem label="Notatki"        path="/notes"         icon={<FileText size={15} />}  onClick={() => navigate("/notes")} matchPrefix />
           <NavItem label="Chat AI"        path="/chat"          icon={<MessageCircle size={15} />} onClick={() => navigate("/chat")} />
           <NavItem label="Projekty"       path="/projects"      icon={<Folder size={15} />}    onClick={() => navigate("/projects")} matchPrefix />
-          <NavItem label="Powiadomienia"  path="/notifications" icon={<Bell size={15} />}       badge={unreadCount} onClick={() => navigate("/notifications")} />
+          <NavItem label="Powiadomienia"  path="/notifications" icon={<Bell size={15} />}       badge={unreadCount.data?.count ?? 0} onClick={() => navigate("/notifications")} />
           <NavItem label="Ustawienia"     path="/settings"      icon={<Settings size={15} />}   onClick={() => navigate("/settings")} />
         </div>
 
@@ -95,20 +96,27 @@ export default function Sidebar() {
         <hr className="border-white/[0.07] my-2" />
 
         {/* Notifications preview */}
-        <Section label="Powiadomienia" icon={<Bell size={13} />} badge={unreadCount} defaultOpen={false}>
+        <Section label="Powiadomienia" icon={<Bell size={13} />} badge={unreadCount.data?.count ?? 0} defaultOpen={false}>
           <div className="flex flex-col gap-px mt-0.5">
-            {NOTIFICATIONS.map((n) => (
-              <div
-                key={n.id}
-                className="flex items-start gap-2.5 pl-7 pr-2.5 py-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors duration-100"
-              >
-                <span className={`w-1.5 h-1.5 rounded-full mt-[5px] flex-shrink-0 ${n.unread ? "bg-indigo-400" : "border border-gray-600"}`} />
-                <div>
-                  <p className="text-[12px] text-gray-300 leading-snug">{n.text}</p>
-                  <p className="text-[10.5px] text-gray-600 mt-0.5">{n.time} temu</p>
+            {notifications.isLoading ? (
+              <p className="pl-7 py-2 text-xs text-gray-600">Ładowanie...</p>
+            ) : recentNotifications.length === 0 ? (
+              <p className="pl-7 py-2 text-xs text-gray-600 italic">Brak powiadomień</p>
+            ) : (
+              recentNotifications.map((n) => (
+                <div
+                  key={n.id}
+                  onClick={() => handleNotificationClick(n.id, n.note?.id)}
+                  className="flex items-start gap-2.5 pl-7 pr-2.5 py-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors duration-100"
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full mt-[5px] flex-shrink-0 ${!n.isRead ? "bg-indigo-400" : "border border-gray-600"}`} />
+                  <div>
+                    <p className="text-[12px] text-gray-300 leading-snug">{notificationMessage(n)}</p>
+                    <p className="text-[10.5px] text-gray-600 mt-0.5">{formatDate(n.createdAt)}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Section>
 

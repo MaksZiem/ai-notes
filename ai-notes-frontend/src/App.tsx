@@ -13,6 +13,7 @@ import AdminPage from './pages/AdminPage'
 import RegisterPage from './pages/Auth/RegisterPage'
 import ChatPage from './pages/ChatPage'
 import SharedNotePage from './pages/SharedNotePage'
+import NotificationsPage from './pages/NotificationsPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +37,7 @@ export default function App() {
                 <Route path="/notes" element={<NotesPage />} />
                 <Route path="/notes/:id" element={<NoteEditorPage />} />
                 <Route path="/chat" element={<ChatPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:id/notes" element={<NotesPage />} />
 
