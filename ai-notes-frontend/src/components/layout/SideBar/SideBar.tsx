@@ -12,24 +12,24 @@ import {
 import { useNotes } from "../../../hooks/useNotes";
 import { useProjects } from "../../../hooks/useProjects";
 import { useNotifications } from "../../../hooks/useNotifications";
-import { notificationMessage } from "../../../utils/notificationMessage";
-import { formatDate } from "../../../utils/formatDate";
+import { NotificationRow } from "../NotificationRow";
 import Section from "./Section";
 import NavItem from "./NavItem";
 import Projects from "./Projects";
 import SideBarFooter from "./SideBarFooter";
+import type { Notification } from "../../../types/notification";
 
 // ─── Main Sidebar ─────────────────────────────────────────────
 export default function Sidebar() {
   const navigate = useNavigate();
   const { notes: { data: recentNotes = [], isLoading: notesLoading } } = useNotes({ limit: 5 });
   const { recentProjects: { data: recentProjects = [], isLoading: projectsLoading } } = useProjects();
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, acceptInvite, declineInvite } = useNotifications();
   const recentNotifications = (notifications.data ?? []).slice(0, 5);
 
-  const handleNotificationClick = (id: number, noteId?: number) => {
-    markAsRead.mutate(id);
-    if (noteId) navigate(`/notes/${noteId}`);
+  const handleOpenNotification = (n: Notification) => {
+    if (!n.isRead) markAsRead.mutate(n.id);
+    if (n.note) navigate(`/notes/${n.note.id}`);
   };
 
   return (
@@ -104,17 +104,16 @@ export default function Sidebar() {
               <p className="pl-7 py-2 text-xs text-gray-600 italic">Brak powiadomień</p>
             ) : (
               recentNotifications.map((n) => (
-                <div
+                <NotificationRow
                   key={n.id}
-                  onClick={() => handleNotificationClick(n.id, n.note?.id)}
-                  className="flex items-start gap-2.5 pl-7 pr-2.5 py-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors duration-100"
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full mt-[5px] flex-shrink-0 ${!n.isRead ? "bg-indigo-400" : "border border-gray-600"}`} />
-                  <div>
-                    <p className="text-[12px] text-gray-300 leading-snug">{notificationMessage(n)}</p>
-                    <p className="text-[10.5px] text-gray-600 mt-0.5">{formatDate(n.createdAt)}</p>
-                  </div>
-                </div>
+                  notification={n}
+                  onOpen={handleOpenNotification}
+                  onAccept={(id) => acceptInvite.mutate(id)}
+                  onDecline={(id) => declineInvite.mutate(id)}
+                  acceptPending={acceptInvite.isPending && acceptInvite.variables === n.id}
+                  declinePending={declineInvite.isPending && declineInvite.variables === n.id}
+                  compact
+                />
               ))
             )}
           </div>

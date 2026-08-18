@@ -1,7 +1,10 @@
 export type NotificationType =
   | "NOTE_SHARED"
   | "NOTE_ACCESS_REVOKED"
-  | "SHARE_LINK_CLAIMED";
+  | "SHARE_LINK_CLAIMED"
+  | "NOTE_INVITE";
+
+export type NotificationStatus = "PENDING" | "ACCEPTED" | "DECLINED";
 
 export interface Notification {
   id: number;
@@ -9,6 +12,7 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
   accessLevel: "VIEW" | "EDIT" | "DELETE" | null;
+  status: NotificationStatus | null;
   actor: { id: number; name: string; surname: string } | null;
   note: { id: number; title: string } | null;
 }

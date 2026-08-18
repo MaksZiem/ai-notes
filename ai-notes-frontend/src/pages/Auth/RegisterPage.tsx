@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useAuth } from "../../context/AuthContext";
 import { useFormWithMutation } from "../../hooks/useForm";
@@ -24,13 +24,15 @@ type RegisterFormValues = z.infer<typeof schema>;
 export default function RegisterPage() {
   const { signup } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const shareToken = searchParams.get("shareToken");
 
   const { form, onSubmit, isLoading, error } =
     useFormWithMutation<RegisterFormValues>(
       schema,
       ({ email, password, name, surname }) =>
         signup(email, password, name, surname),
-      { onSuccess: () => navigate("/notes") }
+      { onSuccess: () => navigate(shareToken ? `/shared/${shareToken}` : "/notes") }
     );
 
   const {
@@ -138,7 +140,7 @@ export default function RegisterPage() {
         </button>
         <button
           type="button"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate(shareToken ? `/login?shareToken=${shareToken}` : "/login")}
           className="w-full text-sm text-gray-400"
         >
           Masz już konto?{" "}

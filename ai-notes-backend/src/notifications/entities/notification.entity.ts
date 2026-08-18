@@ -7,7 +7,9 @@ import {
 } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Note } from 'src/notes/entities/note.entity';
+import { NoteShareLink } from 'src/notes/entities/note-share-link.entity';
 import { NotificationType } from 'src/enums/notification-type.enum';
+import { NotificationStatus } from 'src/enums/notification-status.enum';
 import { AccessLevel } from 'src/enums/access-level.enum';
 
 @Entity()
@@ -41,6 +43,17 @@ export class Notification {
 
   @Column({ type: 'enum', enum: AccessLevel, nullable: true })
   accessLevel: AccessLevel | null;
+
+  // link udostępniania, którego dotyczy zaproszenie (tylko dla NOTE_INVITE)
+  @ManyToOne(() => NoteShareLink, { onDelete: 'CASCADE', nullable: true })
+  shareLink: NoteShareLink | null;
+
+  @Column({ nullable: true })
+  shareLinkId: number | null;
+
+  // stan akceptacji — tylko dla NOTE_INVITE, dla reszty typów pozostaje null
+  @Column({ type: 'enum', enum: NotificationStatus, nullable: true })
+  status: NotificationStatus | null;
 
   @Column({ default: false })
   isRead: boolean;

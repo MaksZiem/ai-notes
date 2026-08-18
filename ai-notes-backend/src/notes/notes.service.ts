@@ -28,10 +28,13 @@ import {
   NOTE_SHARED_EVENT,
   NOTE_ACCESS_REVOKED_EVENT,
   SHARE_LINK_CLAIMED_EVENT,
+  NOTE_INVITE_EVENT,
   NoteSharedEvent,
   NoteAccessRevokedEvent,
   ShareLinkClaimedEvent,
+  NoteInviteEvent,
 } from 'src/notifications/notifications.events';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class NotesService {
@@ -49,6 +52,7 @@ export class NotesService {
     private mailService: MailService,
     private config: ConfigService,
     private eventEmitter: EventEmitter2,
+    private usersService: UsersService,
   ) {}
 
   // ── findAll w projekcie ───────────────────────────────────────────────────
@@ -632,6 +636,21 @@ export class NotesService {
         note?.title ?? 'Notatka',
         shareUrl,
       );
+
+      // jeśli e-mail odpowiada istniejącemu kontu — dodatkowo zaproszenie w aplikacji
+      const [invitedUser] = await this.usersService.find(dto.email);
+      if (invitedUser) {
+        this.eventEmitter.emit(
+          NOTE_INVITE_EVENT,
+          new NoteInviteEvent(
+            noteId,
+            saved.id,
+            invitedUser.id,
+            callerId,
+            saved.accessLevel,
+          ),
+        );
+      }
     }
 
     return saved;
@@ -724,7 +743,7 @@ export class NotesService {
     if (note) {
       this.eventEmitter.emit(
         SHARE_LINK_CLAIMED_EVENT,
-        new ShareLinkClaimedEvent(link.noteId, note.ownerId, userId),
+        new ShareLinkClaimedEvent(link.noteId, note.ownerId, userId, link.id),
       );
     }
 

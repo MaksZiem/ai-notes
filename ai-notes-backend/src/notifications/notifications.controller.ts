@@ -4,6 +4,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -45,5 +46,20 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Oznacz powiadomienie jako przeczytane' })
   markAsRead(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
     return this.notificationsService.markAsRead(id, user.id);
+  }
+
+  @Post(':id/accept')
+  @ApiOperation({
+    summary: 'Zaakceptuj zaproszenie do notatki (typ NOTE_INVITE)',
+    description: 'Dołącza do notatki przez powiązany link udostępniania i oznacza zaproszenie jako zaakceptowane.',
+  })
+  accept(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+    return this.notificationsService.accept(id, user.id);
+  }
+
+  @Post(':id/decline')
+  @ApiOperation({ summary: 'Odrzuć zaproszenie do notatki (typ NOTE_INVITE)' })
+  decline(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+    return this.notificationsService.decline(id, user.id);
   }
 }

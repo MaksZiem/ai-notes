@@ -11,6 +11,8 @@ export function notificationMessage(n: Notification): string {
       return `${actorName} odebrał(a) Ci dostęp do notatki „${noteTitle}"`;
     case "SHARE_LINK_CLAIMED":
       return `${actorName} dołączył(a) do notatki „${noteTitle}" przez link`;
+    case "NOTE_INVITE":
+      return `${actorName} zaprosił(a) Cię do notatki „${noteTitle}"`;
     default:
       return "Nowe powiadomienie";
   }

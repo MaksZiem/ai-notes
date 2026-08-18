@@ -1,14 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { NotificationType } from 'src/enums/notification-type.enum';
+import { NotificationStatus } from 'src/enums/notification-status.enum';
 import { AccessLevel } from 'src/enums/access-level.enum';
+import { NotesService } from 'src/notes/notes.service';
 
 @Injectable()
 export class NotificationsService {
   constructor(
     @InjectRepository(Notification) private repo: Repository<Notification>,
+    private notesService: NotesService,
   ) {}
 
   async create(data: {
@@ -17,6 +24,8 @@ export class NotificationsService {
     actorId?: number | null;
     noteId?: number | null;
     accessLevel?: AccessLevel | null;
+    shareLinkId?: number | null;
+    status?: NotificationStatus | null;
   }): Promise<Notification> {
     const notification = this.repo.create(data);
     return this.repo.save(notification);
@@ -44,5 +53,58 @@ export class NotificationsService {
 
   async markAllAsRead(userId: number): Promise<void> {
     await this.repo.update({userId, isRead: false}, {isRead: true})
+  }
+
+  async accept(id: number, userId: number): Promise<Notification> {
+    const notification = await this.repo.findOne({
+      where: { id, userId },
+      relations: ['shareLink'],
+    });
+    if (!notification || notification.type !== NotificationType.NOTE_INVITE) {
+      throw new NotFoundException('Zaproszenie nie zostało znalezione');
+    }
+    if (notification.status !== NotificationStatus.PENDING) {
+      throw new ForbiddenException('To zaproszenie zostało już rozpatrzone');
+    }
+    if (!notification.shareLink) {
+      throw new NotFoundException('Link udostępniania powiązany z zaproszeniem już nie istnieje');
+    }
+
+    await this.notesService.claimShareLink(notification.shareLink.token, userId);
+
+    notification.status = NotificationStatus.ACCEPTED;
+    notification.isRead = true;
+    return this.repo.save(notification);
+  }
+
+  async decline(id: number, userId: number): Promise<Notification> {
+    const notification = await this.repo.findOneBy({ id, userId });
+    if (!notification || notification.type !== NotificationType.NOTE_INVITE) {
+      throw new NotFoundException('Zaproszenie nie zostało znalezione');
+    }
+    if (notification.status !== NotificationStatus.PENDING) {
+      throw new ForbiddenException('To zaproszenie zostało już rozpatrzone');
+    }
+
+    notification.status = NotificationStatus.DECLINED;
+    notification.isRead = true;
+    return this.repo.save(notification);
+  }
+
+  /**
+   * Synchronizuje zaproszenie, gdy dostęp zostaje przyznany inną drogą niż
+   * przycisk "Akceptuj" (np. "Dodaj do moich notatek" na /shared/:token).
+   * No-op, jeśli nie ma pasującego oczekującego zaproszenia.
+   */
+  async markInviteAccepted(shareLinkId: number, userId: number): Promise<void> {
+    await this.repo.update(
+      {
+        shareLinkId,
+        userId,
+        type: NotificationType.NOTE_INVITE,
+        status: NotificationStatus.PENDING,
+      },
+      { status: NotificationStatus.ACCEPTED, isRead: true },
+    );
   }
 }

@@ -40,5 +40,15 @@ export function useNotifications() {
     onSuccess: invalidate,
   });
 
-  return { notifications, unreadCount, markAsRead, markAllAsRead };
+  const acceptInvite = useMutation({
+    mutationFn: (id: number) => api.post(`/notifications/${id}/accept`),
+    onSuccess: invalidate,
+  });
+
+  const declineInvite = useMutation({
+    mutationFn: (id: number) => api.post(`/notifications/${id}/decline`),
+    onSuccess: invalidate,
+  });
+
+  return { notifications, unreadCount, markAsRead, markAllAsRead, acceptInvite, declineInvite };
 }

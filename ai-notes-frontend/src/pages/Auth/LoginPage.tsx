@@ -1,6 +1,6 @@
 import { useFormWithMutation } from "../../hooks/useForm";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import axios from "axios";
 import AuthCard from "./AuthCard";
@@ -16,13 +16,15 @@ type LoginFormValues = z.infer<typeof schema>;
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const shareToken = searchParams.get("shareToken");
 
   const { form, onSubmit, isLoading, error } =
     useFormWithMutation<LoginFormValues>(
       schema,
       ({ email, password }) => login(email, password),
       {
-        onSuccess: () => navigate("/notes"),
+        onSuccess: () => navigate(shareToken ? `/shared/${shareToken}` : "/notes"),
       }
     );
 
@@ -83,7 +85,7 @@ export default function LoginPage() {
         </button>
         <button
           type="button"
-          onClick={() => navigate("/register")}
+          onClick={() => navigate(shareToken ? `/register?shareToken=${shareToken}` : "/register")}
           className="w-full text-sm text-gray-400"
         >
           Nie masz konta?{" "}
