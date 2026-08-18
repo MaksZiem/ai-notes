@@ -18,18 +18,27 @@ import { Note } from './entities/note.entity';
 import { assignDefined } from 'src/helpers/assign-defined';
 import { AiService } from 'src/ai/ai.service';
 import { cosineSimilarity } from 'src/helpers/cosine-similarity';
+import { NoteShareLink } from './entities/note-share-link.entity';
+import { CreateShareLinkDto } from './dtos/create-share-link.dto';
+import { MailService } from 'src/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class NotesService {
   constructor(
     @InjectRepository(Note) private repo: Repository<Note>,
     @InjectRepository(NoteMember) private memberRepo: Repository<NoteMember>,
+    @InjectRepository(NoteShareLink)
+    private shareLinkRepo: Repository<NoteShareLink>,
     private projectsService: ProjectsService,
     @InjectRepository(ProjectMember)
     private projectMemberRepo: Repository<ProjectMember>,
     @InjectRepository(UserNotePreference)
     private notePrefRepo: Repository<UserNotePreference>,
     private aiService: AiService,
+    private mailService: MailService,
+    private config: ConfigService,
   ) {}
 
   // ── findAll w projekcie ───────────────────────────────────────────────────
@@ -540,5 +549,122 @@ export class NotesService {
       }
     }
     return { updated };
+  }
+
+  async createShareLink(
+    noteId: number,
+    projectId: number | null,
+    callerId: number,
+    callerRole: UserRole,
+    dto: CreateShareLinkDto,
+  ): Promise<NoteShareLink> {
+    await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
+
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = dto.expiresInDays
+      ? new Date(Date.now() + dto.expiresInDays * 24 * 60 * 60 * 1000)
+      : null;
+
+    const link = this.shareLinkRepo.create({
+      noteId,
+      token,
+      accessLevel: dto.accessLevel ?? AccessLevel.VIEW,
+      email: dto.email ?? null,
+      expiresAt,
+      createdByUserId: callerId,
+    });
+
+    const saved = await this.shareLinkRepo.save(link);
+
+    if (dto.email) {
+      const note = await this.repo.findOneBy({ id: noteId });
+      const frontendUrl = this.config.get<string>('FRONTEND_URL');
+      const shareUrl = `${frontendUrl}/shared/${token}`;
+      await this.mailService.sendNoteShareEmail(
+        dto.email,
+        note?.title ?? 'Notatka',
+        shareUrl,
+      );
+    }
+
+    return saved;
+  }
+
+  async listShareLinks(
+    noteId: number,
+    projectId: number | null,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<NoteShareLink[]> {
+    await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
+    return this.shareLinkRepo.find({
+      where: { noteId, revoked: false },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async revokeShareLink(
+    noteId: number,
+    projectId: number | null,
+    linkId: number,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<void> {
+    await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
+    await this.shareLinkRepo.update({ id: linkId, noteId }, { revoked: true });
+  }
+
+  // ── publiczny dostęp przez token (bez konta) ────────────────────────────
+
+  private async resolveShareLink(token: string): Promise<NoteShareLink> {
+    const link = await this.shareLinkRepo.findOneBy({ token });
+    if (!link || link.revoked) {
+      throw new ForbiddenException('Link jest nieprawidłowy lub odwołany');
+    }
+    if (link.expiresAt && link.expiresAt.getTime() < Date.now()) {
+      throw new ForbiddenException('Link wygasł');
+    }
+    return link;
+  }
+
+  async getSharedNote(
+    token: string,
+  ): Promise<{ note: Note; accessLevel: AccessLevel }> {
+    const link = await this.resolveShareLink(token);
+    const note = await this.repo.findOneBy({ id: link.noteId });
+    if (!note) throw new NotFoundException('Note not found');
+    return { note, accessLevel: link.accessLevel };
+  }
+
+  async updateSharedNote(token: string, dto: UpdateNoteDto): Promise<Note> {
+    const link = await this.resolveShareLink(token);
+    if (!hasAccess(link.accessLevel, AccessLevel.EDIT)) {
+      throw new ForbiddenException('Ten link daje tylko dostep do odczytu');
+    }
+    const note = await this.repo.findOneBy({ id: link.noteId });
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+    if (dto.keywords) dto.keywords = dto.keywords.map((k) => k.toUpperCase());
+    assignDefined(note, dto);
+    return this.repo.save(note);
+  }
+
+  async claimShareLink(token: string, userId: number): Promise<NoteMember> {
+    const link = await this.resolveShareLink(token);
+    const existing = await this.memberRepo.findOneBy({
+      noteId: link.noteId,
+      userId,
+    });
+    if (existing) {
+      existing.accessLevel = link.accessLevel;
+      return this.memberRepo.save(existing);
+    }
+    const member = this.memberRepo.create({
+      noteId: link.noteId,
+      userId,
+      accessLevel: link.accessLevel,
+    });
+    return this.memberRepo.save(member);
   }
 }

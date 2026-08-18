@@ -29,6 +29,7 @@ import { CreateNoteDto } from './dtos/create-note.dto';
 import { UpdateNoteDto } from './dtos/update-note.dto';
 import { GrantAccessDto } from 'src/projects/dtos/grant-access.dto';
 import { AiService } from 'src/ai/ai.service';
+import { CreateShareLinkDto } from './dtos/create-share-link.dto';
 
 @ApiTags('Notes')
 @ApiBearerAuth('access-token')
@@ -304,6 +305,60 @@ export class SingleNoteController {
       id,
       null,
       targetUserId,
+      user.id,
+      user.role,
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  // POST /notes/:id/share-links
+  // ──────────────────────────────────────────────
+  @Post(':id/share-links')
+  @ApiOperation({ summary: 'Utwórz link do udostępnienia notatki bez konta' })
+  @ApiParam({ name: 'id', example: 5 })
+  createShareLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: CreateShareLinkDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.notesService.createShareLink(
+      id,
+      null,
+      user.id,
+      user.role,
+      body,
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  // GET /notes/:id/share-links
+  // ──────────────────────────────────────────────
+  @Get(':id/share-links')
+  @ApiOperation({ summary: 'Lista aktywnych linków udostępniania notatki' })
+  @ApiParam({ name: 'id', example: 5 })
+  listShareLinks(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ) {
+    return this.notesService.listShareLinks(id, null, user.id, user.role);
+  }
+
+  // ──────────────────────────────────────────────
+  // DELETE /notes/:id/share-links/:linkId
+  // ──────────────────────────────────────────────
+  @Delete(':id/share-links/:linkId')
+  @ApiOperation({ summary: 'Odwołaj link udostępniania' })
+  @ApiParam({ name: 'id', example: 5 })
+  @ApiParam({ name: 'linkId', example: 3 })
+  revokeShareLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('linkId', ParseIntPipe) linkId: number,
+    @CurrentUser() user: User,
+  ) {
+    return this.notesService.revokeShareLink(
+      id,
+      null,
+      linkId,
       user.id,
       user.role,
     );

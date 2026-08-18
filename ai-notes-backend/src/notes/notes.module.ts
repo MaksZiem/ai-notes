@@ -9,19 +9,24 @@ import { UserNotePreference } from './entities/note-user-preference.entity';
 import { Note } from './entities/note.entity';
 import { SingleNoteController } from './single-note.controller';
 import { AiModule } from 'src/ai/ai.module';
+import { NoteShareLink } from './entities/note-share-link.entity';
+import { PublicShareController } from './public-share.controller';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Note,
       NoteMember,
+      NoteShareLink,
       ProjectMember,
       UserNotePreference,
     ]),
     forwardRef(() => ProjectsModule),
     AiModule,
+    MailModule
   ],
-  controllers: [NotesController, SingleNoteController],
+  controllers: [NotesController, SingleNoteController, PublicShareController],
   providers: [NotesService],
   exports: [NotesService],
 })

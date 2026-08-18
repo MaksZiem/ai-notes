@@ -17,6 +17,7 @@ import { UserNotePreference } from './notes/entities/note-user-preference.entity
 import { Note } from './notes/entities/note.entity';
 import { AiModule } from './ai/ai.module';
 import { AgentModule } from './agent/agent.module';
+import { NoteShareLink } from './notes/entities/note-share-link.entity';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AgentModule } from './agent/agent.module';
           Note,
           ProjectMember,
           NoteMember,
+          NoteShareLink,
           UserProjectPreference,
           UserNotePreference
         ],
