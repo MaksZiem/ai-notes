@@ -22,6 +22,9 @@ import { useProjects } from "../hooks/useProjects";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import { useAiTitle } from "../hooks/useAiTitle";
 import { useAiKeywords } from "../hooks/useAiKeywords";
+import { useNoteShareLinks } from "../hooks/useNoteShareLinks";
+import { useCurrentUser } from "../hooks/useCurrentUser";
+import { ShareDialog } from "../components/editor/ShareDialog";
 import {
   ArrowLeft,
   Trash2,
@@ -31,6 +34,7 @@ import {
   Check,
   X,
   Sparkles,
+  Share2,
 } from "lucide-react";
 
 const COLOR_PALETTE = NOTE_ACCENT_COLORS;
@@ -117,17 +121,21 @@ function NoteEditor({ routeId }: { routeId: string }) {
     isNew ? initialProjectId : undefined,
   );
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [shareOpen, setShareOpen] = useState(false);
   const [hasSyncedFields, setHasSyncedFields] = useState(false);
   const hasSyncedContentRef = useRef(false);
 
   const {
     note,
+    members,
     updateNote,
     togglePin,
     toggleFavourite,
     deleteNote,
     summarizeNote,
   } = useNote(savedId ?? 0);
+  const { shareLinks } = useNoteShareLinks(savedId ?? 0);
+  const currentUser = useCurrentUser();
   const { createNote } = useNotes();
   const { notes: pinnedNotes } = useNotes({ pinned: true });
   const { notes: favouriteNotes } = useNotes({ favourite: true });
@@ -307,6 +315,8 @@ function NoteEditor({ routeId }: { routeId: string }) {
     !!savedId && (pinnedNotes.data ?? []).some((n) => n.id === savedId);
   const isFavourite =
     !!savedId && (favouriteNotes.data ?? []).some((n) => n.id === savedId);
+  const isShared =
+    (members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0;
 
   return (
     <div className="flex h-screen bg-[#0f1014]">
@@ -328,6 +338,23 @@ function NoteEditor({ routeId }: { routeId: string }) {
 
             {savedId && (
               <>
+                {isShared && (
+                  <button
+                    onClick={() => setShareOpen(true)}
+                    title="Ta notatka jest udostępniona — kliknij, żeby zarządzać dostępem"
+                    className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-1 rounded-full transition-colors"
+                  >
+                    <Share2 size={11} />
+                    Udostępniona
+                  </button>
+                )}
+                <button
+                  onClick={() => setShareOpen(true)}
+                  title="Udostępnij notatkę"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 hover:bg-white/5 transition-colors"
+                >
+                  <Share2 size={15} />
+                </button>
                 <button
                   onClick={() => togglePin.mutate()}
                   disabled={togglePin.isPending}
@@ -456,6 +483,18 @@ function NoteEditor({ routeId }: { routeId: string }) {
               </button>
             </div>
 
+            {note.data &&
+              currentUser.data &&
+              note.data.ownerId !== currentUser.data.id && (
+                <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2.5 mb-6 text-sm text-gray-300">
+                  <Share2 size={14} className="text-indigo-400 flex-shrink-0" />
+                  Udostępnione przez{" "}
+                  {note.data.owner
+                    ? `${note.data.owner.name} ${note.data.owner.surname}`
+                    : "innego użytkownika"}
+                </div>
+              )}
+
             {/* Title */}
             {summary && (
               <div className="flex items-start gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-3 mb-6 text-sm text-gray-200">
@@ -537,6 +576,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
           </div>
         </div>
       </main>
+
+      {shareOpen && savedId && (
+        <ShareDialog noteId={savedId} onClose={() => setShareOpen(false)} />
+      )}
     </div>
   );
 }

@@ -25,7 +25,7 @@ export class NoteShareLink {
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })
   accessLevel: AccessLevel;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   email: string | null;
 
   @Column({ type: 'timestamp', nullable: true })

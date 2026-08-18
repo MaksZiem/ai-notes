@@ -221,9 +221,10 @@ export class NotesService {
     callerRole: UserRole,
     required: AccessLevel = AccessLevel.VIEW,
   ): Promise<Note> {
-    const note = await this.repo.findOneBy(
-      projectId != null ? { id, projectId } : { id },
-    );
+    const note = await this.repo.findOne({
+      where: projectId != null ? { id, projectId } : { id },
+      relations: ['owner'],
+    });
     if (!note) throw new NotFoundException('Note not found');
 
     // ── notatka bez projektu ──────────────────────────────────────────────
@@ -631,7 +632,10 @@ export class NotesService {
     token: string,
   ): Promise<{ note: Note; accessLevel: AccessLevel }> {
     const link = await this.resolveShareLink(token);
-    const note = await this.repo.findOneBy({ id: link.noteId });
+    const note = await this.repo.findOne({
+      where: { id: link.noteId },
+      relations: ['owner'],
+    });
     if (!note) throw new NotFoundException('Note not found');
     return { note, accessLevel: link.accessLevel };
   }

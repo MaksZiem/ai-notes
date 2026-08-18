@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Note } from "../types/note";
+import type { NoteMember } from "../types/note-member";
 
 // useNote wszystkie operacje na pojedynczej notatce bez projektu
 export function useNote(noteId: number) {
@@ -22,7 +23,7 @@ export function useNote(noteId: number) {
     enabled: !!noteId,
   });
 
-  const members = useQuery({
+  const members = useQuery<NoteMember[]>({
     queryKey: ["notes", noteId, "members"],
     queryFn: async () => {
       const { data } = await api.get(`/notes/${noteId}/members`);

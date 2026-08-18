@@ -15,16 +15,28 @@ export function AuthProvider({children}: {children: ReactNode}) {
     () => localStorage.getItem('token')
   )
 
+  const claimPendingShareLink = async () => {
+    const shareToken = new URLSearchParams(window.location.search).get('shareToken')
+    if (!shareToken) return
+    try {
+      await api.post(`/shared/${shareToken}/claim`)
+    } catch {
+      // link mógł wygasnąć/zostać odwołany — nie blokujemy logowania z tego powodu
+    }
+  }
+
   const login = async (email: string, password: string) => {
     const {data } = await api.post('/auth/signin', {email, password})
     localStorage.setItem('token', data.access_token)
     setToken(data.access_token)
+    await claimPendingShareLink()
   }
 
   const signup = async (email: string, password: string, name: string, surname: string) => {
     const { data } = await api.post('/auth/signup', { email, password, name, surname })
     localStorage.setItem('token', data.access_token)
     setToken(data.access_token)
+    await claimPendingShareLink()
   }
 
   const logout = () => {

@@ -12,6 +12,7 @@ import ProjectsPage from './pages/ProjectsPage'
 import AdminPage from './pages/AdminPage'
 import RegisterPage from './pages/Auth/RegisterPage'
 import ChatPage from './pages/ChatPage'
+import SharedNotePage from './pages/SharedNotePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/shared/:token" element={<SharedNotePage />} />
 
               <Route element={<PrivateRoute />}>
                 <Route path="/" element={<DashboardPage />} />
