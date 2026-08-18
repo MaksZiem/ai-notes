@@ -428,6 +428,27 @@ export class NotesService {
     return this.memberRepo.find({ where: { noteId }, relations: ['user'] });
   }
 
+  async leaveNote(
+    noteId: number,
+    projectId: number | null,
+    callerId: number,
+  ): Promise<void> {
+    const note = await this.repo.findOneBy(
+      projectId != null ? { id: noteId, projectId } : { id: noteId },
+    );
+    if (!note) throw new NotFoundException('Note not found');
+    if (note.ownerId === callerId) {
+      throw new ForbiddenException(
+        'Właściciel nie może opuścić własnej notatki — może ją usunąć',
+      );
+    }
+
+    const result = await this.memberRepo.delete({noteId, userId: callerId})
+    if (!result.affected) {
+      throw new ForbiddenException('Nie masz bezpośredniego dostępu do tej notatki');
+    }
+  }
+
   // ── helpers ───────────────────────────────────────────────────────────────
 
   /**

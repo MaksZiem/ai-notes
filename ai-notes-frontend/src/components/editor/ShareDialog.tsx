@@ -109,13 +109,15 @@ export function ShareDialog({
           </div>
         </div>
 
-        <p className="text-xs text-gray-500 mb-2">Aktywne linki zaproszeń</p>
+        <p className="text-xs text-gray-500 mb-2">
+          Zaproszenia — czekają, aż ktoś otworzy link
+        </p>
         <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
           {shareLinks.isLoading && (
             <p className="text-sm text-gray-500">Ładowanie…</p>
           )}
           {!shareLinks.isLoading && (shareLinks.data ?? []).length === 0 && (
-            <p className="text-sm text-gray-500">Brak aktywnych linków.</p>
+            <p className="text-sm text-gray-500">Brak wysłanych zaproszeń.</p>
           )}
           {(shareLinks.data ?? []).map((link) => (
             <div
@@ -123,8 +125,11 @@ export function ShareDialog({
               className="flex items-center justify-between gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2"
             >
               <div className="min-w-0">
-                <p className="text-sm text-gray-200 truncate">
+                <p className="text-sm text-gray-200 truncate flex items-center gap-2">
                   {link.email ?? "Link publiczny"}
+                  <span className="text-[10px] font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                    nie odebrane
+                  </span>
                 </p>
                 <p className="text-xs text-gray-500">
                   {link.accessLevel === "EDIT" ? "Edycja" : "Podgląd"}
@@ -154,15 +159,17 @@ export function ShareDialog({
         </div>
 
         <div className="mt-5 pt-4 border-t border-white/10">
-          <p className="text-xs text-gray-500 mb-2">Osoby z dostępem do notatki</p>
+          <p className="text-xs text-gray-500 mb-2">
+            Osoby, które już mają dostęp (zalogowane)
+          </p>
           <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
             {members.isLoading && (
               <p className="text-sm text-gray-500">Ładowanie…</p>
             )}
             {!members.isLoading && (members.data ?? []).length === 0 && (
               <p className="text-sm text-gray-500">
-                Nikt jeszcze nie ma bezpośredniego dostępu — pojawi się tu po
-                otwarciu linku i założeniu/zalogowaniu się na konto.
+                Nikt tu jeszcze nie wszedł. Osoba z zaproszenia pojawi się
+                dopiero, gdy otworzy link i zaloguje się lub założy konto.
               </p>
             )}
             {(members.data ?? []).map((member) => (

@@ -33,14 +33,19 @@ export function useNote(noteId: number) {
   });
 
   const updateNote = useMutation({
-    mutationFn: (body: { title?: string; content?: string; color?: string | null; keywords?: string[] }) =>
-      api.patch(`/notes/${noteId}`, body),
+    mutationFn: (body: {
+      title?: string;
+      content?: string;
+      color?: string | null;
+      keywords?: string[];
+    }) => api.patch(`/notes/${noteId}`, body),
     onSuccess: invalidateAll,
   });
 
   const summarizeNote = useMutation({
-    mutationFn: () => api.post<{summary: string}>(`/notes/${noteId}/summarize`)
-  })
+    mutationFn: () =>
+      api.post<{ summary: string }>(`/notes/${noteId}/summarize`),
+  });
 
   const deleteNote = useMutation({
     mutationFn: () => api.delete(`/notes/${noteId}`),
@@ -48,8 +53,13 @@ export function useNote(noteId: number) {
   });
 
   const grantAccess = useMutation({
-    mutationFn: ({ userId, accessLevel }: { userId: number; accessLevel?: string }) =>
-      api.post(`/notes/${noteId}/members`, { userId, accessLevel }),
+    mutationFn: ({
+      userId,
+      accessLevel,
+    }: {
+      userId: number;
+      accessLevel?: string;
+    }) => api.post(`/notes/${noteId}/members`, { userId, accessLevel }),
     onSuccess: invalidateNote,
   });
 
@@ -69,5 +79,21 @@ export function useNote(noteId: number) {
     onSuccess: invalidateAll,
   });
 
-  return { note, members, updateNote, summarizeNote, deleteNote, grantAccess, revokeAccess, togglePin, toggleFavourite };
+  const leaveNote = useMutation({
+    mutationFn: () => api.delete(`/notes/${noteId}/leave`),
+    onSuccess: invalidateAll,
+  });
+
+  return {
+    note,
+    members,
+    updateNote,
+    summarizeNote,
+    deleteNote,
+    grantAccess,
+    revokeAccess,
+    togglePin,
+    toggleFavourite,
+    leaveNote
+  };
 }

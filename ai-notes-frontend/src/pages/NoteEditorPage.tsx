@@ -35,6 +35,7 @@ import {
   X,
   Sparkles,
   Share2,
+  LogOut,
 } from "lucide-react";
 
 const COLOR_PALETTE = NOTE_ACCENT_COLORS;
@@ -132,6 +133,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
     togglePin,
     toggleFavourite,
     deleteNote,
+    leaveNote,
     summarizeNote,
   } = useNote(savedId ?? 0);
   const { shareLinks } = useNoteShareLinks(savedId ?? 0);
@@ -310,13 +312,32 @@ function NoteEditor({ routeId }: { routeId: string }) {
     });
   };
 
+  const handleLeave = () => {
+    if (!savedId) return;
+    if (
+      !window.confirm(
+        "Opuścić tę notatkę? Zniknie z Twojej listy, ale zostanie u właściciela — w każdej chwili może udostępnić Ci ją ponownie.",
+      )
+    )
+      return;
+    leaveNote.mutate(undefined, {
+      onSuccess: () => navigate(backToNotesPath),
+    });
+  };
+
   const currentProject = projects.data?.find((p) => p.id === projectId);
   const isPinned =
     !!savedId && (pinnedNotes.data ?? []).some((n) => n.id === savedId);
   const isFavourite =
     !!savedId && (favouriteNotes.data ?? []).some((n) => n.id === savedId);
+  const isOwner =
+    !savedId ||
+    !note.data ||
+    !currentUser.data ||
+    note.data.ownerId === currentUser.data.id;
   const isShared =
-    (members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0;
+    isOwner &&
+    ((members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0);
 
   return (
     <div className="flex h-screen bg-[#0f1014]">
@@ -348,13 +369,15 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     Udostępniona
                   </button>
                 )}
-                <button
-                  onClick={() => setShareOpen(true)}
-                  title="Udostępnij notatkę"
-                  className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 hover:bg-white/5 transition-colors"
-                >
-                  <Share2 size={15} />
-                </button>
+                {isOwner && (
+                  <button
+                    onClick={() => setShareOpen(true)}
+                    title="Udostępnij notatkę"
+                    className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 hover:bg-white/5 transition-colors"
+                  >
+                    <Share2 size={15} />
+                  </button>
+                )}
                 <button
                   onClick={() => togglePin.mutate()}
                   disabled={togglePin.isPending}
@@ -396,13 +419,26 @@ function NoteEditor({ routeId }: { routeId: string }) {
               </>
             )}
 
-            <button
-              onClick={handleDelete}
-              title="Usuń notatkę"
-              className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-            >
-              <Trash2 size={15} />
-            </button>
+            {isOwner ? (
+              <button
+                onClick={handleDelete}
+                title="Usuń notatkę"
+                className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              >
+                <Trash2 size={15} />
+              </button>
+            ) : (
+              savedId && (
+                <button
+                  onClick={handleLeave}
+                  disabled={leaveNote.isPending}
+                  title="Opuść notatkę — zniknie z Twojej listy, zostanie u właściciela"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                >
+                  <LogOut size={15} />
+                </button>
+              )
+            )}
           </div>
         </div>
 

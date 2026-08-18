@@ -311,6 +311,27 @@ export class SingleNoteController {
   }
 
   // ──────────────────────────────────────────────
+  // DELETE /notes/:id/leave
+  // ──────────────────────────────────────────────
+  @Delete(':id/leave')
+  @ApiOperation({
+    summary: 'Opuść notatkę udostępnioną Ci przez kogoś innego',
+    description:
+      'Usuwa Twój bezpośredni dostęp (NoteMember) do notatki. ' +
+      'Sama notatka pozostaje nietknięta u właściciela. ' +
+      'Właściciel notatki nie może jej w ten sposób opuścić.',
+  })
+  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiResponse({ status: 200, description: 'Notatka opuszczona' })
+  @ApiResponse({
+    status: 403,
+    description: 'Jesteś właścicielem notatki lub nie masz do niej dostępu',
+  })
+  leaveNote(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+    return this.notesService.leaveNote(id, null, user.id);
+  }
+
+  // ──────────────────────────────────────────────
   // POST /notes/:id/share-links
   // ──────────────────────────────────────────────
   @Post(':id/share-links')
