@@ -18,6 +18,9 @@ import { Note } from './notes/entities/note.entity';
 import { AiModule } from './ai/ai.module';
 import { AgentModule } from './agent/agent.module';
 import { NoteShareLink } from './notes/entities/note-share-link.entity';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { NotificationsModule } from './notifications/notifications.module';
+import { Notification } from './notifications/entities/notification.entity';
 
 @Module({
   imports: [
@@ -25,6 +28,7 @@ import { NoteShareLink } from './notes/entities/note-share-link.entity';
       isGlobal: true,
       envFilePath: `.env`,
     }),
+    EventEmitterModule.forRoot(),
     I18nModule.forRoot({
       fallbackLanguage: 'pl',
       loaderOptions: {
@@ -50,7 +54,8 @@ import { NoteShareLink } from './notes/entities/note-share-link.entity';
           NoteMember,
           NoteShareLink,
           UserProjectPreference,
-          UserNotePreference
+          UserNotePreference,
+          Notification
         ],
         synchronize: true,
       }),
@@ -60,7 +65,8 @@ import { NoteShareLink } from './notes/entities/note-share-link.entity';
     ProjectsModule,
     UploadsModule,
     AiModule,
-    AgentModule
+    AgentModule,
+    NotificationsModule
   ],
   providers: [
     {

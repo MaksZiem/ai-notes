@@ -23,6 +23,15 @@ import { CreateShareLinkDto } from './dtos/create-share-link.dto';
 import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  NOTE_SHARED_EVENT,
+  NOTE_ACCESS_REVOKED_EVENT,
+  SHARE_LINK_CLAIMED_EVENT,
+  NoteSharedEvent,
+  NoteAccessRevokedEvent,
+  ShareLinkClaimedEvent,
+} from 'src/notifications/notifications.events';
 
 @Injectable()
 export class NotesService {
@@ -39,6 +48,7 @@ export class NotesService {
     private aiService: AiService,
     private mailService: MailService,
     private config: ConfigService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   // ── findAll w projekcie ───────────────────────────────────────────────────
@@ -394,17 +404,26 @@ export class NotesService {
       noteId,
       userId: dto.userId,
     });
+
+    let saved: NoteMember;
     if (existing) {
       existing.accessLevel = dto.accessLevel ?? existing.accessLevel;
-      return this.memberRepo.save(existing);
+      saved = await this.memberRepo.save(existing);
+    } else {
+      const member = this.memberRepo.create({
+        noteId,
+        userId: dto.userId,
+        accessLevel: dto.accessLevel ?? AccessLevel.VIEW,
+      });
+      saved = await this.memberRepo.save(member);
     }
 
-    const member = this.memberRepo.create({
-      noteId,
-      userId: dto.userId,
-      accessLevel: dto.accessLevel ?? AccessLevel.VIEW,
-    });
-    return this.memberRepo.save(member);
+    this.eventEmitter.emit(
+      NOTE_SHARED_EVENT,
+      new NoteSharedEvent(noteId, dto.userId, callerId, saved.accessLevel),
+    );
+
+    return saved;
   }
 
   async revokeAccess(
@@ -416,6 +435,10 @@ export class NotesService {
   ): Promise<void> {
     await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
     await this.memberRepo.delete({ noteId, userId: targetUserId });
+    this.eventEmitter.emit(
+      NOTE_ACCESS_REVOKED_EVENT,
+      new NoteAccessRevokedEvent(noteId, targetUserId, callerId),
+    );
   }
 
   async listMembers(
@@ -443,9 +466,11 @@ export class NotesService {
       );
     }
 
-    const result = await this.memberRepo.delete({noteId, userId: callerId})
+    const result = await this.memberRepo.delete({ noteId, userId: callerId });
     if (!result.affected) {
-      throw new ForbiddenException('Nie masz bezpośredniego dostępu do tej notatki');
+      throw new ForbiddenException(
+        'Nie masz bezpośredniego dostępu do tej notatki',
+      );
     }
   }
 
@@ -681,15 +706,28 @@ export class NotesService {
       noteId: link.noteId,
       userId,
     });
+
+    let saved: NoteMember;
     if (existing) {
       existing.accessLevel = link.accessLevel;
-      return this.memberRepo.save(existing);
+      saved = await this.memberRepo.save(existing);
+    } else {
+      const member = this.memberRepo.create({
+        noteId: link.noteId,
+        userId,
+        accessLevel: link.accessLevel,
+      });
+      saved = await this.memberRepo.save(member);
     }
-    const member = this.memberRepo.create({
-      noteId: link.noteId,
-      userId,
-      accessLevel: link.accessLevel,
-    });
-    return this.memberRepo.save(member);
+
+    const note = await this.repo.findOneBy({ id: link.noteId });
+    if (note) {
+      this.eventEmitter.emit(
+        SHARE_LINK_CLAIMED_EVENT,
+        new ShareLinkClaimedEvent(link.noteId, note.ownerId, userId),
+      );
+    }
+
+    return saved;
   }
 }
