@@ -29,6 +29,7 @@ import { CreateProjectDto } from './dtos/create-project.dto';
 import { UpdateProjectDto } from './dtos/update-project.dto';
 import { GrantAccessDto } from './dtos/grant-access.dto';
 import { NotesService } from 'src/notes/notes.service';
+import { CreateProjectShareLinkDto } from './dtos/create-project-share-link.dto';
 
 @ApiTags('Projects')
 @ApiBearerAuth('access-token')
@@ -269,5 +270,52 @@ export class ProjectsController {
       user.id,
       user.role,
     );
+  }
+
+  // ──────────────────────────────────────────────
+  // POST /projects/:id/share-links
+  // ──────────────────────────────────────────────
+  @Post(':id/share-links')
+  @ApiOperation({
+    summary: 'Utwórz zaproszenie mailowe do projektu',
+    description:
+      'Tylko właściciel lub admin. Jeśli podano e-mail, link jest od razu wysyłany — ' +
+      'a jeśli e-mail należy do zarejestrowanego konta, zaproszenie pojawia się też w powiadomieniach.',
+  })
+  @ApiParam({ name: 'id', example: 1 })
+  createShareLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: CreateProjectShareLinkDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.projectsService.createShareLink(id, user.id, user.role, body);
+  }
+
+  // ──────────────────────────────────────────────
+  // GET /projects/:id/share-links
+  // ──────────────────────────────────────────────
+  @Get(':id/share-links')
+  @ApiOperation({ summary: 'Lista aktywnych zaproszeń do projektu' })
+  @ApiParam({ name: 'id', example: 1 })
+  listShareLinks(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ) {
+    return this.projectsService.listShareLinks(id, user.id, user.role);
+  }
+
+  // ──────────────────────────────────────────────
+  // DELETE /projects/:id/share-links/:linkId
+  // ──────────────────────────────────────────────
+  @Delete(':id/share-links/:linkId')
+  @ApiOperation({ summary: 'Odwołaj zaproszenie do projektu' })
+  @ApiParam({ name: 'id', example: 1 })
+  @ApiParam({ name: 'linkId', example: 3 })
+  revokeShareLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('linkId', ParseIntPipe) linkId: number,
+    @CurrentUser() user: User,
+  ) {
+    return this.projectsService.revokeShareLink(id, linkId, user.id, user.role);
   }
 }

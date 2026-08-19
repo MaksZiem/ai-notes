@@ -6,13 +6,22 @@ import { Project } from './entities/project.entity';
 import { ProjectMember } from './entities/project-member.entity';
 import { NotesModule } from 'src/notes/notes.module';
 import { UserProjectPreference } from './entities/project-user-preference.entity';
+import { ProjectShareLink } from './entities/project-share-link.entity';
+import { PublicProjectShareController } from './public-project-share.controller';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Project, ProjectMember, UserProjectPreference]),
+    TypeOrmModule.forFeature([
+      Project,
+      ProjectMember,
+      UserProjectPreference,
+      ProjectShareLink,
+    ]),
     forwardRef(() => NotesModule),
+    MailModule,
   ],
-  controllers: [ProjectsController],
+  controllers: [ProjectsController, PublicProjectShareController],
   providers: [ProjectsService],
   exports: [ProjectsService],
 })

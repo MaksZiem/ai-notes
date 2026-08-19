@@ -32,6 +32,8 @@ export function useProject(projectId: number) {
       return data;
     },
     enabled: !!projectId,
+    refetchOnMount: "always",
+    refetchInterval: 8_000,
   });
 
   const updateProject = useMutation({

@@ -14,6 +14,23 @@ import { AccessLevel, hasAccess } from 'src/enums/access-level.enum';
 import { GrantAccessDto } from './dtos/grant-access.dto';
 import { UserProjectPreference } from './entities/project-user-preference.entity';
 import { assignDefined } from 'src/helpers/assign-defined';
+import { ProjectShareLink } from './entities/project-share-link.entity';
+import { CreateProjectShareLinkDto } from './dtos/create-project-share-link.dto';
+import { MailService } from 'src/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
+import { randomBytes } from 'crypto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  PROJECT_SHARED_EVENT,
+  PROJECT_ACCESS_REVOKED_EVENT,
+  PROJECT_SHARE_LINK_CLAIMED_EVENT,
+  PROJECT_INVITE_EVENT,
+  ProjectSharedEvent,
+  ProjectAccessRevokedEvent,
+  ProjectShareLinkClaimedEvent,
+  ProjectInviteEvent,
+} from 'src/notifications/notifications.events';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ProjectsService {
@@ -23,6 +40,12 @@ export class ProjectsService {
     private memberRepo: Repository<ProjectMember>,
     @InjectRepository(UserProjectPreference)
     private prefRepo: Repository<UserProjectPreference>,
+    @InjectRepository(ProjectShareLink)
+    private shareLinkRepo: Repository<ProjectShareLink>,
+    private mailService: MailService,
+    private config: ConfigService,
+    private eventEmitter: EventEmitter2,
+    private usersService: UsersService,
   ) {}
 
   async findAllByUser(
@@ -195,18 +218,25 @@ export class ProjectsService {
       userId: dto.userId,
     });
 
+    let saved: ProjectMember;
     if (existing) {
       existing.accessLevel = dto.accessLevel ?? existing.accessLevel;
-      return this.memberRepo.save(existing);
+      saved = await this.memberRepo.save(existing);
+    } else {
+      const member = this.memberRepo.create({
+        projectId,
+        userId: dto.userId,
+        accessLevel: dto.accessLevel ?? AccessLevel.VIEW,
+      });
+      saved = await this.memberRepo.save(member);
     }
 
-    const member = this.memberRepo.create({
-      projectId,
-      userId: dto.userId,
-      accessLevel: dto.accessLevel ?? AccessLevel.VIEW,
-    });
+    this.eventEmitter.emit(
+      PROJECT_SHARED_EVENT,
+      new ProjectSharedEvent(projectId, dto.userId, callerId, saved.accessLevel),
+    );
 
-    return this.memberRepo.save(member);
+    return saved;
   }
 
   async revokeAccess(
@@ -217,6 +247,10 @@ export class ProjectsService {
   ): Promise<void> {
     await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
     await this.memberRepo.delete({ projectId, userId: targetUserId });
+    this.eventEmitter.emit(
+      PROJECT_ACCESS_REVOKED_EVENT,
+      new ProjectAccessRevokedEvent(projectId, targetUserId, callerId),
+    );
   }
 
   async listMembers(
@@ -229,6 +263,158 @@ export class ProjectsService {
       where: { projectId },
       relations: ['user'],
     });
+  }
+
+  // ── linki udostępniania (zaproszenia mailowe) ──────────────────────────────
+
+  async createShareLink(
+    projectId: number,
+    callerId: number,
+    callerRole: UserRole,
+    dto: CreateProjectShareLinkDto,
+  ): Promise<ProjectShareLink> {
+    await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
+
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = dto.expiresInDays
+      ? new Date(Date.now() + dto.expiresInDays * 24 * 60 * 60 * 1000)
+      : null;
+
+    const link = this.shareLinkRepo.create({
+      projectId,
+      token,
+      accessLevel: dto.accessLevel ?? AccessLevel.VIEW,
+      email: dto.email ?? null,
+      expiresAt,
+      createdByUserId: callerId,
+    });
+
+    const saved = await this.shareLinkRepo.save(link);
+
+    if (dto.email) {
+      const project = await this.repo.findOneBy({ id: projectId });
+      const frontendUrl = this.config.get<string>('FRONTEND_URL');
+      const shareUrl = `${frontendUrl}/project-invites/${token}`;
+      await this.mailService.sendProjectShareEmail(
+        dto.email,
+        project?.name ?? 'Projekt',
+        shareUrl,
+      );
+
+      // jeśli e-mail odpowiada istniejącemu kontu — dodatkowo zaproszenie w aplikacji
+      const [invitedUser] = await this.usersService.find(dto.email);
+      if (invitedUser) {
+        this.eventEmitter.emit(
+          PROJECT_INVITE_EVENT,
+          new ProjectInviteEvent(
+            projectId,
+            saved.id,
+            invitedUser.id,
+            callerId,
+            saved.accessLevel,
+          ),
+        );
+      }
+    }
+
+    return saved;
+  }
+
+  async listShareLinks(
+    projectId: number,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<ProjectShareLink[]> {
+    await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
+    return this.shareLinkRepo.find({
+      where: { projectId, revoked: false },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async revokeShareLink(
+    projectId: number,
+    linkId: number,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<void> {
+    await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
+    await this.shareLinkRepo.update({ id: linkId, projectId }, { revoked: true });
+  }
+
+  /**
+   * Odwołuje link bez sprawdzania właściciela — używane wewnętrznie,
+   * gdy zaproszony sam odrzuca zaproszenie (NotificationsService.decline).
+   */
+  async revokeShareLinkById(linkId: number): Promise<void> {
+    await this.shareLinkRepo.update({ id: linkId }, { revoked: true });
+  }
+
+  private async resolveShareLink(token: string): Promise<ProjectShareLink> {
+    const link = await this.shareLinkRepo.findOneBy({ token });
+    if (!link || link.revoked) {
+      throw new ForbiddenException('Link jest nieprawidłowy lub odwołany');
+    }
+    if (link.expiresAt && link.expiresAt.getTime() < Date.now()) {
+      throw new ForbiddenException('Link wygasł');
+    }
+    return link;
+  }
+
+  /**
+   * Publiczny podgląd zaproszenia — bez treści projektu, tylko metadane.
+   * Nie wymaga logowania (żeby niezalogowany widział "zaproszono Cię do X"
+   * i mógł się zalogować/zarejestrować), ale nie ujawnia notatek.
+   */
+  async getSharedProject(token: string): Promise<{
+    project: { id: number; name: string; description?: string };
+    invitedBy: { name: string; surname: string } | null;
+    accessLevel: AccessLevel;
+  }> {
+    const link = await this.resolveShareLink(token);
+    const project = await this.repo.findOneBy({ id: link.projectId });
+    if (!project) throw new NotFoundException('Project not found');
+    const inviter = await this.usersService.findOne(link.createdByUserId);
+    return {
+      project: {
+        id: project.id,
+        name: project.name,
+        description: project.description,
+      },
+      invitedBy: inviter ? { name: inviter.name, surname: inviter.surname } : null,
+      accessLevel: link.accessLevel,
+    };
+  }
+
+  async claimShareLink(token: string, userId: number): Promise<ProjectMember> {
+    const link = await this.resolveShareLink(token);
+    const existing = await this.memberRepo.findOneBy({
+      projectId: link.projectId,
+      userId,
+    });
+
+    let saved: ProjectMember;
+    if (existing) {
+      existing.accessLevel = link.accessLevel;
+      saved = await this.memberRepo.save(existing);
+    } else {
+      const member = this.memberRepo.create({
+        projectId: link.projectId,
+        userId,
+        accessLevel: link.accessLevel,
+      });
+      saved = await this.memberRepo.save(member);
+    }
+
+    const project = await this.repo.findOneBy({ id: link.projectId });
+    if (project) {
+      this.eventEmitter.emit(
+        PROJECT_SHARE_LINK_CLAIMED_EVENT,
+        new ProjectShareLinkClaimedEvent(link.projectId, project.ownerId, userId, link.id),
+      );
+    }
+
+    return saved;
   }
 
   // ── helpers ──────────────────────────────────────────────────────────────

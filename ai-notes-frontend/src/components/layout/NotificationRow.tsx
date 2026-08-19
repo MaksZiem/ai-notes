@@ -20,7 +20,8 @@ export function NotificationRow({
   declinePending?: boolean;
   compact?: boolean;
 }) {
-  const isPendingInvite = n.type === "NOTE_INVITE" && n.status === "PENDING";
+  const isPendingInvite =
+    (n.type === "NOTE_INVITE" || n.type === "PROJECT_INVITE") && n.status === "PENDING";
 
   return (
     <div
@@ -46,8 +47,12 @@ export function NotificationRow({
         </p>
         <p className={`${compact ? "text-[10.5px]" : "text-[11px]"} text-gray-600 mt-0.5 m-0`}>
           {formatDate(n.createdAt)}
-          {n.type === "NOTE_INVITE" && n.status === "ACCEPTED" && " · zaakceptowano"}
-          {n.type === "NOTE_INVITE" && n.status === "DECLINED" && " · odrzucono"}
+          {(n.type === "NOTE_INVITE" || n.type === "PROJECT_INVITE") &&
+            n.status === "ACCEPTED" &&
+            " · zaakceptowano"}
+          {(n.type === "NOTE_INVITE" || n.type === "PROJECT_INVITE") &&
+            n.status === "DECLINED" &&
+            " · odrzucono"}
         </p>
 
         {isPendingInvite && (

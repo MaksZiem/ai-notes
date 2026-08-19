@@ -7,3 +7,16 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ProjectMember {
+  id: number;
+  userId: number;
+  projectId: number;
+  accessLevel: "VIEW" | "EDIT" | "DELETE";
+  user: {
+    id: number;
+    name: string;
+    surname: string;
+    email: string;
+  };
+}

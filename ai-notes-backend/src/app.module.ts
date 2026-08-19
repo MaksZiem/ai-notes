@@ -18,6 +18,7 @@ import { Note } from './notes/entities/note.entity';
 import { AiModule } from './ai/ai.module';
 import { AgentModule } from './agent/agent.module';
 import { NoteShareLink } from './notes/entities/note-share-link.entity';
+import { ProjectShareLink } from './projects/entities/project-share-link.entity';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './notifications/notifications.module';
 import { Notification } from './notifications/entities/notification.entity';
@@ -53,6 +54,7 @@ import { Notification } from './notifications/entities/notification.entity';
           ProjectMember,
           NoteMember,
           NoteShareLink,
+          ProjectShareLink,
           UserProjectPreference,
           UserNotePreference,
           Notification

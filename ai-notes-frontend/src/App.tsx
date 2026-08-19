@@ -13,6 +13,7 @@ import AdminPage from './pages/AdminPage'
 import RegisterPage from './pages/Auth/RegisterPage'
 import ChatPage from './pages/ChatPage'
 import SharedNotePage from './pages/SharedNotePage'
+import ProjectInvitePage from './pages/ProjectInvitePage'
 import NotificationsPage from './pages/NotificationsPage'
 
 const queryClient = new QueryClient({
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/shared/:token" element={<SharedNotePage />} />
+              <Route path="/project-invites/:token" element={<ProjectInvitePage />} />
 
               <Route element={<PrivateRoute />}>
                 <Route path="/" element={<DashboardPage />} />

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Search, Plus, LayoutGrid, List, Pin, Folder, Star, Clock, X,
+  Search, Plus, LayoutGrid, List, Pin, Folder, Star, Clock, X, Share2,
 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { api } from "../api/client";
@@ -10,6 +10,9 @@ import { useProjects } from "../hooks/useProjects";
 import type { Project } from "../types/project";
 import { NoteViewType } from "../enums/noteView";
 import { formatDate } from "../utils/formatDate";
+import { ProjectShareDialog } from "../components/projects/ProjectShareDialog";
+import { usePermissions } from "../context/PermissionsContext";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 
 const PROJECT_DEFAULT_COLOR = "#6366f1";
 
@@ -30,11 +33,26 @@ function useProjectQuickActions(projectId: number) {
   return { togglePin, toggleFavourite };
 }
 
-function QuickActions({ projectId, pinned, favourite }: { projectId: number; pinned: boolean; favourite: boolean }) {
+function QuickActions({
+  projectId, pinned, favourite, canManage, onShare,
+}: {
+  projectId: number; pinned: boolean; favourite: boolean;
+  canManage: boolean; onShare: () => void;
+}) {
   const { togglePin, toggleFavourite } = useProjectQuickActions(projectId);
 
   return (
     <div className="flex items-center gap-0.5 flex-shrink-0">
+      {canManage && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onShare(); }}
+          title="Udostępnij projekt"
+          className="p-1 rounded-md text-gray-600 hover:text-indigo-400 transition-colors"
+        >
+          <Share2 size={13} />
+        </button>
+      )}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); togglePin.mutate(); }}
@@ -58,11 +76,13 @@ function QuickActions({ projectId, pinned, favourite }: { projectId: number; pin
 }
 
 // ─── ProjectCard (grid) ───────────────────────────────────────────────────────
-function ProjectCard({ project, pinned = false, favourite = false, onClick }: {
+function ProjectCard({ project, pinned = false, favourite = false, canManage, onClick, onShare }: {
   project: Project;
   pinned?: boolean;
   favourite?: boolean;
+  canManage: boolean;
   onClick: () => void;
+  onShare: () => void;
 }) {
   const color = project.color ?? PROJECT_DEFAULT_COLOR;
 
@@ -83,7 +103,7 @@ function ProjectCard({ project, pinned = false, favourite = false, onClick }: {
             {project.name}
           </h3>
         </div>
-        <QuickActions projectId={project.id} pinned={pinned} favourite={favourite} />
+        <QuickActions projectId={project.id} pinned={pinned} favourite={favourite} canManage={canManage} onShare={onShare} />
       </div>
 
       <p className="text-[12.5px] text-gray-500 leading-relaxed line-clamp-3 flex-1 mb-4">
@@ -100,11 +120,13 @@ function ProjectCard({ project, pinned = false, favourite = false, onClick }: {
 }
 
 // ─── ProjectRow (list) ────────────────────────────────────────────────────────
-function ProjectRow({ project, pinned = false, favourite = false, onClick }: {
+function ProjectRow({ project, pinned = false, favourite = false, canManage, onClick, onShare }: {
   project: Project;
   pinned?: boolean;
   favourite?: boolean;
+  canManage: boolean;
   onClick: () => void;
+  onShare: () => void;
 }) {
   const color = project.color ?? PROJECT_DEFAULT_COLOR;
 
@@ -133,7 +155,7 @@ function ProjectRow({ project, pinned = false, favourite = false, onClick }: {
         <Clock size={11} />{formatDate(project.updatedAt)}
       </div>
 
-      <QuickActions projectId={project.id} pinned={pinned} favourite={favourite} />
+      <QuickActions projectId={project.id} pinned={pinned} favourite={favourite} canManage={canManage} onShare={onShare} />
     </div>
   );
 }
@@ -151,6 +173,13 @@ export default function ProjectsPage() {
   const { projects, createProject } = useProjects();
   const { projects: pinnedProjects } = useProjects({ pinned: true });
   const { projects: favouriteProjects } = useProjects({ favourite: true });
+
+  const { isAdmin } = usePermissions();
+  const { data: currentUser } = useCurrentUser();
+  const [shareProjectId, setShareProjectId] = useState<number | null>(null);
+
+  const canManageProject = (project: Project) =>
+    isAdmin || project.ownerId === currentUser?.id;
 
   const allProjects = projects.data ?? [];
   const pinnedIds = new Set((pinnedProjects.data ?? []).map((p) => p.id));
@@ -196,7 +225,9 @@ export default function ProjectsPage() {
           project={p}
           pinned={isPinned}
           favourite={favouriteIds.has(p.id)}
+          canManage={canManageProject(p)}
           onClick={() => handleProjectClick(p.id)}
+          onShare={() => setShareProjectId(p.id)}
         />
       ))}
     </div>
@@ -210,7 +241,9 @@ export default function ProjectsPage() {
           project={p}
           pinned={isPinned}
           favourite={favouriteIds.has(p.id)}
+          canManage={canManageProject(p)}
           onClick={() => handleProjectClick(p.id)}
+          onShare={() => setShareProjectId(p.id)}
         />
       ))}
     </div>
@@ -362,6 +395,13 @@ export default function ProjectsPage() {
             </div>
           </form>
         </div>
+      )}
+
+      {shareProjectId !== null && (
+        <ProjectShareDialog
+          projectId={shareProjectId}
+          onClose={() => setShareProjectId(null)}
+        />
       )}
     </div>
   );

@@ -26,4 +26,21 @@ export class MailService {
       `,
     });
   }
+
+  async sendProjectShareEmail(
+    to: string,
+    projectName: string,
+    link: string,
+  ): Promise<void> {
+    await this.resend.emails.send({
+      from: 'AI Notes <onboarding@resend.dev>',
+      to,
+      subject: `Zaproszenie do projektu ${projectName}`,
+      html: `
+        <p>Ktoś zaprosił Cię do projektu „${projectName}”.</p>
+        <p><a href="${link}">Zobacz zaproszenie</a></p>
+        <p>Żeby dołączyć, musisz się zalogować lub założyć konto tym samym adresem e-mail.</p>
+      `,
+    });
+  }
 }

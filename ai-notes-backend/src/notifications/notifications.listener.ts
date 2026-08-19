@@ -12,6 +12,14 @@ import {
   NoteSharedEvent,
   SHARE_LINK_CLAIMED_EVENT,
   ShareLinkClaimedEvent,
+  PROJECT_SHARED_EVENT,
+  PROJECT_ACCESS_REVOKED_EVENT,
+  PROJECT_SHARE_LINK_CLAIMED_EVENT,
+  PROJECT_INVITE_EVENT,
+  ProjectSharedEvent,
+  ProjectAccessRevokedEvent,
+  ProjectShareLinkClaimedEvent,
+  ProjectInviteEvent,
 } from './notifications.events';
 
 @Injectable()
@@ -64,6 +72,56 @@ export class NotificationsListener {
       actorId: event.actorId,
       noteId: event.noteId,
       shareLinkId: event.shareLinkId,
+      accessLevel: event.accessLevel,
+      status: NotificationStatus.PENDING,
+    });
+  }
+
+  @OnEvent(PROJECT_SHARED_EVENT)
+  async handleProjectShared(event: ProjectSharedEvent) {
+    if (event.recipientUserId === event.actorId) return;
+    await this.notificationsService.create({
+      userId: event.recipientUserId,
+      type: NotificationType.PROJECT_SHARED,
+      actorId: event.actorId,
+      projectId: event.projectId,
+      accessLevel: event.accessLevel,
+    });
+  }
+
+  @OnEvent(PROJECT_ACCESS_REVOKED_EVENT)
+  async handleProjectAccessRevoked(event: ProjectAccessRevokedEvent) {
+    if (event.recipientUserId === event.actorId) return;
+    await this.notificationsService.create({
+      userId: event.recipientUserId,
+      type: NotificationType.PROJECT_ACCESS_REVOKED,
+      actorId: event.actorId,
+      projectId: event.projectId,
+    });
+  }
+
+  @OnEvent(PROJECT_SHARE_LINK_CLAIMED_EVENT)
+  async handleProjectShareLinkClaimed(event: ProjectShareLinkClaimedEvent) {
+    await this.notificationsService.markProjectInviteAccepted(event.shareLinkId, event.claimerId);
+
+    if (event.ownerId === event.claimerId) return;
+    await this.notificationsService.create({
+      userId: event.ownerId,
+      type: NotificationType.PROJECT_SHARE_LINK_CLAIMED,
+      actorId: event.claimerId,
+      projectId: event.projectId,
+    });
+  }
+
+  @OnEvent(PROJECT_INVITE_EVENT)
+  async handleProjectInvite(event: ProjectInviteEvent) {
+    if (event.recipientUserId === event.actorId) return;
+    await this.notificationsService.create({
+      userId: event.recipientUserId,
+      type: NotificationType.PROJECT_INVITE,
+      actorId: event.actorId,
+      projectId: event.projectId,
+      projectShareLinkId: event.shareLinkId,
       accessLevel: event.accessLevel,
       status: NotificationStatus.PENDING,
     });
