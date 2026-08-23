@@ -69,5 +69,10 @@ export function useProject(projectId: number) {
     onSuccess: invalidateMembers,
   });
 
-  return { project, members, updateProject, deleteProject, togglePin, toggleFavourite, grantAccess, revokeAccess };
+  const leaveProject = useMutation({
+    mutationFn: () => api.delete(`/projects/${projectId}/leave`),
+    onSuccess: invalidateAll,
+  });
+
+  return { project, members, updateProject, deleteProject, togglePin, toggleFavourite, grantAccess, revokeAccess, leaveProject };
 }

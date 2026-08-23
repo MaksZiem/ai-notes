@@ -265,6 +265,23 @@ export class ProjectsService {
     });
   }
 
+  async leaveProject(projectId: number, callerId: number): Promise<void> {
+    const project = await this.repo.findOneBy({ id: projectId });
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.ownerId === callerId) {
+      throw new ForbiddenException(
+        'Właściciel nie może opuścić własnego projektu — może go usunąć',
+      );
+    }
+
+    const result = await this.memberRepo.delete({ projectId, userId: callerId });
+    if (!result.affected) {
+      throw new ForbiddenException(
+        'Nie masz bezpośredniego dostępu do tego projektu',
+      );
+    }
+  }
+
   // ── linki udostępniania (zaproszenia mailowe) ──────────────────────────────
 
   async createShareLink(

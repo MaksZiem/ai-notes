@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Search, Plus, LayoutGrid, List, Pin, Folder, Star, Clock, X, Share2,
+  Search, Plus, LayoutGrid, List, Pin, Folder, Star, Clock, X, Share2, LogOut,
 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { api } from "../api/client";
@@ -30,7 +30,12 @@ function useProjectQuickActions(projectId: number) {
     onSuccess: invalidate,
   });
 
-  return { togglePin, toggleFavourite };
+  const leaveProject = useMutation({
+    mutationFn: () => api.delete(`/projects/${projectId}/leave`),
+    onSuccess: invalidate,
+  });
+
+  return { togglePin, toggleFavourite, leaveProject };
 }
 
 function QuickActions({
@@ -39,11 +44,22 @@ function QuickActions({
   projectId: number; pinned: boolean; favourite: boolean;
   canManage: boolean; onShare: () => void;
 }) {
-  const { togglePin, toggleFavourite } = useProjectQuickActions(projectId);
+  const { togglePin, toggleFavourite, leaveProject } = useProjectQuickActions(projectId);
+
+  const handleLeave = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (
+      !window.confirm(
+        "Opuścić ten projekt? Zniknie z Twojej listy, ale zostanie u właściciela — w każdej chwili może udostępnić Ci go ponownie.",
+      )
+    )
+      return;
+    leaveProject.mutate();
+  };
 
   return (
     <div className="flex items-center gap-0.5 flex-shrink-0">
-      {canManage && (
+      {canManage ? (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onShare(); }}
@@ -51,6 +67,16 @@ function QuickActions({
           className="p-1 rounded-md text-gray-600 hover:text-indigo-400 transition-colors"
         >
           <Share2 size={13} />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleLeave}
+          disabled={leaveProject.isPending}
+          title="Opuść projekt — zniknie z Twojej listy, zostanie u właściciela"
+          className="p-1 rounded-md text-gray-600 hover:text-red-400 transition-colors"
+        >
+          <LogOut size={13} />
         </button>
       )}
       <button

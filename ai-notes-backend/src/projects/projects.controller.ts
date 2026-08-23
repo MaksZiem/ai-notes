@@ -273,6 +273,27 @@ export class ProjectsController {
   }
 
   // ──────────────────────────────────────────────
+  // DELETE /projects/:id/leave
+  // ──────────────────────────────────────────────
+  @Delete(':id/leave')
+  @ApiOperation({
+    summary: 'Opuść projekt udostępniony Ci przez kogoś innego',
+    description:
+      'Usuwa Twój bezpośredni dostęp (ProjectMember) do projektu. ' +
+      'Sam projekt pozostaje nietknięty u właściciela. ' +
+      'Właściciel projektu nie może go w ten sposób opuścić.',
+  })
+  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiResponse({ status: 200, description: 'Projekt opuszczony' })
+  @ApiResponse({
+    status: 403,
+    description: 'Jesteś właścicielem projektu lub nie masz do niego dostępu',
+  })
+  leaveProject(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+    return this.projectsService.leaveProject(id, user.id);
+  }
+
+  // ──────────────────────────────────────────────
   // POST /projects/:id/share-links
   // ──────────────────────────────────────────────
   @Post(':id/share-links')

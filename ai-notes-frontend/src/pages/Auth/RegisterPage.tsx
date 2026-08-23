@@ -26,13 +26,19 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shareToken = searchParams.get("shareToken");
+  const projectInviteToken = searchParams.get("projectInviteToken");
+  const redirectTo = shareToken
+    ? `/shared/${shareToken}`
+    : projectInviteToken
+      ? `/project-invites/${projectInviteToken}`
+      : "/notes";
 
   const { form, onSubmit, isLoading, error } =
     useFormWithMutation<RegisterFormValues>(
       schema,
       ({ email, password, name, surname }) =>
         signup(email, password, name, surname),
-      { onSuccess: () => navigate(shareToken ? `/shared/${shareToken}` : "/notes") }
+      { onSuccess: () => navigate(redirectTo) }
     );
 
   const {
@@ -140,7 +146,15 @@ export default function RegisterPage() {
         </button>
         <button
           type="button"
-          onClick={() => navigate(shareToken ? `/login?shareToken=${shareToken}` : "/login")}
+          onClick={() =>
+            navigate(
+              shareToken
+                ? `/login?shareToken=${shareToken}`
+                : projectInviteToken
+                  ? `/login?projectInviteToken=${projectInviteToken}`
+                  : "/login",
+            )
+          }
           className="w-full text-sm text-gray-400"
         >
           Masz już konto?{" "}

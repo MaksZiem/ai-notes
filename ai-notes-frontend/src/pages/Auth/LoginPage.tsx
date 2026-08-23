@@ -18,13 +18,19 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shareToken = searchParams.get("shareToken");
+  const projectInviteToken = searchParams.get("projectInviteToken");
+  const redirectTo = shareToken
+    ? `/shared/${shareToken}`
+    : projectInviteToken
+      ? `/project-invites/${projectInviteToken}`
+      : "/notes";
 
   const { form, onSubmit, isLoading, error } =
     useFormWithMutation<LoginFormValues>(
       schema,
       ({ email, password }) => login(email, password),
       {
-        onSuccess: () => navigate(shareToken ? `/shared/${shareToken}` : "/notes"),
+        onSuccess: () => navigate(redirectTo),
       }
     );
 
@@ -85,7 +91,15 @@ export default function LoginPage() {
         </button>
         <button
           type="button"
-          onClick={() => navigate(shareToken ? `/register?shareToken=${shareToken}` : "/register")}
+          onClick={() =>
+            navigate(
+              shareToken
+                ? `/register?shareToken=${shareToken}`
+                : projectInviteToken
+                  ? `/register?projectInviteToken=${projectInviteToken}`
+                  : "/register",
+            )
+          }
           className="w-full text-sm text-gray-400"
         >
           Nie masz konta?{" "}
