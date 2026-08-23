@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft, Sparkles } from "lucide-react";
+import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft, Sparkles, Share2 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useNotes } from "../hooks/useNotes";
 import { useProjectNotes } from "../hooks/useProjectNotes";
@@ -10,6 +10,9 @@ import { useSemanticSearch } from "../hooks/useSemanticSearch";
 import type { Note } from "../types/note";
 import { NoteCard } from "../components/layout/NoteCard";
 import { NoteViewType } from "../enums/noteView";
+import { ProjectShareDialog } from "../components/projects/ProjectShareDialog";
+import { usePermissions } from "../context/PermissionsContext";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 
 function noteMatchesSearch(note: Note, query: string) {
   const q = query.toLowerCase();
@@ -29,6 +32,10 @@ export default function NotesPage() {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
   const [aiMode, setAiMode] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+
+  const { isAdmin } = usePermissions();
+  const { data: currentUser } = useCurrentUser();
 
   const debouncedSearch = useDebounce(search, 300);
 
@@ -39,6 +46,9 @@ export default function NotesPage() {
   );
 
   const { project } = useProject(isProjectScoped ? projectId! : 0);
+
+  const canManageProject =
+    isProjectScoped && (isAdmin || project.data?.ownerId === currentUser?.id);
 
   const {
     notes: { data: globalPinnedNotes = [] },
@@ -166,6 +176,18 @@ export default function NotesPage() {
               </button>
             </div>
 
+            {canManageProject && (
+              <button
+                type="button"
+                onClick={() => setIsShareOpen(true)}
+                title="Udostępnij projekt"
+                className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150"
+              >
+                <Share2 size={15} />
+                Udostępnij
+              </button>
+            )}
+
             <button
               onClick={() => navigate(createNotePath)}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors duration-150"
@@ -234,6 +256,13 @@ export default function NotesPage() {
           )}
         </div>
       </main>
+
+      {isShareOpen && isProjectScoped && (
+        <ProjectShareDialog
+          projectId={projectId!}
+          onClose={() => setIsShareOpen(false)}
+        />
+      )}
     </div>
   );
 }
