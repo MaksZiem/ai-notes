@@ -367,6 +367,38 @@ export class NotesService {
     return this.repo.remove(note);
   }
 
+  /**
+   * Przenosi notatkę do innego projektu (lub poza projekty, jeśli targetProjectId === null).
+   * Wymaga DELETE tam, skąd notatka jest zabierana (tyle samo władzy co jej usunięcie stamtąd)
+   * oraz EDIT w projekcie docelowym (tyle samo władzy co utworzenie w nim nowej notatki).
+   */
+  async moveToProject(
+    id: number,
+    targetProjectId: number | null,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<Note> {
+    const note = await this.findOne(
+      id,
+      null,
+      callerId,
+      callerRole,
+      AccessLevel.DELETE,
+    );
+
+    if (targetProjectId != null) {
+      await this.projectsService.findOne(
+        targetProjectId,
+        callerId,
+        callerRole,
+        AccessLevel.EDIT,
+      );
+    }
+
+    note.projectId = targetProjectId;
+    return this.repo.save(note);
+  }
+
   // ── pin / favourite ───────────────────────────────────────────────────────
 
   async togglePin(

@@ -27,6 +27,7 @@ import { User } from 'src/users/user.entity';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dtos/create-note.dto';
 import { UpdateNoteDto } from './dtos/update-note.dto';
+import { MoveNoteDto } from './dtos/move-note.dto';
 import { GrantAccessDto } from 'src/projects/dtos/grant-access.dto';
 import { AiService } from 'src/ai/ai.service';
 import { CreateShareLinkDto } from './dtos/create-share-link.dto';
@@ -208,6 +209,35 @@ export class SingleNoteController {
     @CurrentUser() user: User,
   ) {
     return this.notesService.update(id, body, null, user.id, user.role);
+  }
+
+  // ──────────────────────────────────────────────
+  // PATCH /notes/:id/move
+  // ──────────────────────────────────────────────
+  @Patch(':id/move')
+  @ApiOperation({
+    summary: 'Przenieś notatkę do innego projektu (lub poza projekty)',
+    description:
+      'Wymaga DELETE w projekcie, z którego notatka jest zabierana (jeśli obecnie w jakimś jest), ' +
+      'oraz EDIT w projekcie docelowym (jeśli projectId nie jest null).',
+  })
+  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiResponse({ status: 200, description: 'Notatka przeniesiona' })
+  @ApiResponse({
+    status: 403,
+    description: 'Niewystarczający poziom dostępu w projekcie źródłowym lub docelowym',
+  })
+  moveNote(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: MoveNoteDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.notesService.moveToProject(
+      id,
+      body.projectId,
+      user.id,
+      user.role,
+    );
   }
 
   // ──────────────────────────────────────────────

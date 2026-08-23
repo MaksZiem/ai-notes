@@ -84,6 +84,12 @@ export function useNote(noteId: number) {
     onSuccess: invalidateAll,
   });
 
+  const moveNote = useMutation({
+    mutationFn: (projectId: number | null) =>
+      api.patch(`/notes/${noteId}/move`, { projectId }),
+    onSuccess: invalidateAll,
+  });
+
   return {
     note,
     members,
@@ -94,6 +100,7 @@ export function useNote(noteId: number) {
     revokeAccess,
     togglePin,
     toggleFavourite,
-    leaveNote
+    leaveNote,
+    moveNote,
   };
 }

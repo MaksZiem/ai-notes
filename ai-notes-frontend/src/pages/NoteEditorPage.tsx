@@ -134,6 +134,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
     toggleFavourite,
     deleteNote,
     leaveNote,
+    moveNote,
     summarizeNote,
   } = useNote(savedId ?? 0);
   const { shareLinks } = useNoteShareLinks(savedId ?? 0);
@@ -260,6 +261,17 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const handleColorSelect = (value: string | null) => {
     setColor(value ?? undefined);
     persistField({ color: value });
+  };
+
+  const handleProjectSelect = (rawValue: string) => {
+    const newProjectId = rawValue ? Number(rawValue) : undefined;
+    if (!savedId) {
+      setProjectId(newProjectId);
+      return;
+    }
+    moveNote.mutate(newProjectId ?? null, {
+      onSuccess: () => setProjectId(newProjectId),
+    });
   };
 
   const addKeyword = () => {
@@ -481,15 +493,13 @@ function NoteEditor({ routeId }: { routeId: string }) {
 
               <span className="w-px h-4 bg-white/10" />
 
-              {isNew && !savedId ? (
+              {isOwner ? (
                 <select
                   value={projectId ?? ""}
-                  onChange={(e) =>
-                    setProjectId(
-                      e.target.value ? Number(e.target.value) : undefined,
-                    )
-                  }
-                  className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-2.5 py-1 text-xs text-gray-300 outline-none"
+                  disabled={moveNote.isPending}
+                  onChange={(e) => handleProjectSelect(e.target.value)}
+                  title="Przenieś notatkę do innego projektu"
+                  className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-2.5 py-1 text-xs text-gray-300 outline-none disabled:opacity-50"
                 >
                   <option value="">Notatka prywatna</option>
                   {(projects.data ?? []).map((p) => (
