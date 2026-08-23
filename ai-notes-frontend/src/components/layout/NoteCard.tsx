@@ -23,7 +23,7 @@ function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: b
         onClick={(e) => { e.stopPropagation(); togglePin.mutate(); }}
         disabled={togglePin.isPending}
         title={pinned ? "Odepnij" : "Przypnij"}
-        className={`p-1 rounded-md transition-colors ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+        className={`p-1 rounded-md transition-colors cursor-pointer ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Pin size={13} className={pinned ? "fill-amber-400/30" : ""} />
       </button>
@@ -32,7 +32,7 @@ function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: b
         onClick={(e) => { e.stopPropagation(); toggleFavourite.mutate(); }}
         disabled={toggleFavourite.isPending}
         title={favourite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
-        className={`p-1 rounded-md transition-colors ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+        className={`p-1 rounded-md transition-colors cursor-pointer ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Star size={13} className={favourite ? "fill-amber-400" : ""} />
       </button>

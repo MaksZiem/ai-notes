@@ -360,7 +360,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
         <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06] flex-shrink-0">
           <button
             onClick={() => navigate(backToNotesPath)}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-200 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-200 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer"
           >
             <ArrowLeft size={15} />
             Notatki
@@ -375,7 +375,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   <button
                     onClick={() => setShareOpen(true)}
                     title="Ta notatka jest udostępniona — kliknij, żeby zarządzać dostępem"
-                    className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-1 rounded-full transition-colors"
+                    className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-1 rounded-full transition-colors cursor-pointer"
                   >
                     <Share2 size={11} />
                     Udostępniona
@@ -385,7 +385,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   <button
                     onClick={() => setShareOpen(true)}
                     title="Udostępnij notatkę"
-                    className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 hover:bg-white/5 transition-colors"
+                    className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 hover:bg-white/5 transition-colors cursor-pointer"
                   >
                     <Share2 size={15} />
                   </button>
@@ -394,7 +394,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   onClick={() => togglePin.mutate()}
                   disabled={togglePin.isPending}
                   title="Przypnij / odepnij"
-                  className={`p-1.5 rounded-md transition-colors ${isPinned ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
+                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${isPinned ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
                 >
                   <Pin
                     size={15}
@@ -405,7 +405,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   onClick={() => toggleFavourite.mutate()}
                   disabled={toggleFavourite.isPending}
                   title="Dodaj / usuń z ulubionych"
-                  className={`p-1.5 rounded-md transition-colors ${isFavourite ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
+                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${isFavourite ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
                 >
                   <Star
                     size={15}
@@ -420,7 +420,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   }
                   disabled={summarizeNote.isPending}
                   title="Streść notatkę"
-                  className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 transition-colors"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 transition-colors cursor-pointer"
                 >
                   {summarizeNote.isPending ? (
                     <Loader2 size={15} className="animate-spin" />
@@ -435,7 +435,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
               <button
                 onClick={handleDelete}
                 title="Usuń notatkę"
-                className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
               >
                 <Trash2 size={15} />
               </button>
@@ -445,7 +445,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   onClick={handleLeave}
                   disabled={leaveNote.isPending}
                   title="Opuść notatkę — zniknie z Twojej listy, zostanie u właściciela"
-                  className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                 >
                   <LogOut size={15} />
                 </button>
@@ -468,7 +468,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     key={c}
                     onClick={() => handleColorSelect(c)}
                     title={c}
-                    className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center transition-transform ${
+                    className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center transition-transform cursor-pointer ${
                       color === c
                         ? "ring-2 ring-offset-2 ring-offset-[#0f1014] ring-white scale-110"
                         : "hover:scale-110"
@@ -484,7 +484,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   <button
                     onClick={() => handleColorSelect("")}
                     title="Usuń kolor"
-                    className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border border-white/15 text-gray-500 hover:text-gray-300"
+                    className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border border-white/15 text-gray-500 hover:text-gray-300 cursor-pointer"
                   >
                     <X size={12} />
                   </button>
@@ -518,7 +518,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 onClick={handleGenerateTitle}
                 disabled={aiTitle.isPending}
                 title="Wygeneruj tytuł z treści (AI)"
-                className="ml-auto flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40"
+                className="ml-auto flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 {aiTitle.isPending ? (
                   <Loader2 size={12} className="animate-spin" />
@@ -551,7 +551,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 <p className="flex-1 m-0">{summary}</p>
                 <button
                   onClick={() => setSummary(null)}
-                  className="text-gray-500 hover:text-gray-300 flex-shrink-0"
+                  className="text-gray-500 hover:text-gray-300 flex-shrink-0 cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -574,7 +574,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   {kw}
                   <button
                     onClick={() => removeKeyword(kw)}
-                    className="text-gray-500 hover:text-gray-200"
+                    className="text-gray-500 hover:text-gray-200 cursor-pointer"
                   >
                     <X size={10} />
                   </button>
@@ -597,7 +597,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 onClick={handleSuggestKeywords}
                 disabled={aiKeywords.isPending}
                 title="Zasugeruj słowa kluczowe (AI)"
-                className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40"
+                className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 {aiKeywords.isPending ? (
                   <Loader2 size={12} className="animate-spin" />

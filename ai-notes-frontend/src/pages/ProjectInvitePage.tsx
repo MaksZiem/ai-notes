@@ -78,7 +78,7 @@ export default function ProjectInvitePage() {
             <button
               onClick={handleClaim}
               disabled={claim.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition"
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition cursor-pointer disabled:cursor-not-allowed"
             >
               {claim.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               Zaakceptuj zaproszenie

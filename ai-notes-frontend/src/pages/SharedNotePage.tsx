@@ -70,7 +70,7 @@ export default function SharedNotePage() {
             <button
               onClick={handleClaim}
               disabled={claim.isPending}
-              className="flex-shrink-0 text-indigo-400 hover:text-indigo-300 font-medium"
+              className="flex-shrink-0 text-indigo-400 hover:text-indigo-300 font-medium cursor-pointer disabled:cursor-not-allowed"
             >
               {claim.isPending ? "Dodawanie…" : "Dodaj do moich notatek"}
             </button>

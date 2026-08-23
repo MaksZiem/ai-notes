@@ -51,7 +51,7 @@ export function ProjectShareDialog({
       <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#15161c] p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Udostępnij projekt</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-200">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-200 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -102,7 +102,7 @@ export function ProjectShareDialog({
               <button
                 onClick={handleCreate}
                 disabled={createShareLink.isPending || !email.trim()}
-                className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2 transition"
+                className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2 transition cursor-pointer disabled:cursor-not-allowed"
               >
                 {createShareLink.isPending ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -157,7 +157,7 @@ export function ProjectShareDialog({
                   <button
                     onClick={() => handleCopy(link.id, link.token)}
                     title="Kopiuj link"
-                    className="p-1.5 rounded-md text-gray-500 hover:text-gray-200 hover:bg-white/5"
+                    className="p-1.5 rounded-md text-gray-500 hover:text-gray-200 hover:bg-white/5 cursor-pointer"
                   >
                     {copiedId === link.id ? <Check size={14} /> : <Copy size={14} />}
                   </button>
@@ -165,7 +165,7 @@ export function ProjectShareDialog({
                     onClick={() => revokeShareLink.mutate(link.id)}
                     disabled={revokeShareLink.isPending}
                     title="Odwołaj zaproszenie"
-                    className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10"
+                    className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -220,7 +220,7 @@ export function ProjectShareDialog({
                   onClick={() => revokeAccess.mutate(member.userId)}
                   disabled={revokeAccess.isPending}
                   title="Odbierz dostęp"
-                  className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0 cursor-pointer"
                 >
                   <Trash2 size={14} />
                 </button>

@@ -115,7 +115,7 @@ export default function NotesPage() {
             {isProjectScoped && (
               <button
                 onClick={() => navigate("/projects")}
-                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-200 transition-colors mb-1.5"
+                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-200 transition-colors mb-1.5 cursor-pointer"
               >
                 <ArrowLeft size={13} />
                 Projekty
@@ -143,7 +143,7 @@ export default function NotesPage() {
             <button
               onClick={() => setAiMode((v) => !v)}
               title="Wyszukiwanie semantyczne (AI)"
-              className={`flex items-center gap-1 px-2.5 py-2 rounded-lg border text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1 px-2.5 py-2 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
                 aiMode
                   ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-400"
                   : "bg-white/[0.04] border-white/[0.07] text-gray-500 hover:text-gray-300"
@@ -156,7 +156,7 @@ export default function NotesPage() {
             <div className="flex items-center gap-0.5 bg-white/[0.04] border border-white/[0.07] rounded-lg p-1">
               <button
                 onClick={() => setView(NoteViewType.GRID)}
-                className={`p-1.5 rounded-md transition-colors duration-150 ${
+                className={`p-1.5 rounded-md transition-colors duration-150 cursor-pointer ${
                   view === "grid"
                     ? "bg-indigo-500/20 text-indigo-400"
                     : "text-gray-600 hover:text-gray-400"
@@ -166,7 +166,7 @@ export default function NotesPage() {
               </button>
               <button
                 onClick={() => setView(NoteViewType.LIST)}
-                className={`p-1.5 rounded-md transition-colors duration-150 ${
+                className={`p-1.5 rounded-md transition-colors duration-150 cursor-pointer ${
                   view === "list"
                     ? "bg-indigo-500/20 text-indigo-400"
                     : "text-gray-600 hover:text-gray-400"
@@ -181,7 +181,7 @@ export default function NotesPage() {
                 type="button"
                 onClick={() => setIsShareOpen(true)}
                 title="Udostępnij projekt"
-                className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150"
+                className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer"
               >
                 <Share2 size={15} />
                 Udostępnij
@@ -190,7 +190,7 @@ export default function NotesPage() {
 
             <button
               onClick={() => navigate(createNotePath)}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors duration-150"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer"
             >
               <Plus size={15} />
               Nowa notatka

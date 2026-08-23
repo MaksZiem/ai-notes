@@ -64,7 +64,7 @@ function QuickActions({
           type="button"
           onClick={(e) => { e.stopPropagation(); onShare(); }}
           title="Udostępnij projekt"
-          className="p-1 rounded-md text-gray-600 hover:text-indigo-400 transition-colors"
+          className="p-1 rounded-md text-gray-600 hover:text-indigo-400 transition-colors cursor-pointer"
         >
           <Share2 size={13} />
         </button>
@@ -74,7 +74,7 @@ function QuickActions({
           onClick={handleLeave}
           disabled={leaveProject.isPending}
           title="Opuść projekt — zniknie z Twojej listy, zostanie u właściciela"
-          className="p-1 rounded-md text-gray-600 hover:text-red-400 transition-colors"
+          className="p-1 rounded-md text-gray-600 hover:text-red-400 transition-colors cursor-pointer"
         >
           <LogOut size={13} />
         </button>
@@ -84,7 +84,7 @@ function QuickActions({
         onClick={(e) => { e.stopPropagation(); togglePin.mutate(); }}
         disabled={togglePin.isPending}
         title={pinned ? "Odepnij" : "Przypnij"}
-        className={`p-1 rounded-md transition-colors ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+        className={`p-1 rounded-md transition-colors cursor-pointer ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Pin size={13} className={pinned ? "fill-amber-400/30" : ""} />
       </button>
@@ -93,7 +93,7 @@ function QuickActions({
         onClick={(e) => { e.stopPropagation(); toggleFavourite.mutate(); }}
         disabled={toggleFavourite.isPending}
         title={favourite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
-        className={`p-1 rounded-md transition-colors ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
+        className={`p-1 rounded-md transition-colors cursor-pointer ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Star size={13} className={favourite ? "fill-amber-400" : ""} />
       </button>
@@ -300,7 +300,7 @@ export default function ProjectsPage() {
 
             <button
               onClick={() => setShowFavourites((v) => !v)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150 ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150 cursor-pointer ${
                 showFavourites
                   ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
                   : "bg-white/[0.04] border-white/[0.07] text-gray-500 hover:text-gray-300 hover:border-white/20"
@@ -313,13 +313,13 @@ export default function ProjectsPage() {
             <div className="flex items-center gap-0.5 bg-white/[0.04] border border-white/[0.07] rounded-lg p-1">
               <button
                 onClick={() => setView(NoteViewType.GRID)}
-                className={`p-1.5 rounded-md transition-colors ${view === NoteViewType.GRID ? "bg-indigo-500/20 text-indigo-400" : "text-gray-600 hover:text-gray-400"}`}
+                className={`p-1.5 rounded-md transition-colors cursor-pointer ${view === NoteViewType.GRID ? "bg-indigo-500/20 text-indigo-400" : "text-gray-600 hover:text-gray-400"}`}
               >
                 <LayoutGrid size={15} />
               </button>
               <button
                 onClick={() => setView(NoteViewType.LIST)}
-                className={`p-1.5 rounded-md transition-colors ${view === NoteViewType.LIST ? "bg-indigo-500/20 text-indigo-400" : "text-gray-600 hover:text-gray-400"}`}
+                className={`p-1.5 rounded-md transition-colors cursor-pointer ${view === NoteViewType.LIST ? "bg-indigo-500/20 text-indigo-400" : "text-gray-600 hover:text-gray-400"}`}
               >
                 <List size={15} />
               </button>
@@ -327,7 +327,7 @@ export default function ProjectsPage() {
 
             <button
               onClick={() => setIsCreateOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
             >
               <Plus size={15} />
               Nowy projekt
@@ -379,7 +379,7 @@ export default function ProjectsPage() {
           >
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-sm font-semibold text-gray-100 m-0">Nowy projekt</h2>
-              <button type="button" onClick={() => setIsCreateOpen(false)} className="text-gray-500 hover:text-gray-300">
+              <button type="button" onClick={() => setIsCreateOpen(false)} className="text-gray-500 hover:text-gray-300 cursor-pointer">
                 <X size={16} />
               </button>
             </div>
@@ -407,14 +407,14 @@ export default function ProjectsPage() {
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(false)}
-                className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-gray-200"
+                className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-gray-200 cursor-pointer"
               >
                 Anuluj
               </button>
               <button
                 type="submit"
                 disabled={!newName.trim() || createProject.isPending}
-                className="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                className="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white cursor-pointer"
               >
                 {createProject.isPending ? "Tworzenie..." : "Utwórz"}
               </button>
