@@ -22,6 +22,7 @@ import { ProjectShareLink } from './projects/entities/project-share-link.entity'
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './notifications/notifications.module';
 import { Notification } from './notifications/entities/notification.entity';
+import { YjsModule } from './yjs/yjs.module';
 
 @Module({
   imports: [
@@ -68,7 +69,8 @@ import { Notification } from './notifications/entities/notification.entity';
     UploadsModule,
     AiModule,
     AgentModule,
-    NotificationsModule
+    NotificationsModule,
+    YjsModule
   ],
   providers: [
     {

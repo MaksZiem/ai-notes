@@ -49,6 +49,9 @@ export class Note {
   @Column({ type: 'jsonb', nullable: true })
   embedding: number[] | null;
 
+  @Column({type: 'bytea', nullable: true})
+  yjsState: Buffer | null
+
   @CreateDateColumn()
   createdAt: Date;
 
