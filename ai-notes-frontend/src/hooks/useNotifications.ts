@@ -1,14 +1,29 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Notification } from "../types/notification";
+import { useAuth } from "../context/AuthContext";
+import { getNotificationsSocket } from "../api/notificationsSocket";
 
-// na razie polling zamiast websocketów — do wymiany później
-const POLL_INTERVAL = 30_000;
+// push idzie przez websocket ("notifications:changed"), polling zostaje jako fallback
+// na wypadek zerwanego połączenia
+const POLL_INTERVAL = 60_000;
 
 export function useNotifications() {
+  const { token } = useAuth();
   const queryClient = useQueryClient();
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
+
+  useEffect(() => {
+    if (!token) return;
+    const socket = getNotificationsSocket(token);
+    socket.on("notifications:changed", invalidate);
+    return () => {
+      socket.off("notifications:changed", invalidate);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const notifications = useQuery<Notification[]>({
     queryKey: ["notifications"],

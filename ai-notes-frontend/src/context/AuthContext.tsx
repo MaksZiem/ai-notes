@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react"
 import { api } from "../api/client"
+import { disconnectNotificationsSocket } from "../api/notificationsSocket"
 
 interface AuthState {
   token: string | null
@@ -42,6 +43,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
   const logout = () => {
     localStorage.removeItem('token')
     setToken(null)
+    disconnectNotificationsSocket()
   }
 
   return (

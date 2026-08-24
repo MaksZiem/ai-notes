@@ -11,6 +11,7 @@ import { NotificationStatus } from 'src/enums/notification-status.enum';
 import { AccessLevel } from 'src/enums/access-level.enum';
 import { NotesService } from 'src/notes/notes.service';
 import { ProjectsService } from 'src/projects/projects.service';
+import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
@@ -18,6 +19,7 @@ export class NotificationsService {
     @InjectRepository(Notification) private repo: Repository<Notification>,
     private notesService: NotesService,
     private projectsService: ProjectsService,
+    private gateway: NotificationsGateway,
   ) {}
 
   async create(data: {
@@ -32,7 +34,9 @@ export class NotificationsService {
     status?: NotificationStatus | null;
   }): Promise<Notification> {
     const notification = this.repo.create(data);
-    return this.repo.save(notification);
+    const saved = await this.repo.save(notification);
+    this.gateway.notifyUser(data.userId);
+    return saved;
   }
 
   async findAllForUser(userId: number): Promise<Notification[]> {
@@ -52,11 +56,14 @@ export class NotificationsService {
     const notification = await this.repo.findOneBy({ id, userId });
     if (!notification) throw new NotFoundException('Notification not found');
     notification.isRead = true;
-    return this.repo.save(notification)
+    const saved = await this.repo.save(notification)
+    this.gateway.notifyUser(userId);
+    return saved;
   }
 
   async markAllAsRead(userId: number): Promise<void> {
     await this.repo.update({userId, isRead: false}, {isRead: true})
+    this.gateway.notifyUser(userId);
   }
 
   async accept(id: number, userId: number): Promise<Notification> {
@@ -87,7 +94,9 @@ export class NotificationsService {
 
     notification.status = NotificationStatus.ACCEPTED;
     notification.isRead = true;
-    return this.repo.save(notification);
+    const saved = await this.repo.save(notification);
+    this.gateway.notifyUser(userId);
+    return saved;
   }
 
   async decline(id: number, userId: number): Promise<Notification> {
@@ -110,7 +119,9 @@ export class NotificationsService {
 
     notification.status = NotificationStatus.DECLINED;
     notification.isRead = true;
-    return this.repo.save(notification);
+    const saved = await this.repo.save(notification);
+    this.gateway.notifyUser(userId);
+    return saved;
   }
 
   /**
@@ -128,6 +139,7 @@ export class NotificationsService {
       },
       { status: NotificationStatus.ACCEPTED, isRead: true },
     );
+    this.gateway.notifyUser(userId);
   }
 
   /**
@@ -143,5 +155,6 @@ export class NotificationsService {
       },
       { status: NotificationStatus.ACCEPTED, isRead: true },
     );
+    this.gateway.notifyUser(userId);
   }
 }
