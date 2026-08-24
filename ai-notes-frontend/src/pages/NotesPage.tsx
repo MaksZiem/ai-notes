@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft, Sparkles, Share2 } from "lucide-react";
+import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft, Sparkles, Share2, Download, Loader2 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useNotes } from "../hooks/useNotes";
 import { useProjectNotes } from "../hooks/useProjectNotes";
@@ -13,6 +13,7 @@ import { NoteViewType } from "../enums/noteView";
 import { ProjectShareDialog } from "../components/projects/ProjectShareDialog";
 import { usePermissions } from "../context/PermissionsContext";
 import { useCurrentUser } from "../hooks/useCurrentUser";
+import { downloadNotesAsZip } from "../utils/downloadNotes";
 
 function noteMatchesSearch(note: Note, query: string) {
   const q = query.toLowerCase();
@@ -33,6 +34,7 @@ export default function NotesPage() {
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
   const [aiMode, setAiMode] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
 
   const { isAdmin } = usePermissions();
   const { data: currentUser } = useCurrentUser();
@@ -88,6 +90,19 @@ export default function NotesPage() {
 
   const openNote = (noteId: number) => navigate(`/notes/${noteId}`);
   const createNotePath = isProjectScoped ? `/notes/new?projectId=${projectId}` : "/notes/new";
+
+  const handleDownloadAll = async () => {
+    if (isZipping || allNotes.length === 0) return;
+    setIsZipping(true);
+    try {
+      await downloadNotesAsZip(
+        allNotes,
+        isProjectScoped ? project.data?.name ?? "notatki" : "notatki",
+      );
+    } finally {
+      setIsZipping(false);
+    }
+  };
 
   const renderGrid = (notes: Note[], pinned = false) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -187,6 +202,20 @@ export default function NotesPage() {
                 Udostępnij
               </button>
             )}
+
+            <button
+              onClick={handleDownloadAll}
+              disabled={isZipping || totalCount === 0}
+              title="Pobierz wszystkie notatki jako .zip (.md)"
+              className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isZipping ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <Download size={15} />
+              )}
+              Pobierz .zip
+            </button>
 
             <button
               onClick={() => navigate(createNotePath)}

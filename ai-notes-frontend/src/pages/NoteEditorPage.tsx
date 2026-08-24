@@ -40,7 +40,9 @@ import {
   Sparkles,
   Share2,
   LogOut,
+  Download,
 } from "lucide-react";
+import { downloadNoteAsMarkdown } from "../utils/downloadNotes";
 
 const COLOR_PALETTE = NOTE_ACCENT_COLORS;
 
@@ -507,6 +509,18 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     size={15}
                     className={isFavourite ? "fill-amber-400" : ""}
                   />
+                </button>
+                <button
+                  onClick={() =>
+                    downloadNoteAsMarkdown(
+                      title,
+                      editor?.storage.markdown.getMarkdown() ?? "",
+                    )
+                  }
+                  title="Pobierz jako Markdown (.md)"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-gray-200 hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  <Download size={15} />
                 </button>
               </>
             )}
