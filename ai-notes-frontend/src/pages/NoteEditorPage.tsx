@@ -24,6 +24,10 @@ import { useAiTitle } from "../hooks/useAiTitle";
 import { useAiKeywords } from "../hooks/useAiKeywords";
 import { useNoteShareLinks } from "../hooks/useNoteShareLinks";
 import { useCurrentUser } from "../hooks/useCurrentUser";
+import Collaboration, { isChangeOrigin } from "@tiptap/extension-collaboration";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
+import { HocuspocusProvider } from "@hocuspocus/provider";
+import * as Y from "yjs";
 import { ShareDialog } from "../components/editor/ShareDialog";
 import {
   ArrowLeft,
@@ -146,32 +150,93 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const aiTitle = useAiTitle();
   const aiKeywords = useAiKeywords();
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ link: { openOnClick: false, autolink: true } }),
-      Placeholder.configure({
-        placeholder: "Napisz coś, albo wpisz „/” po komendy…",
-      }),
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      TextStyle,
-      Color,
-      Highlight.configure({ multicolor: true }),
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      TableKit.configure({ table: { resizable: true } }),
-      ImageExtension.configure({
-        HTMLAttributes: { class: "note-editor-image" },
-      }),
-      Markdown.configure({ html: true, transformPastedText: true }),
-      SlashCommand,
-    ],
-    editorProps: {
-      attributes: { class: "note-editor-content" },
+  const isOwner =
+    !savedId ||
+    !note.data ||
+    !currentUser.data ||
+    note.data.ownerId === currentUser.data.id;
+  const isShared =
+    isOwner &&
+    ((members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0);
+  // Próbujemy połączyć się z każdą istniejącą notatką — backend (onAuthenticate)
+  // i tak wymaga dostępu EDIT+, więc dla kogoś z samym VIEW połączenie po
+  // prostu się nie uwierzytelni i `collab` nigdy nie zostanie ustawione.
+  const isCollabEligible = !isNew && !!savedId;
+
+  const [collab, setCollab] = useState<{ provider: HocuspocusProvider; doc: Y.Doc } | null>(null);
+
+  useEffect(() => {
+    if (!isCollabEligible || !savedId) {
+      return;
+    }
+    const provider = new HocuspocusProvider({
+      url: "ws://localhost:1234",
+      name: String(savedId),
+      token: () => localStorage.getItem("token") ?? "",
+      onAuthenticated: () => {
+        setCollab({ provider, doc: provider.document });
+      },
+    });
+
+    return () => {
+      provider.destroy();
+      setCollab(null);
+    };
+  }, [isCollabEligible, savedId]);
+
+  const cursorColor =
+    COLOR_PALETTE[(currentUser.data?.id ?? 0) % COLOR_PALETTE.length];
+
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit.configure({
+          link: { openOnClick: false, autolink: true },
+          ...(collab ? { undoRedo: false as const } : {}),
+        }),
+        Placeholder.configure({
+          placeholder: "Napisz coś, albo wpisz „/” po komendy…",
+        }),
+        TaskList,
+        TaskItem.configure({ nested: true }),
+        TextStyle,
+        Color,
+        Highlight.configure({ multicolor: true }),
+        TextAlign.configure({ types: ["heading", "paragraph"] }),
+        TableKit.configure({ table: { resizable: true } }),
+        ImageExtension.configure({
+          HTMLAttributes: { class: "note-editor-image" },
+        }),
+        Markdown.configure({ html: true, transformPastedText: true }),
+        SlashCommand,
+        ...(collab
+          ? [
+              Collaboration.configure({ document: collab.doc }),
+              CollaborationCaret.configure({
+                provider: collab.provider,
+                user: {
+                  name: currentUser.data
+                    ? `${currentUser.data.name} ${currentUser.data.surname}`
+                    : "Ktoś",
+                  color: cursorColor,
+                },
+              }),
+            ]
+          : []),
+      ],
+      editorProps: {
+        attributes: { class: "note-editor-content" },
+      },
+      onUpdate: ({ transaction }) => {
+        // Zmiany zsynchronizowane od innego użytkownika przez Yjs też trafiają
+        // tutaj (to zwykła transakcja ProseMirror) — nie zapisujemy ich
+        // ponownie przez REST, bo Hocuspocus już je trwale zapisał.
+        if (isChangeOrigin(transaction)) return;
+        triggerAutosaveRef.current();
+      },
     },
-    onUpdate: () => {
-      triggerAutosaveRef.current();
-    },
-  });
+    [collab],
+  );
 
   if (!isNew && note.data && !hasSyncedFields) {
     setHasSyncedFields(true);
@@ -182,13 +247,37 @@ function NoteEditor({ routeId }: { routeId: string }) {
   }
 
   useEffect(() => {
-    if (!isNew && note.data && editor && !hasSyncedContentRef.current) {
+    if (
+      !isNew &&
+      note.data &&
+      editor &&
+      !hasSyncedContentRef.current &&
+      !collab
+    ) {
       editor.commands.setContent(note.data.content ?? "", {
         emitUpdate: false,
       });
       hasSyncedContentRef.current = true;
     }
-  }, [note.data, isNew, editor]);
+  }, [note.data, isNew, editor, collab]);
+
+  // Współdzielona notatka: jeśli Y.Doc jest jeszcze pusty (nikt nigdy nie
+  // edytował jej na żywo), zasiej go istniejącą treścią z bazy — tylko raz,
+  // i tylko właściciel (żeby dwie osoby otwierające naraz nie zdublowały treści).
+  useEffect(() => {
+    if (!collab || !editor || !isOwner) return;
+    const { provider, doc } = collab;
+    const handleSynced = () => {
+      const fragment = doc.getXmlFragment("default");
+      if (fragment.length === 0 && note.data?.content) {
+        editor.commands.setContent(note.data.content, { emitUpdate: true });
+      }
+    };
+    provider.on("synced", handleSynced);
+    return () => {
+      provider.off("synced", handleSynced);
+    };
+  }, [editor, collab, note.data, isOwner]);
 
   const triggerAutosave = useDebouncedCallback(async () => {
     if (!editor) return;
@@ -300,7 +389,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
         const merged = [...keywords];
         for (const kw of suggested) {
           const clean = kw.trim();
-          if (clean && !merged.some((k) => k.toLowerCase() === clean.toLowerCase())) {
+          if (
+            clean &&
+            !merged.some((k) => k.toLowerCase() === clean.toLowerCase())
+          ) {
             merged.push(clean);
           }
         }
@@ -342,14 +434,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
     !!savedId && (pinnedNotes.data ?? []).some((n) => n.id === savedId);
   const isFavourite =
     !!savedId && (favouriteNotes.data ?? []).some((n) => n.id === savedId);
-  const isOwner =
-    !savedId ||
-    !note.data ||
-    !currentUser.data ||
-    note.data.ownerId === currentUser.data.id;
-  const isShared =
-    isOwner &&
-    ((members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0);
 
   return (
     <div className="flex h-screen bg-[#0f1014]">

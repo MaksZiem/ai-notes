@@ -9,6 +9,10 @@ export function useNote(noteId: number) {
 
   const invalidateNote = () =>
     queryClient.invalidateQueries({ queryKey: ["notes", noteId] });
+  // Tylko dane tej notatki (bez members/share-links) — używane przy
+  // częstym autosave treści, gdzie pin/ulubione/lista notatek się nie zmieniają.
+  const invalidateNoteOnly = () =>
+    queryClient.invalidateQueries({ queryKey: ["notes", noteId], exact: true });
   const invalidateAll = () => {
     invalidateNote();
     queryClient.invalidateQueries({ queryKey: ["notes"] });
@@ -39,7 +43,7 @@ export function useNote(noteId: number) {
       color?: string | null;
       keywords?: string[];
     }) => api.patch(`/notes/${noteId}`, body),
-    onSuccess: invalidateAll,
+    onSuccess: invalidateNoteOnly,
   });
 
   const summarizeNote = useMutation({

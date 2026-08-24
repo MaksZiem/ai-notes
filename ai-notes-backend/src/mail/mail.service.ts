@@ -16,7 +16,7 @@ export class MailService {
     link: string,
   ): Promise<void> {
     await this.resend.emails.send({
-      from: 'AI Notes <onboarding@resend.dev>',
+      from: 'AI Notes <powiadomienia@zmax-dev.pl>',
       to,
       subject: `Udostępniono ci notatke ${noteTitle}`,
       html: `
@@ -33,7 +33,7 @@ export class MailService {
     link: string,
   ): Promise<void> {
     await this.resend.emails.send({
-      from: 'AI Notes <onboarding@resend.dev>',
+      from: 'AI Notes <powiadomienia@zmax-dev.pl>',
       to,
       subject: `Zaproszenie do projektu ${projectName}`,
       html: `
