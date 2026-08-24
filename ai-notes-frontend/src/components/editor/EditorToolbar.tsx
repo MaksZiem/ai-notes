@@ -28,7 +28,6 @@ import {
   Columns3,
   Trash2,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 import { ColorPickerButton } from "./ColorPickerButton";
 import { HIGHLIGHT_COLORS } from "./editorColors";
@@ -115,12 +114,12 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
     });
   };
 
-  const handleRewrite = (mode: RewriteMode) => {
+  const handleRewrite = (mode: RewriteMode, instruction?: string) => {
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to, "\n", "\n");
     if (!selectedText.trim()) return;
     aiRewrite.mutate(
-      { text: selectedText, mode },
+      { text: selectedText, mode, instruction },
       {
         onSuccess: (result) => {
           editor.chain().focus().insertContentAt({ from, to }, result).run();
@@ -354,22 +353,13 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       </ToolbarButton>
       <Divider />
       <AiRewriteButton
-        disabled={!hasSelection || aiRewrite.isPending}
-        loading={aiRewrite.isPending}
-        onSelect={handleRewrite}
+        hasSelection={hasSelection}
+        rewriteLoading={aiRewrite.isPending}
+        continueLoading={aiContinue.isPending}
+        onSelectMode={(mode) => handleRewrite(mode)}
+        onContinue={handleContinue}
+        onCustom={(instruction) => handleRewrite("custom", instruction)}
       />
-      <Divider />
-      <ToolbarButton
-        title="Kontynuuj pisanie (AI)"
-        disabled={aiContinue.isPending}
-        onClick={handleContinue}
-      >
-        {aiContinue.isPending ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <Sparkles size={14} />
-        )}
-      </ToolbarButton>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 
-export type RewriteMode = 'fix' | 'improve' | 'shorten' | 'expand';
+export type RewriteMode = 'fix' | 'improve' | 'shorten' | 'expand' | 'custom';
 
 @Injectable()
 export class AiService {
@@ -49,8 +49,12 @@ export class AiService {
     return this.generateText(prompt);
   }
 
-  async rewriteText(text: string, mode: RewriteMode): Promise<string> {
-    const instructions: Record<RewriteMode, string> = {
+  async rewriteText(
+    text: string,
+    mode: RewriteMode,
+    customInstruction?: string,
+  ): Promise<string> {
+    const instructions: Record<Exclude<RewriteMode, 'custom'>, string> = {
       fix: 'Popraw błędy gramatyczne, interpunkcyjne i stylistyczne w poniższym tekście, zachowując oryginalny sens i język.',
       improve:
         'Przeformułuj poniższy tekst, poprawiając styl i płynność, zachowując oryginalny sens i język.',
@@ -59,8 +63,10 @@ export class AiService {
       expand:
         'Rozwiń poniższy tekst, dodając więcej szczegółów, zachowując oryginalny sens i język.',
     };
+    const instruction =
+      mode === 'custom' ? (customInstruction ?? '') : instructions[mode];
     const prompt = [
-      instructions[mode],
+      instruction,
       'Zwróć wyłącznie zmieniony tekst, bez komentarzy, wyjaśnień ani cudzysłowów.',
       '',
       'Tekst:',

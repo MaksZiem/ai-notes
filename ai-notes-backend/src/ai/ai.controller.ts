@@ -8,7 +8,13 @@ import {
 import { AiService, RewriteMode } from './ai.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 
-const REWRITE_MODES: RewriteMode[] = ['fix', 'improve', 'shorten', 'expand'];
+const REWRITE_MODES: RewriteMode[] = [
+  'fix',
+  'improve',
+  'shorten',
+  'expand',
+  'custom',
+];
 
 @UseGuards(AuthGuard)
 @Controller('ai')
@@ -31,15 +37,22 @@ export class AiController {
   }
 
   @Post('rewrite')
-  async rewrite(@Body('text') text: string, @Body('mode') mode: RewriteMode) {
+  async rewrite(
+    @Body('text') text: string,
+    @Body('mode') mode: RewriteMode,
+    @Body('instruction') instruction?: string,
+  ) {
     if (!text?.trim()) {
       throw new BadRequestException('Brak tekstu');
     }
     if (!REWRITE_MODES.includes(mode)) {
       throw new BadRequestException('Nieprawidłowy tryb');
     }
+    if (mode === 'custom' && !instruction?.trim()) {
+      throw new BadRequestException('Brak polecenia');
+    }
 
-    const result = await this.aiService.rewriteText(text, mode);
+    const result = await this.aiService.rewriteText(text, mode, instruction);
     return { result };
   }
 

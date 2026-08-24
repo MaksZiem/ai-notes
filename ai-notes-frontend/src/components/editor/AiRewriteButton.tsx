@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Loader2, Sparkles } from "lucide-react";
+import { ChevronDown, Loader2, Send, Sparkles, WandSparkles } from "lucide-react";
 
-export type RewriteMode = "fix" | "improve" | "shorten" | "expand";
+export type RewriteMode = "fix" | "improve" | "shorten" | "expand" | "custom";
 
 const OPTIONS: { mode: RewriteMode; label: string }[] = [
   { mode: "fix", label: "Popraw gramatykę" },
@@ -11,18 +11,26 @@ const OPTIONS: { mode: RewriteMode; label: string }[] = [
 ];
 
 interface AiRewriteButtonProps {
-  disabled: boolean;
-  loading: boolean;
-  onSelect: (mode: RewriteMode) => void;
+  hasSelection: boolean;
+  rewriteLoading: boolean;
+  continueLoading: boolean;
+  onSelectMode: (mode: RewriteMode) => void;
+  onContinue: () => void;
+  onCustom: (instruction: string) => void;
 }
 
 export function AiRewriteButton({
-  disabled,
-  loading,
-  onSelect,
+  hasSelection,
+  rewriteLoading,
+  continueLoading,
+  onSelectMode,
+  onContinue,
+  onCustom,
 }: AiRewriteButtonProps) {
   const [open, setOpen] = useState(false);
+  const [customInstruction, setCustomInstruction] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const loading = rewriteLoading || continueLoading;
 
   useEffect(() => {
     if (!open) return;
@@ -34,38 +42,96 @@ export function AiRewriteButton({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
+  const submitCustom = () => {
+    if (!customInstruction.trim() || !hasSelection) return;
+    onCustom(customInstruction.trim());
+    setCustomInstruction("");
+    setOpen(false);
+  };
+
   return (
     <div className="relative" ref={ref}>
       <button
         type="button"
-        title="Popraw zaznaczenie (AI)"
-        disabled={disabled}
+        title="Edytuj z AI"
+        disabled={loading}
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-0.5 p-1.5 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-gray-500 hover:text-gray-200 hover:bg-white/5"
+        className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-violet-300 bg-violet-500/10 hover:bg-violet-500/20"
       >
         {loading ? (
-          <Loader2 size={14} className="animate-spin" />
+          <Loader2 size={12} className="animate-spin" />
         ) : (
-          <Sparkles size={14} />
+          <Sparkles size={12} />
         )}
+        Narzędzia AI
         <ChevronDown size={10} />
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 z-20 bg-[#1e1f29] border border-white/10 rounded-xl shadow-2xl p-1.5 w-44">
+        <div className="absolute top-full left-0 mt-1.5 z-20 bg-[#1e1f29] border border-white/10 rounded-xl shadow-2xl p-1.5 w-56">
           {OPTIONS.map((opt) => (
             <button
               key={opt.mode}
               type="button"
+              disabled={!hasSelection || rewriteLoading}
               onClick={() => {
-                onSelect(opt.mode);
+                onSelectMode(opt.mode);
                 setOpen(false);
               }}
-              className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] text-gray-300 hover:bg-white/5 hover:text-gray-100"
+              className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] text-gray-300 hover:bg-white/5 hover:text-gray-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
             >
               {opt.label}
             </button>
           ))}
+
+          <div className="h-px bg-white/10 my-1.5" />
+
+          <button
+            type="button"
+            disabled={continueLoading}
+            onClick={() => {
+              onContinue();
+              setOpen(false);
+            }}
+            className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] text-gray-300 hover:bg-white/5 hover:text-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Kontynuuj pisanie
+          </button>
+
+          <div className="h-px bg-white/10 my-1.5" />
+
+          <div className="px-2 pb-1">
+            <label className="flex items-center gap-1 text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-1">
+              <WandSparkles size={10} />
+              Własne polecenie
+            </label>
+            <div className="flex items-center gap-1">
+              <input
+                value={customInstruction}
+                onChange={(e) => setCustomInstruction(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    submitCustom();
+                  }
+                }}
+                disabled={!hasSelection || rewriteLoading}
+                placeholder={
+                  hasSelection ? "np. przetłumacz na angielski" : "Zaznacz tekst…"
+                }
+                className="flex-1 min-w-0 bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-md px-2 py-1 text-[12px] text-gray-200 placeholder-gray-600 outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+              />
+              <button
+                type="button"
+                title="Wykonaj polecenie"
+                disabled={!hasSelection || !customInstruction.trim() || rewriteLoading}
+                onClick={submitCustom}
+                className="flex-shrink-0 p-1.5 rounded-md text-indigo-400 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <Send size={13} />
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -508,22 +508,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     className={isFavourite ? "fill-amber-400" : ""}
                   />
                 </button>
-                <button
-                  onClick={() =>
-                    summarizeNote.mutate(undefined, {
-                      onSuccess: (res) => setSummary(res.data.summary),
-                    })
-                  }
-                  disabled={summarizeNote.isPending}
-                  title="Streść notatkę"
-                  className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 transition-colors cursor-pointer"
-                >
-                  {summarizeNote.isPending ? (
-                    <Loader2 size={15} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={15} />
-                  )}
-                </button>
               </>
             )}
 
@@ -612,19 +596,41 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 </span>
               )}
 
-              <button
-                onClick={handleGenerateTitle}
-                disabled={aiTitle.isPending || !canEdit}
-                title="Wygeneruj tytuł z treści (AI)"
-                className="ml-auto flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
-              >
-                {aiTitle.isPending ? (
-                  <Loader2 size={12} className="animate-spin" />
-                ) : (
-                  <Sparkles size={12} />
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  onClick={handleGenerateTitle}
+                  disabled={aiTitle.isPending || !canEdit}
+                  title="Wygeneruj tytuł z treści (AI)"
+                  className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                >
+                  {aiTitle.isPending ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={12} />
+                  )}
+                  Generuj tytuł
+                </button>
+
+                {savedId && (
+                  <button
+                    onClick={() =>
+                      summarizeNote.mutate(undefined, {
+                        onSuccess: (res) => setSummary(res.data.summary),
+                      })
+                    }
+                    disabled={summarizeNote.isPending}
+                    title="Streść notatkę za pomocą AI"
+                    className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                  >
+                    {summarizeNote.isPending ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} />
+                    )}
+                    Streść notatkę
+                  </button>
                 )}
-                Generuj tytuł
-              </button>
+              </div>
             </div>
 
             {note.data &&
@@ -640,19 +646,37 @@ function NoteEditor({ routeId }: { routeId: string }) {
               )}
 
             {/* Title */}
-            {summary && (
-              <div className="flex items-start gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-3 mb-6 text-sm text-gray-200">
-                <Sparkles
-                  size={15}
-                  className="text-indigo-400 flex-shrink-0 mt-0.5"
-                />
-                <p className="flex-1 m-0">{summary}</p>
-                <button
-                  onClick={() => setSummary(null)}
-                  className="text-gray-500 hover:text-gray-300 flex-shrink-0 cursor-pointer"
-                >
-                  <X size={14} />
-                </button>
+            {(summary || summarizeNote.isPending) && (
+              <div className="relative rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-violet-500/5 px-5 py-4 mb-6 animate-fade-in-up">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 flex-shrink-0">
+                    <Sparkles size={13} />
+                  </span>
+                  <span className="text-[11px] font-semibold text-violet-300 tracking-wide uppercase">
+                    Podsumowanie AI
+                  </span>
+                  {summary && !summarizeNote.isPending && (
+                    <button
+                      onClick={() => setSummary(null)}
+                      title="Zamknij podsumowanie"
+                      className="ml-auto text-gray-500 hover:text-gray-300 flex-shrink-0 cursor-pointer"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {summarizeNote.isPending ? (
+                  <div className="space-y-2 animate-pulse">
+                    <div className="h-3 rounded-full bg-white/10 w-full" />
+                    <div className="h-3 rounded-full bg-white/10 w-5/6" />
+                    <div className="h-3 rounded-full bg-white/10 w-2/3" />
+                  </div>
+                ) : (
+                  <p className="text-sm leading-relaxed text-gray-200 m-0">
+                    {summary}
+                  </p>
+                )}
               </div>
             )}
             <AutoResizeTitle
@@ -700,14 +724,14 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 onClick={handleSuggestKeywords}
                 disabled={aiKeywords.isPending || !canEdit}
                 title="Zasugeruj słowa kluczowe (AI)"
-                className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed px-2.5 py-1 rounded-full transition-colors cursor-pointer"
               >
                 {aiKeywords.isPending ? (
                   <Loader2 size={12} className="animate-spin" />
                 ) : (
                   <Sparkles size={12} />
                 )}
-                Zasugeruj
+                Zasugeruj słowa kluczowe
               </button>
             </div>
 
