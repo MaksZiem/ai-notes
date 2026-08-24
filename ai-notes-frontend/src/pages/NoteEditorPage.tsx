@@ -164,9 +164,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const isShared =
     isOwner &&
     ((members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0);
-  // Próbujemy połączyć się z każdą istniejącą notatką — backend (onAuthenticate)
-  // i tak wymaga dostępu EDIT+, więc dla kogoś z samym VIEW połączenie po
-  // prostu się nie uwierzytelni i `collab` nigdy nie zostanie ustawione.
+  // Łączymy się z każdą istniejącą notatką, także przy samym VIEW — backend
+  // (onAuthenticate) oznacza wtedy połączenie jako readOnly i po cichu odrzuca
+  // każdą przychodzącą aktualizację dokumentu, więc viewer dostaje żywe zmiany
+  // od innych, ale sam nic nie zapisze (a i tak `canEdit` blokuje mu edytor lokalnie).
   const isCollabEligible = !isNew && !!savedId;
 
   const [collab, setCollab] = useState<{ provider: HocuspocusProvider; doc: Y.Doc } | null>(null);

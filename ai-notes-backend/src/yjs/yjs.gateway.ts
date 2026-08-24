@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { NotesService } from 'src/notes/notes.service';
 import { Note } from 'src/notes/entities/note.entity';
-import { AccessLevel } from 'src/enums/access-level.enum';
+import { AccessLevel, hasAccess } from 'src/enums/access-level.enum';
 
 const YJS_PORT = 1234;
 
@@ -26,7 +26,7 @@ export class YjsGateway implements OnModuleInit {
     const server = new Server({
       port: YJS_PORT,
 
-      onAuthenticate: async ({ token, documentName }) => {
+      onAuthenticate: async ({ token, documentName, connectionConfig }) => {
         const noteId = Number(documentName);
         if (!token || !noteId) {
           throw new Error('Brak tokenu lub noteId');
@@ -41,14 +41,17 @@ export class YjsGateway implements OnModuleInit {
         if (!note) {
           throw new Error('Note not exists');
         }
-        // Wymaga poziomu EDIT+ — te same zasady co reszta API.
-        await this.notesService.findOne(
+        // Wymaga co najmniej VIEW — rzuci, jeśli caller nie ma żadnego dostępu.
+        const accessLevel = await this.notesService.getAccessLevel(
           noteId,
           note.projectId,
           user.id,
           user.role,
-          AccessLevel.EDIT,
         );
+        // Przy samym VIEW połączenie zostaje oznaczone jako readOnly — Hocuspocus
+        // wtedy po cichu odrzuca każdą przychodzącą aktualizację dokumentu, więc
+        // klient dostaje żywe zmiany, ale nie może nic zapisać.
+        connectionConfig.readOnly = !hasAccess(accessLevel, AccessLevel.EDIT);
         return { userId: user.id };
       },
 
