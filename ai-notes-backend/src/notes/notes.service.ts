@@ -287,6 +287,45 @@ export class NotesService {
     return note;
   }
 
+  /**
+   * Zwraca efektywny poziom dostępu callera do notatki (bez wymuszania minimum).
+   * Używane do poinformowania frontendu, czy notatka powinna być tylko-do-odczytu.
+   */
+  async getAccessLevel(
+    id: number,
+    projectId: number | null,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<AccessLevel> {
+    const note = await this.repo.findOne({
+      where: projectId != null ? { id, projectId } : { id },
+    });
+    if (!note) throw new NotFoundException('Note not found');
+
+    if (callerRole === UserRole.ADMIN || note.ownerId === callerId) {
+      return AccessLevel.DELETE;
+    }
+
+    if (note.projectId) {
+      try {
+        return await this.projectsService.getAccessLevel(
+          note.projectId,
+          callerId,
+          callerRole,
+        );
+      } catch {
+        // brak dostępu przez projekt → sprawdź NoteMember
+      }
+    }
+
+    const membership = await this.memberRepo.findOneBy({
+      noteId: id,
+      userId: callerId,
+    });
+    if (!membership) throw new ForbiddenException('Access denied');
+    return membership.accessLevel;
+  }
+
   // ── CRUD ──────────────────────────────────────────────────────────────────
 
   async create(

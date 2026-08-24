@@ -169,8 +169,12 @@ export class SingleNoteController {
   @ApiResponse({ status: 200, description: 'Dane notatki' })
   @ApiResponse({ status: 403, description: 'Brak dostępu' })
   @ApiResponse({ status: 404, description: 'Notatka nie znaleziona' })
-  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
-    return this.notesService.findOne(id, null, user.id, user.role);
+  async findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+    const [note, accessLevel] = await Promise.all([
+      this.notesService.findOne(id, null, user.id, user.role),
+      this.notesService.getAccessLevel(id, null, user.id, user.role),
+    ]);
+    return { ...note, accessLevel };
   }
 
   // ──────────────────────────────────────────────

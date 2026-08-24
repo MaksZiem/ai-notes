@@ -1,4 +1,5 @@
 import type { Project } from "./project";
+import type { AccessLevel } from "./note-share-links";
 
 export interface NoteOwner {
   id: number;
@@ -20,4 +21,5 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
   isPinned: boolean;
+  accessLevel?: AccessLevel;
 }

@@ -74,11 +74,13 @@ function AutoResizeTitle({
   onChange,
   placeholder,
   color,
+  readOnly,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   color?: string;
+  readOnly?: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -97,10 +99,11 @@ function AutoResizeTitle({
       onKeyDown={(e) => {
         if (e.key === "Enter") e.preventDefault();
       }}
+      readOnly={readOnly}
       style={color ? { color } : undefined}
       placeholder={placeholder}
       rows={1}
-      className="w-full bg-transparent text-4xl font-bold text-gray-100 placeholder-gray-700 outline-none resize-none overflow-hidden leading-tight"
+      className="w-full bg-transparent text-4xl font-bold text-gray-100 placeholder-gray-700 outline-none resize-none overflow-hidden leading-tight disabled:opacity-70"
     />
   );
 }
@@ -155,6 +158,9 @@ function NoteEditor({ routeId }: { routeId: string }) {
     !note.data ||
     !currentUser.data ||
     note.data.ownerId === currentUser.data.id;
+  // Notatka jeszcze nieistniejąca (draft) — zawsze edytowalna przez twórcę.
+  // Istniejąca notatka — o edytowalności decyduje accessLevel zwrócony przez backend.
+  const canEdit = !savedId || !note.data || note.data.accessLevel !== "VIEW";
   const isShared =
     isOwner &&
     ((members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0);
@@ -224,6 +230,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
             ]
           : []),
       ],
+      editable: canEdit,
       editorProps: {
         attributes: { class: "note-editor-content" },
       },
@@ -237,6 +244,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
     },
     [collab],
   );
+
+  useEffect(() => {
+    editor?.setEditable(canEdit);
+  }, [editor, canEdit]);
 
   if (!isNew && note.data && !hasSyncedFields) {
     setHasSyncedFields(true);
@@ -551,8 +562,9 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   <button
                     key={c}
                     onClick={() => handleColorSelect(c)}
+                    disabled={!canEdit}
                     title={c}
-                    className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center transition-transform cursor-pointer ${
+                    className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center transition-transform cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
                       color === c
                         ? "ring-2 ring-offset-2 ring-offset-[#0f1014] ring-white scale-110"
                         : "hover:scale-110"
@@ -567,8 +579,9 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 {color && (
                   <button
                     onClick={() => handleColorSelect("")}
+                    disabled={!canEdit}
                     title="Usuń kolor"
-                    className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border border-white/15 text-gray-500 hover:text-gray-300 cursor-pointer"
+                    className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border border-white/15 text-gray-500 hover:text-gray-300 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <X size={12} />
                   </button>
@@ -600,7 +613,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
 
               <button
                 onClick={handleGenerateTitle}
-                disabled={aiTitle.isPending}
+                disabled={aiTitle.isPending || !canEdit}
                 title="Wygeneruj tytuł z treści (AI)"
                 className="ml-auto flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
@@ -646,6 +659,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
               onChange={handleTitleChange}
               placeholder="Bez tytułu"
               color={color}
+              readOnly={!canEdit}
             />
 
             {/* Keywords */}
@@ -656,30 +670,34 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md bg-white/[0.06] text-gray-300"
                 >
                   {kw}
-                  <button
-                    onClick={() => removeKeyword(kw)}
-                    className="text-gray-500 hover:text-gray-200 cursor-pointer"
-                  >
-                    <X size={10} />
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={() => removeKeyword(kw)}
+                      className="text-gray-500 hover:text-gray-200 cursor-pointer"
+                    >
+                      <X size={10} />
+                    </button>
+                  )}
                 </span>
               ))}
-              <input
-                value={keywordDraft}
-                onChange={(e) => setKeywordDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === ",") {
-                    e.preventDefault();
-                    addKeyword();
-                  }
-                }}
-                onBlur={addKeyword}
-                placeholder="+ słowo kluczowe"
-                className="bg-transparent text-[11px] text-gray-400 placeholder-gray-600 outline-none py-1 px-1 w-32"
-              />
+              {canEdit && (
+                <input
+                  value={keywordDraft}
+                  onChange={(e) => setKeywordDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === ",") {
+                      e.preventDefault();
+                      addKeyword();
+                    }
+                  }}
+                  onBlur={addKeyword}
+                  placeholder="+ słowo kluczowe"
+                  className="bg-transparent text-[11px] text-gray-400 placeholder-gray-600 outline-none py-1 px-1 w-32"
+                />
+              )}
               <button
                 onClick={handleSuggestKeywords}
-                disabled={aiKeywords.isPending}
+                disabled={aiKeywords.isPending || !canEdit}
                 title="Zasugeruj słowa kluczowe (AI)"
                 className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-400 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
@@ -693,7 +711,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
             </div>
 
             {/* Toolbar */}
-            {editor && (
+            {editor && canEdit && (
               <div className="sticky top-0 z-10 -mx-1 px-1 py-2 mb-4 bg-[#0f1014]/95 backdrop-blur">
                 <EditorToolbar editor={editor} />
               </div>

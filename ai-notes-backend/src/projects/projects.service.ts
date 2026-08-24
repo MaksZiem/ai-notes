@@ -131,6 +131,29 @@ export class ProjectsService {
     return project;
   }
 
+  /**
+   * Zwraca efektywny poziom dostępu callera do projektu (bez wymuszania minimum).
+   */
+  async getAccessLevel(
+    id: number,
+    callerId: number,
+    callerRole: UserRole,
+  ): Promise<AccessLevel> {
+    const project = await this.repo.findOneBy({ id });
+    if (!project) throw new NotFoundException('Project not found');
+
+    if (callerRole === UserRole.ADMIN || project.ownerId === callerId) {
+      return AccessLevel.DELETE;
+    }
+
+    const membership = await this.memberRepo.findOneBy({
+      projectId: id,
+      userId: callerId,
+    });
+    if (!membership) throw new ForbiddenException('Access denied');
+    return membership.accessLevel;
+  }
+
   async findRecent(callerId: number, callerRole: UserRole) {
     if (callerRole === UserRole.ADMIN) {
       return this.repo.find({ order: { updatedAt: 'DESC' }, take: 5 });
