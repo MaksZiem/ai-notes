@@ -14,23 +14,28 @@ interface AiRewriteButtonProps {
   hasSelection: boolean;
   rewriteLoading: boolean;
   continueLoading: boolean;
+  generateLoading: boolean;
   onSelectMode: (mode: RewriteMode) => void;
   onContinue: () => void;
   onCustom: (instruction: string) => void;
+  onGenerate: (prompt: string) => void;
 }
 
 export function AiRewriteButton({
   hasSelection,
   rewriteLoading,
   continueLoading,
+  generateLoading,
   onSelectMode,
   onContinue,
   onCustom,
+  onGenerate,
 }: AiRewriteButtonProps) {
   const [open, setOpen] = useState(false);
   const [customInstruction, setCustomInstruction] = useState("");
+  const [generatePrompt, setGeneratePrompt] = useState("");
   const ref = useRef<HTMLDivElement>(null);
-  const loading = rewriteLoading || continueLoading;
+  const loading = rewriteLoading || continueLoading || generateLoading;
 
   useEffect(() => {
     if (!open) return;
@@ -46,6 +51,13 @@ export function AiRewriteButton({
     if (!customInstruction.trim() || !hasSelection) return;
     onCustom(customInstruction.trim());
     setCustomInstruction("");
+    setOpen(false);
+  };
+
+  const submitGenerate = () => {
+    if (!generatePrompt.trim()) return;
+    onGenerate(generatePrompt.trim());
+    setGeneratePrompt("");
     setOpen(false);
   };
 
@@ -129,6 +141,43 @@ export function AiRewriteButton({
                 className="flex-shrink-0 p-1.5 rounded-md text-indigo-400 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 <Send size={13} />
+              </button>
+            </div>
+          </div>
+
+          <div className="h-px bg-white/10 my-1.5" />
+
+          <div className="px-2 pb-1">
+            <label className="flex items-center gap-1 text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-1">
+              <Sparkles size={10} />
+              Napisz notatkę o...
+            </label>
+            <div className="flex items-center gap-1">
+              <input
+                value={generatePrompt}
+                onChange={(e) => setGeneratePrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    submitGenerate();
+                  }
+                }}
+                disabled={generateLoading}
+                placeholder="np. top 3 firmy IT w Polsce"
+                className="flex-1 min-w-0 bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-md px-2 py-1 text-[12px] text-gray-200 placeholder-gray-600 outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+              />
+              <button
+                type="button"
+                title="Wygeneruj notatkę"
+                disabled={!generatePrompt.trim() || generateLoading}
+                onClick={submitGenerate}
+                className="flex-shrink-0 p-1.5 rounded-md text-indigo-400 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {generateLoading ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <Send size={13} />
+                )}
               </button>
             </div>
           </div>

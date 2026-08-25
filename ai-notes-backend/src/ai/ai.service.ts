@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 import { Note } from 'src/notes/entities/note.entity';
+import { handleGeminiError } from 'src/helpers/handle-gemini-error';
 
 export type RewriteMode = 'fix' | 'improve' | 'shorten' | 'expand' | 'custom';
 
@@ -21,11 +22,15 @@ export class AiService {
   }
 
   async generateText(prompt: string): Promise<string> {
-    const response = await this.client.models.generateContent({
-      model: this.model,
-      contents: prompt,
-    });
-    return response.text ?? '';
+    try {
+      const response = await this.client.models.generateContent({
+        model: this.model,
+        contents: prompt,
+      });
+      return response.text ?? '';
+    } catch (error) {
+      handleGeminiError(error);
+    }
   }
 
   async summarizeText(content: string): Promise<string> {
@@ -48,6 +53,18 @@ export class AiService {
       return `Notatka ${i + 1}: ${note.title} - tresc: ${note.content}`
     })
     return this.generateText([prompt, ...notesList].join('\n\n'))
+  }
+
+  async generateNoteContent(prompt: string): Promise<string> {
+    const instruction = [
+      'Napisz treść notatki na podstawie poniższego polecenia użytkownika, po polsku.',
+      'Możesz użyć formatowania Markdown (nagłówki, listy).',
+      'Zwróć wyłącznie treść notatki, bez wstępów typu "Oto notatka:" i bez cudzysłowów.',
+      '',
+      'Polecenie:',
+      prompt,
+    ].join('\n');
+    return this.generateText(instruction);
   }
 
   async continueText(textBeforeCursor: string): Promise<string> {
@@ -114,12 +131,16 @@ export class AiService {
   }
 
   async embedText(text: string): Promise<number[]> {
-    const response = await this.client.models.embedContent({
-      model: this.embeddingModel,
-      contents: text,
-      config: { outputDimensionality: 768 },
-    });
-    return response.embeddings?.[0]?.values ?? [];
+    try {
+      const response = await this.client.models.embedContent({
+        model: this.embeddingModel,
+        contents: text,
+        config: { outputDimensionality: 768 },
+      });
+      return response.embeddings?.[0]?.values ?? [];
+    } catch (error) {
+      handleGeminiError(error);
+    }
   }
 
   async answerFromContext(

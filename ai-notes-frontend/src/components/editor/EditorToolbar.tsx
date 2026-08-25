@@ -28,12 +28,14 @@ import {
   Columns3,
   Trash2,
   Loader2,
+  Bot,
 } from "lucide-react";
 import { ColorPickerButton } from "./ColorPickerButton";
 import { HIGHLIGHT_COLORS } from "./editorColors";
 import { useImageUpload } from "../../hooks/useImageUpload";
 import { useAiContinue } from "../../hooks/useAiContinue";
 import { useAiRewrite } from "../../hooks/useAiRewrite";
+import { useAiGenerate } from "../../hooks/useAiGenerate";
 import { AiRewriteButton, type RewriteMode } from "./AiRewriteButton";
 
 interface ToolbarButtonProps {
@@ -72,7 +74,13 @@ function Divider() {
   return <span className="w-px h-5 bg-white/10 mx-1 flex-shrink-0" />;
 }
 
-export function EditorToolbar({ editor }: { editor: Editor }) {
+interface EditorToolbarProps {
+  editor: Editor;
+  agentPanelOpen: boolean;
+  onToggleAgentPanel: () => void;
+}
+
+export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: EditorToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageUpload = useImageUpload();
 
@@ -85,6 +93,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
   const inTable = editor.isActive("table");
   const aiContinue = useAiContinue();
   const aiRewrite = useAiRewrite();
+  const aiGenerate = useAiGenerate();
   const { hasSelection } = useEditorState({
     editor,
     selector: ({ editor }) => ({ hasSelection: !editor.state.selection.empty }),
@@ -110,6 +119,15 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
     aiContinue.mutate(textBeforeCursor, {
       onSuccess: (continuation) => {
         editor.chain().focus().insertContentAt(from, continuation).run();
+      },
+    });
+  };
+
+  const handleGenerate = (prompt: string) => {
+    const { from } = editor.state.selection;
+    aiGenerate.mutate(prompt, {
+      onSuccess: (content) => {
+        editor.chain().focus().insertContentAt(from, content).run();
       },
     });
   };
@@ -356,10 +374,25 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         hasSelection={hasSelection}
         rewriteLoading={aiRewrite.isPending}
         continueLoading={aiContinue.isPending}
+        generateLoading={aiGenerate.isPending}
         onSelectMode={(mode) => handleRewrite(mode)}
         onContinue={handleContinue}
         onCustom={(instruction) => handleRewrite("custom", instruction)}
+        onGenerate={handleGenerate}
       />
+      <button
+        type="button"
+        title="Czat z agentem"
+        onClick={onToggleAgentPanel}
+        className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
+          agentPanelOpen
+            ? "text-indigo-300 bg-indigo-500/20"
+            : "text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20"
+        }`}
+      >
+        <Bot size={12} />
+        Agent
+      </button>
     </div>
   );
 }

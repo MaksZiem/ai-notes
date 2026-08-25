@@ -4,6 +4,7 @@ import { GoogleGenAI, Type, type Content, type FunctionDeclaration, type Part } 
 import { NotesService } from 'src/notes/notes.service';
 import { ProjectsService } from 'src/projects/projects.service';
 import { User } from 'src/users/user.entity';
+import { handleGeminiError } from 'src/helpers/handle-gemini-error';
 
 const TOOLS: FunctionDeclaration[] = [
   {
@@ -50,8 +51,26 @@ const TOOLS: FunctionDeclaration[] = [
 
 export interface AgentStep {
   tool: string;
-  args: unknown
+  args: unknown;
+  result: unknown;
 }
+
+export interface AgentContext {
+  noteId?: number;
+  projectId?: number;
+}
+
+const UPDATE_CURRENT_NOTE_TOOL: FunctionDeclaration = {
+  name: 'update_current_note',
+  description: 'Zaktualizuj tytuł i/lub treść notatki, którą użytkownik ma obecnie otwartą w edytorze.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      title: { type: Type.STRING, nullable: true },
+      content: { type: Type.STRING, nullable: true },
+    },
+  },
+};
 
 @Injectable()
 export class AgentService {
@@ -67,18 +86,49 @@ export class AgentService {
     this.model = this.config.get<string>('GEMINI_MODEL') ?? 'gemini-3.6-flash';
   }
 
-  async run(message: string, user: User): Promise<{ answer: string; steps: AgentStep[] }> {
+  async run(
+    message: string,
+    user: User,
+    context?: AgentContext,
+  ): Promise<{ answer: string; steps: AgentStep[] }> {
+    try {
+      return await this.runInternal(message, user, context);
+    } catch (error) {
+      handleGeminiError(error);
+    }
+  }
+
+  private async runInternal(
+    message: string,
+    user: User,
+    context?: AgentContext,
+  ): Promise<{ answer: string; steps: AgentStep[] }> {
     const history: Content[] = [{ role: 'user', parts: [{ text: message }] }];
     const steps: AgentStep[] = [];
+
+    let noteContext = '';
+    if (context?.noteId) {
+      const note = await this.notesService.findOne(
+        context.noteId,
+        context.projectId ?? null,
+        user.id,
+        user.role,
+      );
+      noteContext = `\n\nUżytkownik obecnie edytuje notatkę (id=${note.id}${note.projectId ? `, w projekcie ${note.projectId}` : ''}). Aktualny tytuł: "${note.title}". Aktualna treść:\n${note.content ?? '(pusta)'}`;
+    }
+
+    const tools = context?.noteId ? [...TOOLS, UPDATE_CURRENT_NOTE_TOOL] : TOOLS;
+    const systemInstruction =
+      'Jesteś asystentem notatnika. Masz dostęp do narzędzi pozwalających przeszukiwać, czytać i tworzyć notatki użytkownika. Używaj ich tylko wtedy, gdy naprawdę potrzebujesz informacji lub akcji, której nie masz już w kontekście — każde wywołanie narzędzia kosztuje osobne zapytanie do limitowanego API, więc unikaj zbędnych wywołań (np. nie szukaj/nie listuj czegoś, co już znasz z poniższego kontekstu). Odpowiadaj po polsku.' +
+      noteContext;
 
     for (let i = 0; i < 6; i++) {
       const response = await this.client.models.generateContent({
         model: this.model,
         contents: history,
         config: {
-          tools: [{ functionDeclarations: TOOLS }],
-          systemInstruction:
-            'Jesteś asystentem notatnika. Masz dostęp do narzędzi pozwalających przeszukiwać, czytać i tworzyć notatki użytkownika. Używaj ich, gdy potrzebujesz informacji lub akcji. Odpowiadaj po polsku.',
+          tools: [{ functionDeclarations: tools }],
+          systemInstruction,
         },
       });
 
@@ -94,8 +144,8 @@ export class AgentService {
 
       const responseParts: Part[] = [];
       for (const call of calls) {
-        const result = await this.executeTool(call.name ?? '', call.args ?? {}, user);
-        steps.push({ tool: call.name ?? '', args: call.args });
+        const result = await this.executeTool(call.name ?? '', call.args ?? {}, user, context);
+        steps.push({ tool: call.name ?? '', args: call.args, result });
         responseParts.push({
           functionResponse: { name: call.name, response: { output: result } },
         });
@@ -106,7 +156,12 @@ export class AgentService {
     return { answer: 'Nie udało się dokończyć zadania w rozsądnej liczbie kroków.', steps };
   }
 
-  private async executeTool(name: string, args: Record<string, unknown>, user: User): Promise<unknown> {
+  private async executeTool(
+    name: string,
+    args: Record<string, unknown>,
+    user: User,
+    context?: AgentContext,
+  ): Promise<unknown> {
     switch (name) {
       case 'search_notes': {
         const results = await this.notesService.semanticSearch(String(args.query ?? ''), user.id, user.role);
@@ -133,6 +188,22 @@ export class AgentService {
       case 'list_projects': {
         const projects = await this.projectsService.findAllByUser(user.id, user.role);
         return projects.map((p) => ({ id: p.id, name: p.name, description: p.description }));
+      }
+      case 'update_current_note': {
+        if (!context?.noteId) {
+          return { error: 'Brak aktywnej notatki do zaktualizowania.' };
+        }
+        const note = await this.notesService.update(
+          context.noteId,
+          {
+            title: args.title as string | undefined,
+            content: args.content as string | undefined,
+          },
+          context.projectId ?? null,
+          user.id,
+          user.role,
+        );
+        return { id: note.id, title: note.title, content: note.content };
       }
       default:
         return { error: `Nieznane narzędzie: ${name}` };

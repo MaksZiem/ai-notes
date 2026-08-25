@@ -29,6 +29,7 @@ import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import * as Y from "yjs";
 import { ShareDialog } from "../components/editor/ShareDialog";
+import { NoteAgentPanel } from "../components/editor/NoteAgentPanel";
 import {
   ArrowLeft,
   Trash2,
@@ -132,6 +133,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   );
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [shareOpen, setShareOpen] = useState(false);
+  const [agentPanelOpen, setAgentPanelOpen] = useState(false);
   const [hasSyncedFields, setHasSyncedFields] = useState(false);
   const hasSyncedContentRef = useRef(false);
 
@@ -293,20 +295,29 @@ function NoteEditor({ routeId }: { routeId: string }) {
     };
   }, [editor, collab, note.data, isOwner]);
 
+  const ensureSavedId = async (overrides?: {
+    color?: string | null;
+    keywords?: string[];
+  }): Promise<number> => {
+    if (savedId) return savedId;
+    const res = await createNote.mutateAsync({
+      title: title.trim() || "Bez tytułu",
+      content: editor?.storage.markdown.getMarkdown() ?? "",
+      projectId,
+      color: (overrides?.color ?? color) || undefined,
+      keywords: overrides?.keywords ?? keywords,
+    });
+    setSavedId(res.data.id);
+    return res.data.id;
+  };
+
   const triggerAutosave = useDebouncedCallback(async () => {
     if (!editor) return;
     const content = editor.storage.markdown.getMarkdown();
     setSaveStatus("saving");
     try {
       if (!savedId) {
-        const res = await createNote.mutateAsync({
-          title: title.trim() || "Bez tytułu",
-          content,
-          projectId,
-          color,
-          keywords,
-        });
-        setSavedId(res.data.id);
+        await ensureSavedId();
       } else {
         await updateNote.mutateAsync({
           title: title.trim() || "Bez tytułu",
@@ -344,14 +355,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
     setSaveStatus("saving");
     try {
       if (!savedId) {
-        const res = await createNote.mutateAsync({
-          title: title.trim() || "Bez tytułu",
-          content: editor?.storage.markdown.getMarkdown() ?? "",
-          projectId,
-          color: (patch.color ?? color) || undefined,
-          keywords: patch.keywords ?? keywords,
-        });
-        setSavedId(res.data.id);
+        await ensureSavedId(patch);
       } else {
         await updateNote.mutateAsync(patch);
       }
@@ -359,6 +363,13 @@ function NoteEditor({ routeId }: { routeId: string }) {
     } catch {
       setSaveStatus("error");
     }
+  };
+
+  const handleToggleAgentPanel = async () => {
+    if (!agentPanelOpen) {
+      await ensureSavedId();
+    }
+    setAgentPanelOpen((v) => !v);
   };
 
   const handleColorSelect = (value: string | null) => {
@@ -752,7 +763,11 @@ function NoteEditor({ routeId }: { routeId: string }) {
             {/* Toolbar */}
             {editor && canEdit && (
               <div className="sticky top-0 z-10 -mx-1 px-1 py-2 mb-4 bg-[#0f1014]/95 backdrop-blur">
-                <EditorToolbar editor={editor} />
+                <EditorToolbar
+                  editor={editor}
+                  agentPanelOpen={agentPanelOpen}
+                  onToggleAgentPanel={handleToggleAgentPanel}
+                />
               </div>
             )}
 
@@ -766,6 +781,16 @@ function NoteEditor({ routeId }: { routeId: string }) {
 
       {shareOpen && savedId && (
         <ShareDialog noteId={savedId} onClose={() => setShareOpen(false)} />
+      )}
+
+      {agentPanelOpen && savedId && editor && (
+        <NoteAgentPanel
+          noteId={savedId}
+          projectId={projectId}
+          editor={editor}
+          onTitleChange={setTitle}
+          onClose={() => setAgentPanelOpen(false)}
+        />
       )}
     </div>
   );

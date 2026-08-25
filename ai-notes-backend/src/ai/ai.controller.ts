@@ -35,6 +35,15 @@ export class AiController {
     return { text };
   }
 
+  @Post('generate')
+  async generate(@Body('prompt') prompt: string) {
+    if (!prompt?.trim()) {
+      throw new BadRequestException('Brak polecenia');
+    }
+    const content = await this.aiService.generateNoteContent(prompt);
+    return { content };
+  }
+
   @Post('continue')
   async continue(@Body('text') text: string) {
     if (!text?.trim()) {

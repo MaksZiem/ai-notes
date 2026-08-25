@@ -1,15 +1,22 @@
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Send, Sparkles, Loader2 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useRagChat } from "../hooks/useRagChat";
 import { useAgentChat } from "../hooks/useAgentChat";
 
+function getErrorMessage(error: unknown): string {
+  return axios.isAxiosError(error)
+    ? (error.message ?? "Coś poszło nie tak, spróbuj ponownie.")
+    : "Coś poszło nie tak, spróbuj ponownie.";
+}
+
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   sources?: { id: number; title: string }[];
-  steps?: { tool: string; args: unknown }[];
+  steps?: { tool: string; args: unknown; result: unknown }[];
 }
 
 export default function ChatPage() {
@@ -28,17 +35,17 @@ export default function ChatPage() {
     setInput("");
 
     if (agentMode) {
-      agentChat.mutate(question, {
+      agentChat.mutate({ message: question }, {
         onSuccess: (result) => {
           setMessages((prev) => [
             ...prev,
             { role: "assistant", content: result.answer, steps: result.steps },
           ]);
         },
-        onError: () => {
+        onError: (error) => {
           setMessages((prev) => [
             ...prev,
-            { role: "assistant", content: "Coś poszło nie tak, spróbuj ponownie." },
+            { role: "assistant", content: getErrorMessage(error) },
           ]);
         },
       });
@@ -50,10 +57,10 @@ export default function ChatPage() {
             { role: "assistant", content: result.answer, sources: result.sources },
           ]);
         },
-        onError: () => {
+        onError: (error) => {
           setMessages((prev) => [
             ...prev,
-            { role: "assistant", content: "Coś poszło nie tak, spróbuj ponownie." },
+            { role: "assistant", content: getErrorMessage(error) },
           ]);
         },
       });

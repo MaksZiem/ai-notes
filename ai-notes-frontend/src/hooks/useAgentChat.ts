@@ -1,15 +1,27 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../api/client";
 
+export interface AgentStep {
+  tool: string;
+  args: unknown;
+  result: unknown;
+}
+
 interface AgentChatResult {
   answer: string;
-  steps: { tool: string; args: unknown }[];
+  steps: AgentStep[];
+}
+
+interface AgentChatPayload {
+  message: string;
+  noteId?: number;
+  projectId?: number;
 }
 
 export function useAgentChat() {
   return useMutation({
-    mutationFn: async (message: string) => {
-      const { data } = await api.post<AgentChatResult>("/agent/chat", { message });
+    mutationFn: async (payload: AgentChatPayload) => {
+      const { data } = await api.post<AgentChatResult>("/agent/chat", payload);
       return data;
     },
   });
