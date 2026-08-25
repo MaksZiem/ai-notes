@@ -100,7 +100,7 @@ export function NoteCard({ note, list = false, pinned = false, favourite = false
         {note.content}
       </p>
 
-      <div className="flex items-end justify-between gap-2">
+      <div className="flex items-end justify-between gap-2 mt-4">
         <div className="flex flex-wrap gap-1">
           {keywords.map(tag => (
             <span
