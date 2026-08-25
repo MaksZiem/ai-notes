@@ -2,11 +2,16 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Param,
+  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { AiService, RewriteMode } from './ai.service';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { NotesService } from 'src/notes/notes.service';
+import { CurrentUser } from 'src/users/decorators/current-user.decorator';
+import { User } from 'src/users/user.entity';
 
 const REWRITE_MODES: RewriteMode[] = [
   'fix',
@@ -19,7 +24,10 @@ const REWRITE_MODES: RewriteMode[] = [
 @UseGuards(AuthGuard)
 @Controller('ai')
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    private readonly notesService: NotesService,
+  ) {}
 
   @Post('ping')
   async ping(@Body('prompt') prompt: string) {
@@ -65,12 +73,29 @@ export class AiController {
     return { title };
   }
 
+  @Post('projects/:projectId/summary')
+  async generateProjectSummary(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @CurrentUser() user: User,
+  ) {
+    const notes = await this.notesService.findAllNotesInProject(
+      projectId,
+      user.id,
+      user.role,
+    );
+    if (!notes.length) {
+      throw new BadRequestException('Projekt nie ma jeszcze żadnych notatek');
+    }
+    const summary = await this.aiService.summarizeProject(notes);
+    return { summary };
+  }
+
   @Post('keywords')
   async suggestKeywords(@Body('content') content: string) {
     if (!content?.trim()) {
       throw new BadRequestException('Brak treści');
     }
-    const keywords = await this.aiService.suggestKeywords(content)
-    return {keywords}
+    const keywords = await this.aiService.suggestKeywords(content);
+    return { keywords };
   }
 }

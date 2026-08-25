@@ -11,6 +11,7 @@ import type { Note } from "../types/note";
 import { NoteCard } from "../components/layout/NoteCard";
 import { NoteViewType } from "../enums/noteView";
 import { ProjectShareDialog } from "../components/projects/ProjectShareDialog";
+import { ProjectSummaryDialog } from "../components/projects/ProjectSummaryDialog";
 import { usePermissions } from "../context/PermissionsContext";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { downloadNotesAsZip } from "../utils/downloadNotes";
@@ -34,6 +35,7 @@ export default function NotesPage() {
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
   const [aiMode, setAiMode] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
 
   const { isAdmin } = usePermissions();
@@ -191,6 +193,18 @@ export default function NotesPage() {
               </button>
             </div>
 
+            {isProjectScoped && (
+              <button
+                type="button"
+                onClick={() => setIsSummaryOpen(true)}
+                title="Podsumuj projekt z AI"
+                className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer"
+              >
+                <Sparkles size={15} />
+                Podsumuj
+              </button>
+            )}
+
             {canManageProject && (
               <button
                 type="button"
@@ -290,6 +304,13 @@ export default function NotesPage() {
         <ProjectShareDialog
           projectId={projectId!}
           onClose={() => setIsShareOpen(false)}
+        />
+      )}
+
+      {isSummaryOpen && isProjectScoped && (
+        <ProjectSummaryDialog
+          projectId={projectId!}
+          onClose={() => setIsSummaryOpen(false)}
         />
       )}
     </div>

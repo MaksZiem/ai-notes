@@ -23,7 +23,7 @@ import { MailModule } from 'src/mail/mail.module';
       UserNotePreference,
     ]),
     forwardRef(() => ProjectsModule),
-    AiModule,
+    forwardRef(() => AiModule),
     MailModule
   ],
   controllers: [NotesController, SingleNoteController, PublicShareController],

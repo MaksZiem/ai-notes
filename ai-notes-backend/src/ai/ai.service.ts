@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
+import { Note } from 'src/notes/entities/note.entity';
 
 export type RewriteMode = 'fix' | 'improve' | 'shorten' | 'expand' | 'custom';
 
@@ -36,6 +37,17 @@ export class AiService {
       content,
     ].join('\n');
     return this.generateText(prompt);
+  }
+
+  async summarizeProject(notes: Note[]): Promise<string> {
+    const prompt = [
+      'Na podstawie tresci notatek wypisz mi najpierw podsumowanie o czym jest ten projekt.',
+      'Nastepnie napisz krótkie podsumowanie kazdej noatki w podpunktach'
+    ].join('\n')
+    const notesList: string[] = notes.map((note, i) => {
+      return `Notatka ${i + 1}: ${note.title} - tresc: ${note.content}`
+    })
+    return this.generateText([prompt, ...notesList].join('\n\n'))
   }
 
   async continueText(textBeforeCursor: string): Promise<string> {
@@ -128,6 +140,6 @@ export class AiService {
       'Pytanie użytkownika:',
       question,
     ].join('\n');
-    return this.generateText(prompt)
+    return this.generateText(prompt);
   }
 }
