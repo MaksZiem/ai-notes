@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, X, type LucideIcon } from "lucide-react";
+import { useTranslations } from "use-intl";
 import { TEXT_COLORS } from "./editorColors";
 
 interface ColorPickerButtonProps {
@@ -12,6 +13,7 @@ interface ColorPickerButtonProps {
 }
 
 export function ColorPickerButton({ icon: Icon, title, activeColor, colors = TEXT_COLORS, onSelect, onClear }: ColorPickerButtonProps) {
+  const t = useTranslations("toolbar");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,7 +66,7 @@ export function ColorPickerButton({ icon: Icon, title, activeColor, colors = TEX
             className="w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] text-gray-400 hover:bg-white/5 hover:text-gray-200"
           >
             <X size={11} />
-            Usuń kolor
+            {t("clearColor")}
           </button>
         </div>
       )}

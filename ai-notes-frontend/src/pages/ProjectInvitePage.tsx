@@ -3,10 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSharedProject } from "../hooks/useSharedProject";
 import { Loader2, Lock, FolderOpen, Check } from "lucide-react";
+import { useTranslations } from "use-intl";
 
 export default function ProjectInvitePage() {
   const { token = "" } = useParams<{ token: string }>();
   const { token: authToken } = useAuth();
+  const t = useTranslations();
   const { invite, claim } = useSharedProject(token);
   const [claimed, setClaimed] = useState(false);
 
@@ -28,7 +30,7 @@ export default function ProjectInvitePage() {
         <div>
           <Lock className="mx-auto mb-3 text-gray-600" size={28} />
           <p className="text-gray-300">
-            To zaproszenie jest nieprawidłowe, wygasło lub zostało odwołane.
+            {t("invite.invalid")}
           </p>
         </div>
       </div>
@@ -36,8 +38,7 @@ export default function ProjectInvitePage() {
   }
 
   const { project, invitedBy, accessLevel } = invite.data;
-  const accessLabel =
-    accessLevel === "EDIT" ? "edycja" : accessLevel === "DELETE" ? "pełny dostęp" : "podgląd";
+  const accessLabel = t(`access.${accessLevel}`);
 
   return (
     <div className="flex h-screen items-center justify-center bg-[#0f1014] px-4">
@@ -48,19 +49,19 @@ export default function ProjectInvitePage() {
 
         <div className="flex flex-col items-center gap-1.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
-            Zaproszenie do projektu
+            {t("invite.label")}
           </span>
           {/* nadpisujemy globalny styl h1 (index.css) klasami !important — inaczej wchodzi 56px */}
           <h1 className="!text-xl !font-semibold !tracking-normal !leading-snug !m-0 text-gray-100">
-            „{project.name}"
+            „{project.name}”
           </h1>
         </div>
 
         <div className="flex items-center gap-1.5 text-sm text-gray-500">
           <span className="text-gray-300 font-medium">
-            {invitedBy ? `${invitedBy.name} ${invitedBy.surname}` : "Ktoś"}
+            {invitedBy ? `${invitedBy.name} ${invitedBy.surname}` : t("common.someone")}
           </span>
-          <span>zaprasza Cię —</span>
+          <span>{t("invite.invites")}</span>
           <span className="px-2 py-0.5 rounded-full bg-white/5 text-gray-300 text-xs font-medium">
             {accessLabel}
           </span>
@@ -69,9 +70,9 @@ export default function ProjectInvitePage() {
         <div className="w-full flex flex-col gap-2">
           {claimed ? (
             <div className="flex items-center justify-center gap-2 text-emerald-400 text-sm">
-              <Check size={16} /> Dołączono do projektu.{" "}
+              <Check size={16} /> {t("invite.joined")}{" "}
               <Link to="/projects" className="underline">
-                Przejdź do projektów
+                {t("invite.toProjects")}
               </Link>
             </div>
           ) : authToken ? (
@@ -81,7 +82,7 @@ export default function ProjectInvitePage() {
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition cursor-pointer disabled:cursor-not-allowed"
             >
               {claim.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-              Zaakceptuj zaproszenie
+              {t("invite.accept")}
             </button>
           ) : (
             <>
@@ -89,20 +90,20 @@ export default function ProjectInvitePage() {
                 to={`/register?projectInviteToken=${token}`}
                 className="w-full block text-center bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition"
               >
-                Załóż konto, żeby dołączyć
+                {t("invite.signUp")}
               </Link>
               <Link
                 to={`/login?projectInviteToken=${token}`}
                 className="text-sm text-gray-500 hover:text-gray-300"
               >
-                Masz już konto? Zaloguj się
+                {t("invite.signIn")}
               </Link>
             </>
           )}
 
           {claim.isError && (
             <p className="text-xs text-red-400">
-              Nie udało się zaakceptować zaproszenia. Spróbuj ponownie.
+              {t("invite.failed")}
             </p>
           )}
         </div>

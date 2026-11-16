@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslations } from "use-intl";
 import { Search, Plus, LayoutGrid, List, Pin, ArrowLeft, Sparkles, Share2, Download, Loader2 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useNotes } from "../hooks/useNotes";
@@ -27,6 +28,7 @@ function noteMatchesSearch(note: Note, query: string) {
 
 export default function NotesPage() {
   const navigate = useNavigate();
+  const t = useTranslations("notes");
   const { id: projectIdParam } = useParams<{ id: string }>();
   const projectId = projectIdParam ? Number(projectIdParam) : undefined;
   const isProjectScoped = projectId !== undefined && !Number.isNaN(projectId);
@@ -99,7 +101,8 @@ export default function NotesPage() {
     try {
       await downloadNotesAsZip(
         allNotes,
-        isProjectScoped ? project.data?.name ?? "notatki" : "notatki",
+        isProjectScoped ? project.data?.name ?? t("zipName") : t("zipName"),
+        t("untitled"),
       );
     } finally {
       setIsZipping(false);
@@ -135,14 +138,16 @@ export default function NotesPage() {
                 className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-200 transition-colors mb-1.5 cursor-pointer"
               >
                 <ArrowLeft size={13} />
-                Projekty
+                {t("backToProjects")}
               </button>
             )}
             <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">
-              {isProjectScoped ? project.data?.name ?? "Projekt" : "Notatki"}
+              {isProjectScoped ? project.data?.name ?? t("project") : t("title")}
             </h1>
             <p className="text-xs text-gray-600 mt-1 m-0">
-              {totalCount} notatek {isProjectScoped ? "w projekcie" : "łącznie"}
+              {isProjectScoped
+                ? t("countInProject", { count: totalCount })
+                : t("countTotal", { count: totalCount })}
             </p>
           </div>
 
@@ -152,14 +157,14 @@ export default function NotesPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Szukaj notatek..."
+                placeholder={t("search")}
                 className="bg-transparent text-sm text-gray-300 placeholder-gray-600 outline-none w-full"
               />
             </div>
 
             <button
               onClick={() => setAiMode((v) => !v)}
-              title="Wyszukiwanie semantyczne (AI)"
+              title={t("semantic")}
               className={`flex items-center gap-1 px-2.5 py-2 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
                 aiMode
                   ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-400"
@@ -173,6 +178,8 @@ export default function NotesPage() {
             <div className="flex items-center gap-0.5 bg-white/[0.04] border border-white/[0.07] rounded-lg p-1">
               <button
                 onClick={() => setView(NoteViewType.GRID)}
+                aria-label={t("grid")}
+                title={t("grid")}
                 className={`p-1.5 rounded-md transition-colors duration-150 cursor-pointer ${
                   view === "grid"
                     ? "bg-indigo-500/20 text-indigo-400"
@@ -183,6 +190,8 @@ export default function NotesPage() {
               </button>
               <button
                 onClick={() => setView(NoteViewType.LIST)}
+                aria-label={t("list")}
+                title={t("list")}
                 className={`p-1.5 rounded-md transition-colors duration-150 cursor-pointer ${
                   view === "list"
                     ? "bg-indigo-500/20 text-indigo-400"
@@ -197,11 +206,11 @@ export default function NotesPage() {
               <button
                 type="button"
                 onClick={() => setIsSummaryOpen(true)}
-                title="Podsumuj projekt z AI"
+                title={t("summarizeHint")}
                 className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer"
               >
                 <Sparkles size={15} />
-                Podsumuj
+                {t("summarize")}
               </button>
             )}
 
@@ -209,18 +218,18 @@ export default function NotesPage() {
               <button
                 type="button"
                 onClick={() => setIsShareOpen(true)}
-                title="Udostępnij projekt"
+                title={t("shareProject")}
                 className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer"
               >
                 <Share2 size={15} />
-                Udostępnij
+                {t("share")}
               </button>
             )}
 
             <button
               onClick={handleDownloadAll}
               disabled={isZipping || totalCount === 0}
-              title="Pobierz wszystkie notatki jako .zip (.md)"
+              title={t("downloadZipHint")}
               className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 text-gray-300 hover:text-indigo-400 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isZipping ? (
@@ -228,7 +237,7 @@ export default function NotesPage() {
               ) : (
                 <Download size={15} />
               )}
-              Pobierz .zip
+              {t("downloadZip")}
             </button>
 
             <button
@@ -236,7 +245,7 @@ export default function NotesPage() {
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer"
             >
               <Plus size={15} />
-              Nowa notatka
+              {t("new")}
             </button>
           </div>
         </div>
@@ -244,16 +253,16 @@ export default function NotesPage() {
         <div className="flex-1 overflow-y-auto px-8 py-6">
           {aiMode && debouncedSearch ? (
             semanticSearch.isLoading ? (
-              <p className="text-sm text-gray-600">Szukam...</p>
+              <p className="text-sm text-gray-600">{t("searching")}</p>
             ) : (semanticSearch.data ?? []).length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-600">
-                <p className="text-lg font-medium">Brak wyników</p>
-                <p className="text-sm mt-1">Spróbuj innej frazy</p>
+                <p className="text-lg font-medium">{t("noResults")}</p>
+                <p className="text-sm mt-1">{t("tryAnother")}</p>
               </div>
             ) : (
               <section>
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-3 m-0">
-                  Wyniki AI
+                  {t("aiResults")}
                 </h2>
                 {view === "grid"
                   ? renderGrid(semanticSearch.data ?? [])
@@ -262,8 +271,8 @@ export default function NotesPage() {
             )
           ) : !hasResults && debouncedSearch ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-600">
-              <p className="text-lg font-medium">Brak wyników</p>
-              <p className="text-sm mt-1">Spróbuj innej frazy</p>
+              <p className="text-lg font-medium">{t("noResults")}</p>
+              <p className="text-sm mt-1">{t("tryAnother")}</p>
             </div>
           ) : (
             <>
@@ -272,7 +281,7 @@ export default function NotesPage() {
                   <div className="flex items-center gap-2 mb-3">
                     <Pin size={13} className="text-amber-400/70" />
                     <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">
-                      Przypięte
+                      {t("pinned")}
                     </h2>
                   </div>
                   {view === "grid"
@@ -283,11 +292,11 @@ export default function NotesPage() {
 
               <section>
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-3 m-0">
-                  Wszystkie notatki
+                  {t("all")}
                 </h2>
                 {filteredRest.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-gray-600">
-                    <p className="text-sm">Brak notatek. Utwórz pierwszą!</p>
+                    <p className="text-sm">{t("empty")}</p>
                   </div>
                 ) : view === "grid" ? (
                   renderGrid(filteredRest)

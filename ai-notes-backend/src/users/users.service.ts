@@ -1,18 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
-import { I18nService } from 'nestjs-i18n';
 import { capitalize } from 'src/helpers/capitalize';
 import { hashPassword } from 'src/helpers/hash-password';
 import { assignDefined } from 'src/helpers/assign-defined';
+import { errorBody } from 'src/common/error-body';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User) private repo: Repository<User>,
-    private i18n: I18nService,
-  ) {}
+  constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
   create(email: string, password: string, name: string, surname: string) {
     const user = this.repo.create({
@@ -35,19 +32,23 @@ export class UsersService {
   async update(id: number, attrs: Partial<User>) {
     const user = await this.findOne(id);
     if (!user) {
-      throw new NotFoundException(this.i18n.t('common.users.not_found'));
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'USER_NOT_FOUND', 'User not found'),
+      );
     }
-    if(attrs.password) {
-      attrs.password = await hashPassword(attrs.password)
+    if (attrs.password) {
+      attrs.password = await hashPassword(attrs.password);
     }
-    assignDefined(user, attrs)
-    return this.repo.save(user)
+    assignDefined(user, attrs);
+    return this.repo.save(user);
   }
 
   async remove(id: number) {
     const user = await this.findOne(id);
     if (!user) {
-      throw new NotFoundException(this.i18n.t('common.users.not_found'));
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'USER_NOT_FOUND', 'User not found'),
+      );
     }
     return this.repo.remove(user);
   }

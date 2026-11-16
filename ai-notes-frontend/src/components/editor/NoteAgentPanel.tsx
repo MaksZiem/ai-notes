@@ -1,14 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
 import type { Editor } from "@tiptap/react";
 import { Send, X, Loader2, Bot } from "lucide-react";
+import { useTranslations } from "use-intl";
+import { useApiErrorMessage } from "../../api/errors";
 import { useAgentChat } from "../../hooks/useAgentChat";
-
-function getErrorMessage(error: unknown): string {
-  return axios.isAxiosError(error)
-    ? (error.message ?? "Coś poszło nie tak, spróbuj ponownie.")
-    : "Coś poszło nie tak, spróbuj ponownie.";
-}
 
 interface AgentPanelMessage {
   role: "user" | "assistant";
@@ -31,6 +26,10 @@ export function NoteAgentPanel({
   onTitleChange,
   onClose,
 }: NoteAgentPanelProps) {
+  const t = useTranslations();
+  const apiErrorMessage = useApiErrorMessage();
+  const getErrorMessage = (error: unknown) =>
+    apiErrorMessage(error, t("common.somethingWrong"));
   const [messages, setMessages] = useState<AgentPanelMessage[]>([]);
   const [input, setInput] = useState("");
   const agentChat = useAgentChat();
@@ -76,10 +75,11 @@ export function NoteAgentPanel({
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] flex-shrink-0">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-200">
           <Bot size={15} className="text-indigo-400" />
-          Agent notatki
+          {t("agentPanel.title")}
         </div>
         <button
           onClick={onClose}
+          aria-label={t("common.close")}
           className="p-1 rounded-md text-gray-500 hover:text-gray-200 hover:bg-white/5 transition-colors cursor-pointer"
         >
           <X size={16} />
@@ -89,8 +89,7 @@ export function NoteAgentPanel({
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
         {messages.length === 0 && (
           <p className="text-sm text-gray-600">
-            Poproś agenta o zmiany w tej notatce, np. „napisz notatkę o top 3
-            firmach IT w Polsce”.
+            {t("agentPanel.intro")}
           </p>
         )}
         {messages.map((m, i) => (
@@ -115,7 +114,7 @@ export function NoteAgentPanel({
         {agentChat.isPending && (
           <div className="self-start flex items-center gap-2 text-gray-500 text-sm">
             <Loader2 size={14} className="animate-spin" />
-            Agent pracuje...
+            {t("agentPanel.working")}
           </div>
         )}
       </div>
@@ -127,12 +126,13 @@ export function NoteAgentPanel({
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSend();
           }}
-          placeholder="Napisz polecenie dla agenta..."
+          placeholder={t("agentPanel.placeholder")}
           className="flex-1 bg-white/[0.04] border border-white/[0.07] focus:border-indigo-500/60 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none"
         />
         <button
           onClick={handleSend}
           disabled={agentChat.isPending || !input.trim()}
+          aria-label={t("agentPanel.send")}
           className="flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors duration-150"
         >
           <Send size={15} />

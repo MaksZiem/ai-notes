@@ -1,16 +1,11 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTranslations } from "use-intl";
+import { useApiErrorMessage } from "../api/errors";
 import { Send, Sparkles, Loader2 } from "lucide-react";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { useRagChat } from "../hooks/useRagChat";
 import { useAgentChat } from "../hooks/useAgentChat";
-
-function getErrorMessage(error: unknown): string {
-  return axios.isAxiosError(error)
-    ? (error.message ?? "Coś poszło nie tak, spróbuj ponownie.")
-    : "Coś poszło nie tak, spróbuj ponownie.";
-}
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -21,6 +16,10 @@ interface ChatMessage {
 
 export default function ChatPage() {
   const navigate = useNavigate();
+  const t = useTranslations();
+  const apiErrorMessage = useApiErrorMessage();
+  const getErrorMessage = (error: unknown) =>
+    apiErrorMessage(error, t("common.somethingWrong"));
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [agentMode, setAgentMode] = useState(false);
@@ -73,7 +72,7 @@ export default function ChatPage() {
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
           <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">
-            Chat z notatkami
+            {t("chat.title")}
           </h1>
           <button
             onClick={() => setAgentMode((v) => !v)}
@@ -83,14 +82,14 @@ export default function ChatPage() {
                 : "bg-white/[0.04] border-white/[0.07] text-gray-500 hover:text-gray-300"
             }`}
           >
-            Tryb agenta {agentMode ? "(WŁ)" : "(WYŁ)"}
+            {t("chat.agentMode")} {agentMode ? t("chat.on") : t("chat.off")}
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-4">
           {messages.length === 0 && (
             <p className="text-sm text-gray-600">
-              Zapytaj o coś z Twoich notatek, np. „co ustaliłem w projekcie X?”
+              {t("chat.intro")}
             </p>
           )}
           {messages.map((m, i) => (
@@ -129,7 +128,7 @@ export default function ChatPage() {
           {isPending && (
             <div className="self-start flex items-center gap-2 text-gray-500 text-sm">
               <Loader2 size={14} className="animate-spin" />
-              {agentMode ? "Agent pracuje..." : "Szukam w notatkach..."}
+              {agentMode ? t("chat.agentWorking") : t("chat.searching")}
             </div>
           )}
         </div>
@@ -141,12 +140,13 @@ export default function ChatPage() {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSend();
             }}
-            placeholder="Zapytaj o swoje notatki..."
+            placeholder={t("chat.placeholder")}
             className="flex-1 bg-white/[0.04] border border-white/[0.07] focus:border-indigo-500/60 rounded-lg px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 outline-none"
           />
           <button
             onClick={handleSend}
             disabled={isPending || !input.trim()}
+            aria-label={t("chat.send")}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors duration-150"
           >
             <Send size={15} />

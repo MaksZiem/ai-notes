@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useTranslations } from "use-intl";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -50,11 +51,12 @@ const COLOR_PALETTE = NOTE_ACCENT_COLORS;
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 function SaveStatusIndicator({ status }: { status: SaveStatus }) {
+  const t = useTranslations("editor");
   if (status === "saving") {
     return (
       <span className="flex items-center gap-1.5 text-xs text-gray-500">
         <Loader2 size={12} className="animate-spin" />
-        Zapisywanie...
+        {t("saving")}
       </span>
     );
   }
@@ -62,12 +64,12 @@ function SaveStatusIndicator({ status }: { status: SaveStatus }) {
     return (
       <span className="flex items-center gap-1.5 text-xs text-emerald-500">
         <Check size={12} />
-        Zapisano
+        {t("saved")}
       </span>
     );
   }
   if (status === "error") {
-    return <span className="text-xs text-red-400">Nie udało się zapisać</span>;
+    return <span className="text-xs text-red-400">{t("saveFailed")}</span>;
   }
   return null;
 }
@@ -113,6 +115,7 @@ function AutoResizeTitle({
 
 function NoteEditor({ routeId }: { routeId: string }) {
   const navigate = useNavigate();
+  const t = useTranslations();
   const [searchParams] = useSearchParams();
   const isNew = routeId === "new";
   const initialProjectId = (() => {
@@ -206,7 +209,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
           ...(collab ? { undoRedo: false as const } : {}),
         }),
         Placeholder.configure({
-          placeholder: "Napisz coś, albo wpisz „/” po komendy…",
+          placeholder: t("editor.placeholder"),
         }),
         TaskList,
         TaskItem.configure({ nested: true }),
@@ -228,7 +231,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 user: {
                   name: currentUser.data
                     ? `${currentUser.data.name} ${currentUser.data.surname}`
-                    : "Ktoś",
+                    : t("common.someone"),
                   color: cursorColor,
                 },
               }),
@@ -301,7 +304,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   }): Promise<number> => {
     if (savedId) return savedId;
     const res = await createNote.mutateAsync({
-      title: title.trim() || "Bez tytułu",
+      title: title.trim() || t("notes.untitled"),
       content: editor?.storage.markdown.getMarkdown() ?? "",
       projectId,
       color: (overrides?.color ?? color) || undefined,
@@ -320,7 +323,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
         await ensureSavedId();
       } else {
         await updateNote.mutateAsync({
-          title: title.trim() || "Bez tytułu",
+          title: title.trim() || t("notes.untitled"),
           content,
         });
       }
@@ -434,7 +437,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
       navigate(backToNotesPath);
       return;
     }
-    if (!window.confirm("Usunąć tę notatkę? Tej operacji nie można cofnąć."))
+    if (!window.confirm(t("editor.deleteConfirm")))
       return;
     deleteNote.mutate(undefined, {
       onSuccess: () => navigate(backToNotesPath),
@@ -444,9 +447,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const handleLeave = () => {
     if (!savedId) return;
     if (
-      !window.confirm(
-        "Opuścić tę notatkę? Zniknie z Twojej listy, ale zostanie u właściciela — w każdej chwili może udostępnić Ci ją ponownie.",
-      )
+      !window.confirm(t("editor.leaveConfirm"))
     )
       return;
     leaveNote.mutate(undefined, {
@@ -472,7 +473,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-200 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer"
           >
             <ArrowLeft size={15} />
-            Notatki
+            {t("editor.back")}
           </button>
 
           <div className="flex items-center gap-3">
@@ -483,17 +484,17 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 {isShared && (
                   <button
                     onClick={() => setShareOpen(true)}
-                    title="Ta notatka jest udostępniona — kliknij, żeby zarządzać dostępem"
+                    title={t("editor.sharedBadgeHint")}
                     className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-1 rounded-full transition-colors cursor-pointer"
                   >
                     <Share2 size={11} />
-                    Udostępniona
+                    {t("editor.sharedBadge")}
                   </button>
                 )}
                 {isOwner && (
                   <button
                     onClick={() => setShareOpen(true)}
-                    title="Udostępnij notatkę"
+                    title={t("editor.share")}
                     className="p-1.5 rounded-md text-gray-500 hover:text-indigo-400 hover:bg-white/5 transition-colors cursor-pointer"
                   >
                     <Share2 size={15} />
@@ -502,7 +503,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 <button
                   onClick={() => togglePin.mutate()}
                   disabled={togglePin.isPending}
-                  title="Przypnij / odepnij"
+                  title={t("editor.pin")}
                   className={`p-1.5 rounded-md transition-colors cursor-pointer ${isPinned ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
                 >
                   <Pin
@@ -513,7 +514,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 <button
                   onClick={() => toggleFavourite.mutate()}
                   disabled={toggleFavourite.isPending}
-                  title="Dodaj / usuń z ulubionych"
+                  title={t("editor.favourite")}
                   className={`p-1.5 rounded-md transition-colors cursor-pointer ${isFavourite ? "text-amber-400" : "text-gray-500 hover:text-gray-200"}`}
                 >
                   <Star
@@ -526,9 +527,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     downloadNoteAsMarkdown(
                       title,
                       editor?.storage.markdown.getMarkdown() ?? "",
+                      t("notes.untitled"),
                     )
                   }
-                  title="Pobierz jako Markdown (.md)"
+                  title={t("editor.download")}
                   className="p-1.5 rounded-md text-gray-500 hover:text-gray-200 hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   <Download size={15} />
@@ -539,7 +541,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
             {isOwner ? (
               <button
                 onClick={handleDelete}
-                title="Usuń notatkę"
+                title={t("editor.delete")}
                 className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
               >
                 <Trash2 size={15} />
@@ -549,7 +551,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 <button
                   onClick={handleLeave}
                   disabled={leaveNote.isPending}
-                  title="Opuść notatkę — zniknie z Twojej listy, zostanie u właściciela"
+                  title={t("editor.leave")}
                   className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                 >
                   <LogOut size={15} />
@@ -565,7 +567,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
             {/* Color + project meta */}
             <div className="flex items-center flex-wrap gap-4 mb-6">
               <span className="text-[11px] text-gray-600 uppercase tracking-wide">
-                Kolor notatki
+                {t("editor.color")}
               </span>
               <div className="flex items-center gap-2">
                 {COLOR_PALETTE.map((c) => (
@@ -590,7 +592,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   <button
                     onClick={() => handleColorSelect("")}
                     disabled={!canEdit}
-                    title="Usuń kolor"
+                    title={t("editor.clearColor")}
                     className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border border-white/15 text-gray-500 hover:text-gray-300 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <X size={12} />
@@ -605,10 +607,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   value={projectId ?? ""}
                   disabled={moveNote.isPending}
                   onChange={(e) => handleProjectSelect(e.target.value)}
-                  title="Przenieś notatkę do innego projektu"
+                  title={t("editor.move")}
                   className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-2.5 py-1 text-xs text-gray-300 outline-none disabled:opacity-50"
                 >
-                  <option value="">Notatka prywatna</option>
+                  <option value="">{t("common.privateNote")}</option>
                   {(projects.data ?? []).map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -617,7 +619,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 </select>
               ) : (
                 <span className="text-xs text-gray-500">
-                  {currentProject ? currentProject.name : "Notatka prywatna"}
+                  {currentProject ? currentProject.name : t("common.privateNote")}
                 </span>
               )}
 
@@ -625,7 +627,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 <button
                   onClick={handleGenerateTitle}
                   disabled={aiTitle.isPending || !canEdit}
-                  title="Wygeneruj tytuł z treści (AI)"
+                  title={t("editor.generateTitleHint")}
                   className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed px-2.5 py-1 rounded-full transition-colors cursor-pointer"
                 >
                   {aiTitle.isPending ? (
@@ -633,7 +635,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   ) : (
                     <Sparkles size={12} />
                   )}
-                  Generuj tytuł
+                  {t("editor.generateTitle")}
                 </button>
 
                 {savedId && (
@@ -644,7 +646,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                       })
                     }
                     disabled={summarizeNote.isPending}
-                    title="Streść notatkę za pomocą AI"
+                    title={t("editor.summarizeHint")}
                     className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-60 disabled:cursor-not-allowed px-2.5 py-1 rounded-full transition-colors cursor-pointer"
                   >
                     {summarizeNote.isPending ? (
@@ -652,7 +654,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     ) : (
                       <Sparkles size={12} />
                     )}
-                    Streść notatkę
+                    {t("editor.summarize")}
                   </button>
                 )}
               </div>
@@ -663,10 +665,11 @@ function NoteEditor({ routeId }: { routeId: string }) {
               note.data.ownerId !== currentUser.data.id && (
                 <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2.5 mb-6 text-sm text-gray-300">
                   <Share2 size={14} className="text-indigo-400 flex-shrink-0" />
-                  Udostępnione przez{" "}
-                  {note.data.owner
-                    ? `${note.data.owner.name} ${note.data.owner.surname}`
-                    : "innego użytkownika"}
+                  {t("editor.sharedBy", {
+                    name: note.data.owner
+                      ? `${note.data.owner.name} ${note.data.owner.surname}`
+                      : t("editor.anotherUser"),
+                  })}
                 </div>
               )}
 
@@ -678,12 +681,12 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     <Sparkles size={13} />
                   </span>
                   <span className="text-[11px] font-semibold text-violet-300 tracking-wide uppercase">
-                    Podsumowanie AI
+                    {t("editor.summary")}
                   </span>
                   {summary && !summarizeNote.isPending && (
                     <button
                       onClick={() => setSummary(null)}
-                      title="Zamknij podsumowanie"
+                      title={t("editor.closeSummary")}
                       className="ml-auto text-gray-500 hover:text-gray-300 flex-shrink-0 cursor-pointer"
                     >
                       <X size={14} />
@@ -707,7 +710,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
             <AutoResizeTitle
               value={title}
               onChange={handleTitleChange}
-              placeholder="Bez tytułu"
+              placeholder={t("notes.untitled")}
               color={color}
               readOnly={!canEdit}
             />
@@ -723,6 +726,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                   {canEdit && (
                     <button
                       onClick={() => removeKeyword(kw)}
+                      aria-label={t("editor.removeKeyword", { keyword: kw })}
                       className="text-gray-500 hover:text-gray-200 cursor-pointer"
                     >
                       <X size={10} />
@@ -741,14 +745,14 @@ function NoteEditor({ routeId }: { routeId: string }) {
                     }
                   }}
                   onBlur={addKeyword}
-                  placeholder="+ słowo kluczowe"
+                  placeholder={t("editor.keywordPlaceholder")}
                   className="bg-transparent text-[11px] text-gray-400 placeholder-gray-600 outline-none py-1 px-1 w-32"
                 />
               )}
               <button
                 onClick={handleSuggestKeywords}
                 disabled={aiKeywords.isPending || !canEdit}
-                title="Zasugeruj słowa kluczowe (AI)"
+                title={t("editor.suggestKeywordsHint")}
                 className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed px-2.5 py-1 rounded-full transition-colors cursor-pointer"
               >
                 {aiKeywords.isPending ? (
@@ -756,7 +760,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 ) : (
                   <Sparkles size={12} />
                 )}
-                Zasugeruj słowa kluczowe
+                {t("editor.suggestKeywords")}
               </button>
             </div>
 

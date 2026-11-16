@@ -1,8 +1,10 @@
 import { LogOut } from "lucide-react";
+import { useTranslations } from "use-intl";
 import { useCurrentUser } from "../../../hooks/useCurrentUser"
 import { useAuth } from "../../../context/AuthContext";
 
 export default function SideBarFooter() {
+  const t = useTranslations();
   const { logout } = useAuth();
   const { data: user } = useCurrentUser();
   
@@ -15,10 +17,10 @@ export default function SideBarFooter() {
       </div>
       <div className="overflow-hidden flex-1">
         <p className="text-[12.5px] font-semibold text-gray-200 truncate">
-          {user ? `${user.name} ${user.surname}` : "Ładowanie..."}
+          {user ? `${user.name} ${user.surname}` : t("common.loading")}
         </p>
         <p className="text-[10.5px] text-gray-600">
-          {user?.role === "ADMIN" ? "Administrator" : "Użytkownik"}
+          {user?.role === "ADMIN" ? t("common.roles.ADMIN") : t("common.roles.USER")}
         </p>
       </div>
     </div>
@@ -28,7 +30,7 @@ export default function SideBarFooter() {
       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
     >
       <LogOut size={15} />
-      Wyloguj się
+      {t("nav.signOut")}
     </button>
   </div>
   )

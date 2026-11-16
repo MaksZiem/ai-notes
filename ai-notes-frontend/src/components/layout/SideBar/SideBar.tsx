@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslations } from "use-intl";
+import LocaleSwitcher from "../LocaleSwitcher";
 import {
   Home,
   Folder,
@@ -22,6 +24,7 @@ import type { Notification } from "../../../types/notification";
 // ─── Main Sidebar ─────────────────────────────────────────────
 export default function Sidebar() {
   const navigate = useNavigate();
+  const t = useTranslations();
   const { notes: { data: recentNotes = [], isLoading: notesLoading } } = useNotes({ limit: 5 });
   const { recentProjects: { data: recentProjects = [], isLoading: projectsLoading } } = useProjects();
   const { notifications, unreadCount, markAsRead, acceptInvite, declineInvite } = useNotifications();
@@ -40,13 +43,14 @@ export default function Sidebar() {
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white text-sm font-extrabold tracking-tight flex-shrink-0">
           N
         </div>
-        <span className="text-sm font-bold text-gray-100 tracking-tight">NoteSpace</span>
+        <span className="text-sm font-bold text-gray-100 tracking-tight">{t("meta.title")}</span>
+        <LocaleSwitcher className="ml-auto" />
       </div>
 
       {/* Search */}
       <div className="mx-2.5 mb-3 flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] hover:border-indigo-500/40 rounded-lg px-3 py-1.5 text-gray-500 text-xs cursor-text transition-colors duration-150">
         <Search size={13} />
-        <span className="flex-1">Szukaj...</span>
+        <span className="flex-1">{t("nav.search")}</span>
         <span className="text-[10px] bg-white/[0.07] px-1.5 py-px rounded opacity-60">⌘K</span>
       </div>
 
@@ -55,12 +59,12 @@ export default function Sidebar() {
 
         {/* Main links */}
         <div className="flex flex-col gap-0.5 mb-2">
-          <NavItem label="Strona główna"  path="/"               icon={<Home size={15} />}      onClick={() => navigate("/")} />
-          <NavItem label="Notatki"        path="/notes"         icon={<FileText size={15} />}  onClick={() => navigate("/notes")} matchPrefix />
-          <NavItem label="Chat AI"        path="/chat"          icon={<MessageCircle size={15} />} onClick={() => navigate("/chat")} />
-          <NavItem label="Projekty"       path="/projects"      icon={<Folder size={15} />}    onClick={() => navigate("/projects")} matchPrefix />
-          <NavItem label="Powiadomienia"  path="/notifications" icon={<Bell size={15} />}       badge={unreadCount.data?.count ?? 0} onClick={() => navigate("/notifications")} />
-          <NavItem label="Ustawienia"     path="/settings"      icon={<Settings size={15} />}   onClick={() => navigate("/settings")} />
+          <NavItem label={t("nav.home")} path="/"               icon={<Home size={15} />}      onClick={() => navigate("/")} />
+          <NavItem label={t("nav.notes")} path="/notes"         icon={<FileText size={15} />}  onClick={() => navigate("/notes")} matchPrefix />
+          <NavItem label={t("nav.chat")} path="/chat"          icon={<MessageCircle size={15} />} onClick={() => navigate("/chat")} />
+          <NavItem label={t("nav.projects")} path="/projects"      icon={<Folder size={15} />}    onClick={() => navigate("/projects")} matchPrefix />
+          <NavItem label={t("nav.notifications")} path="/notifications" icon={<Bell size={15} />}       badge={unreadCount.data?.count ?? 0} onClick={() => navigate("/notifications")} />
+          <NavItem label={t("nav.settings")} path="/settings"      icon={<Settings size={15} />}   onClick={() => navigate("/settings")} />
         </div>
 
         <hr className="border-white/[0.07] my-2" />
@@ -72,9 +76,9 @@ export default function Sidebar() {
         <hr className="border-white/[0.07] my-2" />
 
         {/* Recent notes */}
-        <Section label="Ostatnie notatki" icon={<FileText size={13} />} defaultOpen>
+        <Section label={t("nav.recentNotes")} icon={<FileText size={13} />} defaultOpen>
           {notesLoading ? (
-            <p className="pl-7 py-2 text-xs text-gray-600">Ładowanie...</p>
+            <p className="pl-7 py-2 text-xs text-gray-600">{t("common.loading")}</p>
           ) : (
             <div className="flex flex-col gap-px mt-0.5">
               {recentNotes.map((n) => (
@@ -85,7 +89,7 @@ export default function Sidebar() {
                 >
                   <span className="text-[12.5px] text-gray-300 font-medium truncate w-full text-left">{n.title}</span>
                   <span className="text-[10.5px] text-gray-600">
-                    {n.project?.name ?? "Notatka prywatna"}
+                    {n.project?.name ?? t("common.privateNote")}
                   </span>
                 </button>
               ))}
@@ -96,12 +100,12 @@ export default function Sidebar() {
         <hr className="border-white/[0.07] my-2" />
 
         {/* Notifications preview */}
-        <Section label="Powiadomienia" icon={<Bell size={13} />} badge={unreadCount.data?.count ?? 0} defaultOpen={false}>
+        <Section label={t("nav.notifications")} icon={<Bell size={13} />} badge={unreadCount.data?.count ?? 0} defaultOpen={false}>
           <div className="flex flex-col gap-px mt-0.5">
             {notifications.isLoading ? (
-              <p className="pl-7 py-2 text-xs text-gray-600">Ładowanie...</p>
+              <p className="pl-7 py-2 text-xs text-gray-600">{t("common.loading")}</p>
             ) : recentNotifications.length === 0 ? (
-              <p className="pl-7 py-2 text-xs text-gray-600 italic">Brak powiadomień</p>
+              <p className="pl-7 py-2 text-xs text-gray-600 italic">{t("nav.noNotifications")}</p>
             ) : (
               recentNotifications.map((n) => (
                 <NotificationRow
@@ -122,8 +126,8 @@ export default function Sidebar() {
         <hr className="border-white/[0.07] my-2" />
 
         {/* Starred */}
-        <Section label="Ulubione" icon={<Star size={13} />} defaultOpen={false}>
-          <p className="pl-7 py-2 text-xs text-gray-600 italic">Brak ulubionych elementów</p>
+        <Section label={t("nav.favourites")} icon={<Star size={13} />} defaultOpen={false}>
+          <p className="pl-7 py-2 text-xs text-gray-600 italic">{t("nav.noFavourites")}</p>
         </Section>
       </nav>
 

@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
@@ -31,6 +32,7 @@ import {
   ProjectInviteEvent,
 } from 'src/notifications/notifications.events';
 import { UsersService } from 'src/users/users.service';
+import { errorBody } from '../common/error-body';
 
 @Injectable()
 export class ProjectsService {
@@ -98,7 +100,14 @@ export class ProjectsService {
    */
   async findOneRaw(id: number): Promise<Project> {
     const project = await this.repo.findOneBy({ id });
-    if (!project) throw new NotFoundException('Project not found');
+    if (!project)
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'PROJECT_NOT_FOUND',
+          'Project not found',
+        ),
+      );
     return project;
   }
 
@@ -109,7 +118,14 @@ export class ProjectsService {
     required: AccessLevel = AccessLevel.VIEW,
   ): Promise<Project> {
     const project = await this.repo.findOneBy({ id });
-    if (!project) throw new NotFoundException('Project not found');
+    if (!project)
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'PROJECT_NOT_FOUND',
+          'Project not found',
+        ),
+      );
 
     if (callerRole === UserRole.ADMIN || project.ownerId === callerId) {
       return project;
@@ -120,11 +136,19 @@ export class ProjectsService {
       userId: callerId,
     });
 
-    if (!membership) throw new ForbiddenException('Access denied');
+    if (!membership)
+      throw new ForbiddenException(
+        errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),
+      );
 
     if (!hasAccess(membership.accessLevel, required)) {
       throw new ForbiddenException(
-        `Required access level: ${required}, your level: ${membership.accessLevel}`,
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'ACCESS_LEVEL_REQUIRED',
+          `Required access level: ${required}, your level: ${membership.accessLevel}`,
+          { required, current: membership.accessLevel },
+        ),
       );
     }
 
@@ -140,7 +164,14 @@ export class ProjectsService {
     callerRole: UserRole,
   ): Promise<AccessLevel> {
     const project = await this.repo.findOneBy({ id });
-    if (!project) throw new NotFoundException('Project not found');
+    if (!project)
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'PROJECT_NOT_FOUND',
+          'Project not found',
+        ),
+      );
 
     if (callerRole === UserRole.ADMIN || project.ownerId === callerId) {
       return AccessLevel.DELETE;
@@ -150,7 +181,10 @@ export class ProjectsService {
       projectId: id,
       userId: callerId,
     });
-    if (!membership) throw new ForbiddenException('Access denied');
+    if (!membership)
+      throw new ForbiddenException(
+        errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),
+      );
     return membership.accessLevel;
   }
 
@@ -189,7 +223,12 @@ export class ProjectsService {
     callerId: number,
     callerRole: UserRole,
   ): Promise<Project> {
-    const project = await this.findOne(id, callerId, callerRole, AccessLevel.EDIT);
+    const project = await this.findOne(
+      id,
+      callerId,
+      callerRole,
+      AccessLevel.EDIT,
+    );
     assignDefined(project, dto);
     return this.repo.save(project);
   }
@@ -199,9 +238,20 @@ export class ProjectsService {
     callerId: number,
     callerRole: UserRole,
   ): Promise<Project> {
-    const project = await this.findOne(id, callerId, callerRole, AccessLevel.DELETE);
+    const project = await this.findOne(
+      id,
+      callerId,
+      callerRole,
+      AccessLevel.DELETE,
+    );
     if (callerRole !== UserRole.ADMIN && project.ownerId !== callerId) {
-      throw new ForbiddenException('Only the owner or admin can delete a project');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'PROJECT_DELETE_OWNER_ONLY',
+          'Only the owner or admin can delete a project',
+        ),
+      );
     }
     return this.repo.remove(project);
   }
@@ -256,7 +306,12 @@ export class ProjectsService {
 
     this.eventEmitter.emit(
       PROJECT_SHARED_EVENT,
-      new ProjectSharedEvent(projectId, dto.userId, callerId, saved.accessLevel),
+      new ProjectSharedEvent(
+        projectId,
+        dto.userId,
+        callerId,
+        saved.accessLevel,
+      ),
     );
 
     return saved;
@@ -290,17 +345,35 @@ export class ProjectsService {
 
   async leaveProject(projectId: number, callerId: number): Promise<void> {
     const project = await this.repo.findOneBy({ id: projectId });
-    if (!project) throw new NotFoundException('Project not found');
+    if (!project)
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'PROJECT_NOT_FOUND',
+          'Project not found',
+        ),
+      );
     if (project.ownerId === callerId) {
       throw new ForbiddenException(
-        'Właściciel nie może opuścić własnego projektu — może go usunąć',
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'OWNER_CANNOT_LEAVE_PROJECT',
+          'The owner cannot leave their own project; they can delete it',
+        ),
       );
     }
 
-    const result = await this.memberRepo.delete({ projectId, userId: callerId });
+    const result = await this.memberRepo.delete({
+      projectId,
+      userId: callerId,
+    });
     if (!result.affected) {
       throw new ForbiddenException(
-        'Nie masz bezpośredniego dostępu do tego projektu',
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'NO_DIRECT_PROJECT_ACCESS',
+          'You have no direct access to this project',
+        ),
       );
     }
   }
@@ -379,7 +452,10 @@ export class ProjectsService {
     callerRole: UserRole,
   ): Promise<void> {
     await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
-    await this.shareLinkRepo.update({ id: linkId, projectId }, { revoked: true });
+    await this.shareLinkRepo.update(
+      { id: linkId, projectId },
+      { revoked: true },
+    );
   }
 
   /**
@@ -393,10 +469,22 @@ export class ProjectsService {
   private async resolveShareLink(token: string): Promise<ProjectShareLink> {
     const link = await this.shareLinkRepo.findOneBy({ token });
     if (!link || link.revoked) {
-      throw new ForbiddenException('Link jest nieprawidłowy lub odwołany');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'SHARE_LINK_INVALID',
+          'The link is invalid or revoked',
+        ),
+      );
     }
     if (link.expiresAt && link.expiresAt.getTime() < Date.now()) {
-      throw new ForbiddenException('Link wygasł');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'SHARE_LINK_EXPIRED',
+          'The link has expired',
+        ),
+      );
     }
     return link;
   }
@@ -413,7 +501,14 @@ export class ProjectsService {
   }> {
     const link = await this.resolveShareLink(token);
     const project = await this.repo.findOneBy({ id: link.projectId });
-    if (!project) throw new NotFoundException('Project not found');
+    if (!project)
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'PROJECT_NOT_FOUND',
+          'Project not found',
+        ),
+      );
     const inviter = await this.usersService.findOne(link.createdByUserId);
     return {
       project: {
@@ -421,7 +516,9 @@ export class ProjectsService {
         name: project.name,
         description: project.description,
       },
-      invitedBy: inviter ? { name: inviter.name, surname: inviter.surname } : null,
+      invitedBy: inviter
+        ? { name: inviter.name, surname: inviter.surname }
+        : null,
       accessLevel: link.accessLevel,
     };
   }
@@ -450,7 +547,12 @@ export class ProjectsService {
     if (project) {
       this.eventEmitter.emit(
         PROJECT_SHARE_LINK_CLAIMED_EVENT,
-        new ProjectShareLinkClaimedEvent(link.projectId, project.ownerId, userId, link.id),
+        new ProjectShareLinkClaimedEvent(
+          link.projectId,
+          project.ownerId,
+          userId,
+          link.id,
+        ),
       );
     }
 
@@ -466,9 +568,22 @@ export class ProjectsService {
   ): Promise<void> {
     if (callerRole === UserRole.ADMIN) return;
     const project = await this.repo.findOneBy({ id: projectId });
-    if (!project) throw new NotFoundException('Project not found');
+    if (!project)
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'PROJECT_NOT_FOUND',
+          'Project not found',
+        ),
+      );
     if (project.ownerId !== callerId)
-      throw new ForbiddenException('Only the owner or admin can manage access');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'PROJECT_ACCESS_OWNER_ONLY',
+          'Only the owner or admin can manage access',
+        ),
+      );
   }
 
   private async getOrCreatePref(

@@ -2,17 +2,20 @@ import { Folder, Plus } from "lucide-react";
 import Section from "./Section";
 import { useNavigate } from "react-router-dom";
 import type { Project } from "../../../types/project";
-import { formatDate } from "../../../utils/formatDate";
+import { useTranslations } from "use-intl";
+import { useFormatDate } from "../../../utils/formatDate";
 
 const PROJECT_DEFAULT_COLOR = "#6366f1";
 
 export default function Projects({ projects, loading = false }: { projects: Project[]; loading?: boolean }) {
   const navigate = useNavigate();
+  const t = useTranslations();
+  const formatDate = useFormatDate();
   return (
-    <Section label="Projekty" icon={<Folder size={13} />} defaultOpen>
+    <Section label={t("nav.projects")} icon={<Folder size={13} />} defaultOpen>
       <div className="flex flex-col gap-px mt-0.5">
         {loading ? (
-          <p className="pl-7 py-2 text-xs text-gray-600">Ładowanie...</p>
+          <p className="pl-7 py-2 text-xs text-gray-600">{t("common.loading")}</p>
         ) : (
           projects.map((p) => (
             <button
@@ -36,7 +39,7 @@ export default function Projects({ projects, loading = false }: { projects: Proj
           className="flex items-center gap-2 pl-7 py-1.5 text-xs text-gray-600 hover:text-indigo-400 transition-colors duration-150"
         >
           <Plus size={12} />
-          Nowy projekt
+          {t("nav.newProject")}
         </button>
       </div>
     </Section>

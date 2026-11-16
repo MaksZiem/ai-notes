@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { X, Loader2, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useTranslations } from "use-intl";
+import { useApiErrorMessage } from "../../api/errors";
 import { useProjectSummary } from "../../hooks/useProjectSummary";
 
 export function ProjectSummaryDialog({
@@ -10,6 +12,9 @@ export function ProjectSummaryDialog({
   projectId: number;
   onClose: () => void;
 }) {
+  const t = useTranslations("sharing.summary");
+  const tCommon = useTranslations("common");
+  const apiErrorMessage = useApiErrorMessage();
   const { mutate, data, isPending, isError, error } = useProjectSummary(projectId);
 
   useEffect(() => {
@@ -23,9 +28,9 @@ export function ProjectSummaryDialog({
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <Sparkles size={16} className="text-indigo-400" />
-            Podsumowanie projektu
+            {t("title")}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-200 cursor-pointer">
+          <button onClick={onClose} aria-label={tCommon("close")} className="text-gray-500 hover:text-gray-200 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -34,14 +39,13 @@ export function ProjectSummaryDialog({
           {isPending && (
             <div className="flex items-center gap-2 text-sm text-gray-500 py-6 justify-center">
               <Loader2 size={16} className="animate-spin" />
-              Analizuję notatki…
+              {t("analyzing")}
             </div>
           )}
 
           {isError && (
             <p className="text-sm text-red-400 py-2">
-              {(error as { response?: { data?: { message?: string } } })
-                ?.response?.data?.message ?? "Nie udało się wygenerować podsumowania."}
+              {apiErrorMessage(error, t("failed"))}
             </p>
           )}
 

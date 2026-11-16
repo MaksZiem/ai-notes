@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Loader2, Send, Sparkles, WandSparkles } from "lucide-react";
+import { useTranslations } from "use-intl";
 
 export type RewriteMode = "fix" | "improve" | "shorten" | "expand" | "custom";
 
-const OPTIONS: { mode: RewriteMode; label: string }[] = [
-  { mode: "fix", label: "Popraw gramatykę" },
-  { mode: "improve", label: "Ulepsz styl" },
-  { mode: "shorten", label: "Skróć" },
-  { mode: "expand", label: "Rozszerz" },
-];
+const OPTIONS: Exclude<RewriteMode, "custom">[] = ["fix", "improve", "shorten", "expand"];
 
 interface AiRewriteButtonProps {
   hasSelection: boolean;
@@ -31,6 +27,7 @@ export function AiRewriteButton({
   onCustom,
   onGenerate,
 }: AiRewriteButtonProps) {
+  const t = useTranslations("aiTools");
   const [open, setOpen] = useState(false);
   const [customInstruction, setCustomInstruction] = useState("");
   const [generatePrompt, setGeneratePrompt] = useState("");
@@ -65,7 +62,7 @@ export function AiRewriteButton({
     <div className="relative" ref={ref}>
       <button
         type="button"
-        title="Edytuj z AI"
+        title={t("buttonHint")}
         disabled={loading}
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-violet-300 bg-violet-500/10 hover:bg-violet-500/20"
@@ -75,24 +72,24 @@ export function AiRewriteButton({
         ) : (
           <Sparkles size={12} />
         )}
-        Narzędzia AI
+        {t("button")}
         <ChevronDown size={10} />
       </button>
 
       {open && (
         <div className="absolute top-full left-0 mt-1.5 z-20 bg-[#1e1f29] border border-white/10 rounded-xl shadow-2xl p-1.5 w-56">
-          {OPTIONS.map((opt) => (
+          {OPTIONS.map((mode) => (
             <button
-              key={opt.mode}
+              key={mode}
               type="button"
               disabled={!hasSelection || rewriteLoading}
               onClick={() => {
-                onSelectMode(opt.mode);
+                onSelectMode(mode);
                 setOpen(false);
               }}
               className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] text-gray-300 hover:bg-white/5 hover:text-gray-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
             >
-              {opt.label}
+              {t(`modes.${mode}`)}
             </button>
           ))}
 
@@ -107,7 +104,7 @@ export function AiRewriteButton({
             }}
             className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] text-gray-300 hover:bg-white/5 hover:text-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            Kontynuuj pisanie
+            {t("continue")}
           </button>
 
           <div className="h-px bg-white/10 my-1.5" />
@@ -115,7 +112,7 @@ export function AiRewriteButton({
           <div className="px-2 pb-1">
             <label className="flex items-center gap-1 text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-1">
               <WandSparkles size={10} />
-              Własne polecenie
+              {t("custom")}
             </label>
             <div className="flex items-center gap-1">
               <input
@@ -129,13 +126,13 @@ export function AiRewriteButton({
                 }}
                 disabled={!hasSelection || rewriteLoading}
                 placeholder={
-                  hasSelection ? "np. przetłumacz na angielski" : "Zaznacz tekst…"
+                  hasSelection ? t("customPlaceholder") : t("selectText")
                 }
                 className="flex-1 min-w-0 bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-md px-2 py-1 text-[12px] text-gray-200 placeholder-gray-600 outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
               <button
                 type="button"
-                title="Wykonaj polecenie"
+                title={t("run")}
                 disabled={!hasSelection || !customInstruction.trim() || rewriteLoading}
                 onClick={submitCustom}
                 className="flex-shrink-0 p-1.5 rounded-md text-indigo-400 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
@@ -150,7 +147,7 @@ export function AiRewriteButton({
           <div className="px-2 pb-1">
             <label className="flex items-center gap-1 text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-1">
               <Sparkles size={10} />
-              Napisz notatkę o...
+              {t("generate")}
             </label>
             <div className="flex items-center gap-1">
               <input
@@ -163,12 +160,12 @@ export function AiRewriteButton({
                   }
                 }}
                 disabled={generateLoading}
-                placeholder="np. top 3 firmy IT w Polsce"
+                placeholder={t("generatePlaceholder")}
                 className="flex-1 min-w-0 bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-md px-2 py-1 text-[12px] text-gray-200 placeholder-gray-600 outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
               <button
                 type="button"
-                title="Wygeneruj notatkę"
+                title={t("generateRun")}
                 disabled={!generatePrompt.trim() || generateLoading}
                 onClick={submitGenerate}
                 className="flex-shrink-0 p-1.5 rounded-md text-indigo-400 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"

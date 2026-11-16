@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   UseGuards,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -31,6 +32,7 @@ import { MoveNoteDto } from './dtos/move-note.dto';
 import { GrantAccessDto } from 'src/projects/dtos/grant-access.dto';
 import { AiService } from 'src/ai/ai.service';
 import { CreateShareLinkDto } from './dtos/create-share-link.dto';
+import { errorBody } from '../common/error-body';
 
 @ApiTags('Notes')
 @ApiBearerAuth('access-token')
@@ -150,7 +152,13 @@ export class SingleNoteController {
   @ApiOperation({ summary: 'Zadaj pytanie do własnych notatek (RAG chat)' })
   async chat(@Body('question') question: string, @CurrentUser() user: User) {
     if (!question?.trim()) {
-      throw new BadRequestException('Brak pytania');
+      throw new BadRequestException(
+        errorBody(
+          HttpStatus.BAD_REQUEST,
+          'QUESTION_REQUIRED',
+          'Question is required',
+        ),
+      );
     }
     return this.notesService.ragChat(question, user.id, user.role);
   }
@@ -169,7 +177,10 @@ export class SingleNoteController {
   @ApiResponse({ status: 200, description: 'Dane notatki' })
   @ApiResponse({ status: 403, description: 'Brak dostępu' })
   @ApiResponse({ status: 404, description: 'Notatka nie znaleziona' })
-  async findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ) {
     const [note, accessLevel] = await Promise.all([
       this.notesService.findOne(id, null, user.id, user.role),
       this.notesService.getAccessLevel(id, null, user.id, user.role),
@@ -189,7 +200,9 @@ export class SingleNoteController {
   ) {
     const note = await this.notesService.findOne(id, null, user.id, user.role);
     if (!note.content?.trim()) {
-      throw new BadRequestException('Notatka jest pusta');
+      throw new BadRequestException(
+        errorBody(HttpStatus.BAD_REQUEST, 'NOTE_EMPTY', 'The note is empty'),
+      );
     }
     const summary = await this.aiService.summarizeText(note.content);
     return { summary };
@@ -229,7 +242,8 @@ export class SingleNoteController {
   @ApiResponse({ status: 200, description: 'Notatka przeniesiona' })
   @ApiResponse({
     status: 403,
-    description: 'Niewystarczający poziom dostępu w projekcie źródłowym lub docelowym',
+    description:
+      'Niewystarczający poziom dostępu w projekcie źródłowym lub docelowym',
   })
   moveNote(
     @Param('id', ParseIntPipe) id: number,

@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoteMember } from './entities/note-member.entity';
@@ -35,6 +36,7 @@ import {
   NoteInviteEvent,
 } from 'src/notifications/notifications.events';
 import { UsersService } from 'src/users/users.service';
+import { errorBody } from '../common/error-body';
 
 @Injectable()
 export class NotesService {
@@ -239,7 +241,10 @@ export class NotesService {
       where: projectId != null ? { id, projectId } : { id },
       relations: ['owner'],
     });
-    if (!note) throw new NotFoundException('Note not found');
+    if (!note)
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'NOTE_NOT_FOUND', 'Note not found'),
+      );
 
     // ── notatka bez projektu ──────────────────────────────────────────────
     if (!note.projectId) {
@@ -251,10 +256,18 @@ export class NotesService {
         noteId: id,
         userId: callerId,
       });
-      if (!membership) throw new ForbiddenException('Access denied');
+      if (!membership)
+        throw new ForbiddenException(
+          errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),
+        );
       if (!hasAccess(membership.accessLevel, required)) {
         throw new ForbiddenException(
-          `Required access level: ${required}, your level: ${membership.accessLevel}`,
+          errorBody(
+            HttpStatus.FORBIDDEN,
+            'ACCESS_LEVEL_REQUIRED',
+            `Required access level: ${required}, your level: ${membership.accessLevel}`,
+            { required, current: membership.accessLevel },
+          ),
         );
       }
       return note;
@@ -277,10 +290,18 @@ export class NotesService {
       noteId: id,
       userId: callerId,
     });
-    if (!membership) throw new ForbiddenException('Access denied');
+    if (!membership)
+      throw new ForbiddenException(
+        errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),
+      );
     if (!hasAccess(membership.accessLevel, required)) {
       throw new ForbiddenException(
-        `Required access level: ${required}, your level: ${membership.accessLevel}`,
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'ACCESS_LEVEL_REQUIRED',
+          `Required access level: ${required}, your level: ${membership.accessLevel}`,
+          { required, current: membership.accessLevel },
+        ),
       );
     }
 
@@ -300,7 +321,10 @@ export class NotesService {
     const note = await this.repo.findOne({
       where: projectId != null ? { id, projectId } : { id },
     });
-    if (!note) throw new NotFoundException('Note not found');
+    if (!note)
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'NOTE_NOT_FOUND', 'Note not found'),
+      );
 
     if (callerRole === UserRole.ADMIN || note.ownerId === callerId) {
       return AccessLevel.DELETE;
@@ -322,7 +346,10 @@ export class NotesService {
       noteId: id,
       userId: callerId,
     });
-    if (!membership) throw new ForbiddenException('Access denied');
+    if (!membership)
+      throw new ForbiddenException(
+        errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),
+      );
     return membership.accessLevel;
   }
 
@@ -534,17 +561,28 @@ export class NotesService {
     const note = await this.repo.findOneBy(
       projectId != null ? { id: noteId, projectId } : { id: noteId },
     );
-    if (!note) throw new NotFoundException('Note not found');
+    if (!note)
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'NOTE_NOT_FOUND', 'Note not found'),
+      );
     if (note.ownerId === callerId) {
       throw new ForbiddenException(
-        'Właściciel nie może opuścić własnej notatki — może ją usunąć',
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'OWNER_CANNOT_LEAVE_NOTE',
+          'The owner cannot leave their own note; they can delete it',
+        ),
       );
     }
 
     const result = await this.memberRepo.delete({ noteId, userId: callerId });
     if (!result.affected) {
       throw new ForbiddenException(
-        'Nie masz bezpośredniego dostępu do tej notatki',
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'NO_DIRECT_NOTE_ACCESS',
+          'You have no direct access to this note',
+        ),
       );
     }
   }
@@ -566,13 +604,20 @@ export class NotesService {
     if (callerRole === UserRole.ADMIN) return;
 
     const note = await this.repo.findOneBy({ id: noteId });
-    if (!note) throw new NotFoundException('Note not found');
+    if (!note)
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'NOTE_NOT_FOUND', 'Note not found'),
+      );
 
     if (!note.projectId) {
       // notatka bez projektu — tylko jej owner może zarządzać dostępem
       if (note.ownerId !== callerId) {
         throw new ForbiddenException(
-          'Only the note owner or admin can manage note access',
+          errorBody(
+            HttpStatus.FORBIDDEN,
+            'NOTE_ACCESS_OWNER_ONLY',
+            'Only the note owner or admin can manage note access',
+          ),
         );
       }
       return;
@@ -582,7 +627,11 @@ export class NotesService {
     const project = await this.projectsService.findOneRaw(note.projectId);
     if (project.ownerId !== callerId) {
       throw new ForbiddenException(
-        'Only the project owner or admin can manage note access',
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'NOTE_ACCESS_PROJECT_OWNER_ONLY',
+          'Only the project owner or admin can manage note access',
+        ),
       );
     }
   }
@@ -756,10 +805,22 @@ export class NotesService {
   private async resolveShareLink(token: string): Promise<NoteShareLink> {
     const link = await this.shareLinkRepo.findOneBy({ token });
     if (!link || link.revoked) {
-      throw new ForbiddenException('Link jest nieprawidłowy lub odwołany');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'SHARE_LINK_INVALID',
+          'The link is invalid or revoked',
+        ),
+      );
     }
     if (link.expiresAt && link.expiresAt.getTime() < Date.now()) {
-      throw new ForbiddenException('Link wygasł');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'SHARE_LINK_EXPIRED',
+          'The link has expired',
+        ),
+      );
     }
     return link;
   }
@@ -772,18 +833,29 @@ export class NotesService {
       where: { id: link.noteId },
       relations: ['owner'],
     });
-    if (!note) throw new NotFoundException('Note not found');
+    if (!note)
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'NOTE_NOT_FOUND', 'Note not found'),
+      );
     return { note, accessLevel: link.accessLevel };
   }
 
   async updateSharedNote(token: string, dto: UpdateNoteDto): Promise<Note> {
     const link = await this.resolveShareLink(token);
     if (!hasAccess(link.accessLevel, AccessLevel.EDIT)) {
-      throw new ForbiddenException('Ten link daje tylko dostep do odczytu');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'SHARE_LINK_READ_ONLY',
+          'This link gives read-only access',
+        ),
+      );
     }
     const note = await this.repo.findOneBy({ id: link.noteId });
     if (!note) {
-      throw new NotFoundException('Note not found');
+      throw new NotFoundException(
+        errorBody(HttpStatus.NOT_FOUND, 'NOTE_NOT_FOUND', 'Note not found'),
+      );
     }
     if (dto.keywords) dto.keywords = dto.keywords.map((k) => k.toUpperCase());
     assignDefined(note, dto);

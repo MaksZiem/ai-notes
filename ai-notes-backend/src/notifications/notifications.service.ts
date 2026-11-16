@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +13,7 @@ import { AccessLevel } from 'src/enums/access-level.enum';
 import { NotesService } from 'src/notes/notes.service';
 import { ProjectsService } from 'src/projects/projects.service';
 import { NotificationsGateway } from './notifications.gateway';
+import { errorBody } from '../common/error-body';
 
 @Injectable()
 export class NotificationsService {
@@ -54,15 +56,22 @@ export class NotificationsService {
 
   async markAsRead(id: number, userId: number): Promise<Notification> {
     const notification = await this.repo.findOneBy({ id, userId });
-    if (!notification) throw new NotFoundException('Notification not found');
+    if (!notification)
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'NOTIFICATION_NOT_FOUND',
+          'Notification not found',
+        ),
+      );
     notification.isRead = true;
-    const saved = await this.repo.save(notification)
+    const saved = await this.repo.save(notification);
     this.gateway.notifyUser(userId);
     return saved;
   }
 
   async markAllAsRead(userId: number): Promise<void> {
-    await this.repo.update({userId, isRead: false}, {isRead: true})
+    await this.repo.update({ userId, isRead: false }, { isRead: true });
     this.gateway.notifyUser(userId);
   }
 
@@ -72,24 +81,60 @@ export class NotificationsService {
       relations: ['shareLink', 'projectShareLink'],
     });
     if (!notification) {
-      throw new NotFoundException('Zaproszenie nie zostało znalezione');
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'INVITATION_NOT_FOUND',
+          'Invitation not found',
+        ),
+      );
     }
     if (notification.status !== NotificationStatus.PENDING) {
-      throw new ForbiddenException('To zaproszenie zostało już rozpatrzone');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'INVITATION_ALREADY_HANDLED',
+          'This invitation has already been handled',
+        ),
+      );
     }
 
     if (notification.type === NotificationType.NOTE_INVITE) {
       if (!notification.shareLink) {
-        throw new NotFoundException('Link udostępniania powiązany z zaproszeniem już nie istnieje');
+        throw new NotFoundException(
+          errorBody(
+            HttpStatus.NOT_FOUND,
+            'INVITATION_LINK_GONE',
+            'The share link for this invitation no longer exists',
+          ),
+        );
       }
-      await this.notesService.claimShareLink(notification.shareLink.token, userId);
+      await this.notesService.claimShareLink(
+        notification.shareLink.token,
+        userId,
+      );
     } else if (notification.type === NotificationType.PROJECT_INVITE) {
       if (!notification.projectShareLink) {
-        throw new NotFoundException('Link udostępniania powiązany z zaproszeniem już nie istnieje');
+        throw new NotFoundException(
+          errorBody(
+            HttpStatus.NOT_FOUND,
+            'INVITATION_LINK_GONE',
+            'The share link for this invitation no longer exists',
+          ),
+        );
       }
-      await this.projectsService.claimShareLink(notification.projectShareLink.token, userId);
+      await this.projectsService.claimShareLink(
+        notification.projectShareLink.token,
+        userId,
+      );
     } else {
-      throw new NotFoundException('Zaproszenie nie zostało znalezione');
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'INVITATION_NOT_FOUND',
+          'Invitation not found',
+        ),
+      );
     }
 
     notification.status = NotificationStatus.ACCEPTED;
@@ -106,15 +151,32 @@ export class NotificationsService {
       (notification.type !== NotificationType.NOTE_INVITE &&
         notification.type !== NotificationType.PROJECT_INVITE)
     ) {
-      throw new NotFoundException('Zaproszenie nie zostało znalezione');
+      throw new NotFoundException(
+        errorBody(
+          HttpStatus.NOT_FOUND,
+          'INVITATION_NOT_FOUND',
+          'Invitation not found',
+        ),
+      );
     }
     if (notification.status !== NotificationStatus.PENDING) {
-      throw new ForbiddenException('To zaproszenie zostało już rozpatrzone');
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'INVITATION_ALREADY_HANDLED',
+          'This invitation has already been handled',
+        ),
+      );
     }
 
-    if (notification.type === NotificationType.PROJECT_INVITE && notification.projectShareLinkId) {
+    if (
+      notification.type === NotificationType.PROJECT_INVITE &&
+      notification.projectShareLinkId
+    ) {
       // odrzucenie zaproszenia unieważnia też sam link — nie da się go później zaakceptować
-      await this.projectsService.revokeShareLinkById(notification.projectShareLinkId);
+      await this.projectsService.revokeShareLinkById(
+        notification.projectShareLinkId,
+      );
     }
 
     notification.status = NotificationStatus.DECLINED;
@@ -145,7 +207,10 @@ export class NotificationsService {
   /**
    * To samo co markInviteAccepted, ale dla zaproszeń do projektów.
    */
-  async markProjectInviteAccepted(projectShareLinkId: number, userId: number): Promise<void> {
+  async markProjectInviteAccepted(
+    projectShareLinkId: number,
+    userId: number,
+  ): Promise<void> {
     await this.repo.update(
       {
         projectShareLinkId,

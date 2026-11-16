@@ -3,11 +3,13 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSharedNote } from "../hooks/useSharedNote";
 import { Loader2, Lock, Users } from "lucide-react";
+import { useTranslations } from "use-intl";
 
 export default function SharedNotePage() {
   const { token = "" } = useParams<{ token: string }>();
   const { token: authToken } = useAuth();
   const navigate = useNavigate();
+  const t = useTranslations("shared");
   const [content, setContent] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -45,7 +47,7 @@ export default function SharedNotePage() {
         <div>
           <Lock className="mx-auto mb-3 text-gray-600" size={28} />
           <p className="text-gray-300">
-            Ten link jest nieprawidłowy, wygasł lub został odwołany.
+            {t("invalid")}
           </p>
         </div>
       </div>
@@ -61,10 +63,9 @@ export default function SharedNotePage() {
         <div className="flex items-center justify-between gap-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-3 mb-8 text-sm text-gray-300">
           <div className="flex items-center gap-2">
             <Users size={15} className="text-indigo-400 flex-shrink-0" />
-            Przeglądasz jako gość (
-            {accessLevel === "EDIT" ? "możesz edytować" : "tylko podgląd"})
+            {t("guest", { mode: accessLevel === "EDIT" ? t("canEdit") : t("viewOnly") })}
             {note.owner &&
-              ` · udostępnił(a) ${note.owner.name} ${note.owner.surname}`}
+              t("sharedBy", { name: `${note.owner.name} ${note.owner.surname}` })}
           </div>
           {authToken ? (
             <button
@@ -72,14 +73,14 @@ export default function SharedNotePage() {
               disabled={claim.isPending}
               className="flex-shrink-0 text-indigo-400 hover:text-indigo-300 font-medium cursor-pointer disabled:cursor-not-allowed"
             >
-              {claim.isPending ? "Dodawanie…" : "Dodaj do moich notatek"}
+              {claim.isPending ? t("adding") : t("addToMine")}
             </button>
           ) : (
             <Link
               to={`/register?shareToken=${token}`}
               className="flex-shrink-0 text-indigo-400 hover:text-indigo-300 font-medium"
             >
-              Załóż konto, żeby zachować dostęp
+              {t("signUpToKeep")}
             </Link>
           )}
         </div>
@@ -96,7 +97,7 @@ export default function SharedNotePage() {
               className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-gray-200 outline-none focus:border-indigo-500/60 resize-y"
             />
             {saved && (
-              <p className="text-xs text-emerald-500 mt-2">Zapisano</p>
+              <p className="text-xs text-emerald-500 mt-2">{t("saved")}</p>
             )}
           </>
         ) : (
@@ -107,9 +108,9 @@ export default function SharedNotePage() {
 
         {!authToken && (
           <p className="text-sm text-gray-500 mt-8">
-            Masz już konto?{" "}
+            {t("hasAccount")}{" "}
             <Link to={`/login?shareToken=${token}`} className="text-indigo-400">
-              Zaloguj się
+              {t("signIn")}
             </Link>
           </p>
         )}

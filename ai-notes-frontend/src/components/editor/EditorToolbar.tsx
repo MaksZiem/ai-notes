@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
+import { useTranslations } from "use-intl";
 import {
   Bold,
   Italic,
@@ -81,6 +82,7 @@ interface EditorToolbarProps {
 }
 
 export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: EditorToolbarProps) {
+  const t = useTranslations("toolbar");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageUpload = useImageUpload();
 
@@ -149,35 +151,35 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
   return (
     <div className="flex items-center gap-0.5 px-2 py-1.5 rounded-xl border border-white/[0.07] bg-[#1a1b23] flex-wrap">
       <ToolbarButton
-        title="Pogrubienie"
+        title={t("bold")}
         active={editor.isActive("bold")}
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
         <Bold size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Kursywa"
+        title={t("italic")}
         active={editor.isActive("italic")}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       >
         <Italic size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Podkreślenie"
+        title={t("underline")}
         active={editor.isActive("underline")}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
         <Underline size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Przekreślenie"
+        title={t("strike")}
         active={editor.isActive("strike")}
         onClick={() => editor.chain().focus().toggleStrike().run()}
       >
         <Strikethrough size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Kod"
+        title={t("code")}
         active={editor.isActive("code")}
         onClick={() => editor.chain().focus().toggleCode().run()}
       >
@@ -188,14 +190,14 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
 
       <ColorPickerButton
         icon={Baseline}
-        title="Kolor tekstu"
+        title={t("textColor")}
         activeColor={currentTextColor}
         onSelect={(c) => editor.chain().focus().setColor(c).run()}
         onClear={() => editor.chain().focus().unsetColor().run()}
       />
       <ColorPickerButton
         icon={Highlighter}
-        title="Podświetlenie"
+        title={t("highlight")}
         activeColor={currentHighlight}
         colors={HIGHLIGHT_COLORS}
         onSelect={(c) =>
@@ -207,21 +209,21 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
       <Divider />
 
       <ToolbarButton
-        title="Nagłówek 1"
+        title={t("heading1")}
         active={editor.isActive("heading", { level: 1 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
       >
         <Heading1 size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Nagłówek 2"
+        title={t("heading2")}
         active={editor.isActive("heading", { level: 2 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
       >
         <Heading2 size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Nagłówek 3"
+        title={t("heading3")}
         active={editor.isActive("heading", { level: 3 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
       >
@@ -231,28 +233,28 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
       <Divider />
 
       <ToolbarButton
-        title="Do lewej"
+        title={t("alignLeft")}
         active={editor.isActive({ textAlign: "left" })}
         onClick={() => editor.chain().focus().setTextAlign("left").run()}
       >
         <AlignLeft size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Do środka"
+        title={t("alignCenter")}
         active={editor.isActive({ textAlign: "center" })}
         onClick={() => editor.chain().focus().setTextAlign("center").run()}
       >
         <AlignCenter size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Do prawej"
+        title={t("alignRight")}
         active={editor.isActive({ textAlign: "right" })}
         onClick={() => editor.chain().focus().setTextAlign("right").run()}
       >
         <AlignRight size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Wyjustuj"
+        title={t("justify")}
         active={editor.isActive({ textAlign: "justify" })}
         onClick={() => editor.chain().focus().setTextAlign("justify").run()}
       >
@@ -262,35 +264,35 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
       <Divider />
 
       <ToolbarButton
-        title="Lista punktowana"
+        title={t("bulletList")}
         active={editor.isActive("bulletList")}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       >
         <List size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Lista numerowana"
+        title={t("orderedList")}
         active={editor.isActive("orderedList")}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       >
         <ListOrdered size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Lista zadań"
+        title={t("taskList")}
         active={editor.isActive("taskList")}
         onClick={() => editor.chain().focus().toggleTaskList().run()}
       >
         <ListChecks size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Cytat"
+        title={t("quote")}
         active={editor.isActive("blockquote")}
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
       >
         <Quote size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Linia pozioma"
+        title={t("divider")}
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
       >
         <Minus size={14} />
@@ -300,7 +302,7 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
 
       {!inTable ? (
         <ToolbarButton
-          title="Wstaw tabelę"
+          title={t("insertTable")}
           onClick={() =>
             editor
               .chain()
@@ -314,19 +316,19 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
       ) : (
         <>
           <ToolbarButton
-            title="Dodaj wiersz"
+            title={t("addRow")}
             onClick={() => editor.chain().focus().addRowAfter().run()}
           >
             <Rows3 size={14} />
           </ToolbarButton>
           <ToolbarButton
-            title="Dodaj kolumnę"
+            title={t("addColumn")}
             onClick={() => editor.chain().focus().addColumnAfter().run()}
           >
             <Columns3 size={14} />
           </ToolbarButton>
           <ToolbarButton
-            title="Usuń tabelę"
+            title={t("deleteTable")}
             onClick={() => editor.chain().focus().deleteTable().run()}
           >
             <Trash2 size={14} />
@@ -335,7 +337,7 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
       )}
 
       <ToolbarButton
-        title="Wstaw obrazek"
+        title={t("insertImage")}
         disabled={imageUpload.isPending}
         onClick={handleImagePick}
       >
@@ -356,14 +358,14 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
       <Divider />
 
       <ToolbarButton
-        title="Cofnij"
+        title={t("undo")}
         disabled={!editor.can().undo()}
         onClick={() => editor.chain().focus().undo().run()}
       >
         <Undo2 size={14} />
       </ToolbarButton>
       <ToolbarButton
-        title="Ponów"
+        title={t("redo")}
         disabled={!editor.can().redo()}
         onClick={() => editor.chain().focus().redo().run()}
       >
@@ -382,7 +384,7 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
       />
       <button
         type="button"
-        title="Czat z agentem"
+        title={t("agentChat")}
         onClick={onToggleAgentPanel}
         className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
           agentPanelOpen
@@ -391,7 +393,7 @@ export function EditorToolbar({ editor, agentPanelOpen, onToggleAgentPanel }: Ed
         }`}
       >
         <Bot size={12} />
-        Agent
+        {t("agent")}
       </button>
     </div>
   );

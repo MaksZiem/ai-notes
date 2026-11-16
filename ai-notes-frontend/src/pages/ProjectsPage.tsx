@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslations } from "use-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Plus, LayoutGrid, List, Pin, Folder, Star, Clock, X, Share2, LogOut,
@@ -9,7 +10,7 @@ import { api } from "../api/client";
 import { useProjects } from "../hooks/useProjects";
 import type { Project } from "../types/project";
 import { NoteViewType } from "../enums/noteView";
-import { formatDate } from "../utils/formatDate";
+import { useFormatDate } from "../utils/formatDate";
 import { ProjectShareDialog } from "../components/projects/ProjectShareDialog";
 import { usePermissions } from "../context/PermissionsContext";
 import { useCurrentUser } from "../hooks/useCurrentUser";
@@ -44,14 +45,13 @@ function QuickActions({
   projectId: number; pinned: boolean; favourite: boolean;
   canManage: boolean; onShare: () => void;
 }) {
+  const t = useTranslations();
   const { togglePin, toggleFavourite, leaveProject } = useProjectQuickActions(projectId);
 
   const handleLeave = (e: MouseEvent) => {
     e.stopPropagation();
     if (
-      !window.confirm(
-        "Opuścić ten projekt? Zniknie z Twojej listy, ale zostanie u właściciela — w każdej chwili może udostępnić Ci go ponownie.",
-      )
+      !window.confirm(t("projects.leaveConfirm"))
     )
       return;
     leaveProject.mutate();
@@ -63,7 +63,7 @@ function QuickActions({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onShare(); }}
-          title="Udostępnij projekt"
+          title={t("projects.share")}
           className="p-1 rounded-md text-gray-600 hover:text-indigo-400 transition-colors cursor-pointer"
         >
           <Share2 size={13} />
@@ -73,7 +73,7 @@ function QuickActions({
           type="button"
           onClick={handleLeave}
           disabled={leaveProject.isPending}
-          title="Opuść projekt — zniknie z Twojej listy, zostanie u właściciela"
+          title={t("projects.leave")}
           className="p-1 rounded-md text-gray-600 hover:text-red-400 transition-colors cursor-pointer"
         >
           <LogOut size={13} />
@@ -83,7 +83,7 @@ function QuickActions({
         type="button"
         onClick={(e) => { e.stopPropagation(); togglePin.mutate(); }}
         disabled={togglePin.isPending}
-        title={pinned ? "Odepnij" : "Przypnij"}
+        title={pinned ? t("noteCard.unpin") : t("noteCard.pin")}
         className={`p-1 rounded-md transition-colors cursor-pointer ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Pin size={13} className={pinned ? "fill-amber-400/30" : ""} />
@@ -92,7 +92,7 @@ function QuickActions({
         type="button"
         onClick={(e) => { e.stopPropagation(); toggleFavourite.mutate(); }}
         disabled={toggleFavourite.isPending}
-        title={favourite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+        title={favourite ? t("noteCard.unfavourite") : t("noteCard.favourite")}
         className={`p-1 rounded-md transition-colors cursor-pointer ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Star size={13} className={favourite ? "fill-amber-400" : ""} />
@@ -110,6 +110,8 @@ function ProjectCard({ project, pinned = false, favourite = false, canManage, on
   onClick: () => void;
   onShare: () => void;
 }) {
+  const t = useTranslations("projects");
+  const formatDate = useFormatDate();
   const color = project.color ?? PROJECT_DEFAULT_COLOR;
 
   return (
@@ -133,7 +135,7 @@ function ProjectCard({ project, pinned = false, favourite = false, canManage, on
       </div>
 
       <p className="text-[12.5px] text-gray-500 leading-relaxed line-clamp-3 flex-1 mb-4">
-        {project.description || "Brak opisu"}
+        {project.description || t("noDescription")}
       </p>
 
       <div className="pt-3 mt-auto border-t border-white/[0.04] flex items-center justify-end">
@@ -154,6 +156,8 @@ function ProjectRow({ project, pinned = false, favourite = false, canManage, onC
   onClick: () => void;
   onShare: () => void;
 }) {
+  const t = useTranslations("projects");
+  const formatDate = useFormatDate();
   const color = project.color ?? PROJECT_DEFAULT_COLOR;
 
   return (
@@ -174,7 +178,7 @@ function ProjectRow({ project, pinned = false, favourite = false, canManage, onC
         <div className="flex items-center gap-2 mb-0.5">
           <span className="text-[13.5px] font-semibold text-gray-100 truncate">{project.name}</span>
         </div>
-        <p className="text-[12px] text-gray-500 truncate">{project.description || "Brak opisu"}</p>
+        <p className="text-[12px] text-gray-500 truncate">{project.description || t("noDescription")}</p>
       </div>
 
       <div className="flex items-center gap-1 text-[11px] text-gray-600 flex-shrink-0 self-center">
@@ -189,6 +193,9 @@ function ProjectRow({ project, pinned = false, favourite = false, canManage, onC
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ProjectsPage() {
   const navigate = useNavigate();
+  const t = useTranslations("projects");
+  const tNotes = useTranslations("notes");
+  const tCommon = useTranslations("common");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
   const [showFavourites, setShowFavourites] = useState(false);
@@ -283,8 +290,8 @@ export default function ProjectsPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
           <div>
-            <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">Projekty</h1>
-            <p className="text-xs text-gray-600 mt-1 m-0">{allProjects.length} projektów łącznie</p>
+            <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">{t("title")}</h1>
+            <p className="text-xs text-gray-600 mt-1 m-0">{t("count", { count: allProjects.length })}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -293,7 +300,7 @@ export default function ProjectsPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Szukaj projektów..."
+                placeholder={t("search")}
                 className="bg-transparent text-sm text-gray-300 placeholder-gray-600 outline-none w-full"
               />
             </div>
@@ -307,18 +314,22 @@ export default function ProjectsPage() {
               }`}
             >
               <Star size={14} className={showFavourites ? "fill-amber-400" : ""} />
-              <span className="hidden sm:inline">Ulubione</span>
+              <span className="hidden sm:inline">{t("favourites")}</span>
             </button>
 
             <div className="flex items-center gap-0.5 bg-white/[0.04] border border-white/[0.07] rounded-lg p-1">
               <button
                 onClick={() => setView(NoteViewType.GRID)}
+                aria-label={tNotes("grid")}
+                title={tNotes("grid")}
                 className={`p-1.5 rounded-md transition-colors cursor-pointer ${view === NoteViewType.GRID ? "bg-indigo-500/20 text-indigo-400" : "text-gray-600 hover:text-gray-400"}`}
               >
                 <LayoutGrid size={15} />
               </button>
               <button
                 onClick={() => setView(NoteViewType.LIST)}
+                aria-label={tNotes("list")}
+                title={tNotes("list")}
                 className={`p-1.5 rounded-md transition-colors cursor-pointer ${view === NoteViewType.LIST ? "bg-indigo-500/20 text-indigo-400" : "text-gray-600 hover:text-gray-400"}`}
               >
                 <List size={15} />
@@ -330,7 +341,7 @@ export default function ProjectsPage() {
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
             >
               <Plus size={15} />
-              Nowy projekt
+              {t("new")}
             </button>
           </div>
         </div>
@@ -340,8 +351,8 @@ export default function ProjectsPage() {
           {!hasResults ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-600">
               <Folder size={40} className="mb-4 opacity-30" />
-              <p className="text-lg font-medium">Brak projektów</p>
-              <p className="text-sm mt-1">{search ? "Spróbuj innej frazy" : "Utwórz pierwszy projekt"}</p>
+              <p className="text-lg font-medium">{t("empty")}</p>
+              <p className="text-sm mt-1">{search ? t("tryAnother") : t("createFirst")}</p>
             </div>
           ) : (
             <>
@@ -349,16 +360,16 @@ export default function ProjectsPage() {
                 <section className="mb-8">
                   <div className="flex items-center gap-2 mb-3">
                     <Pin size={13} className="text-amber-400/70" />
-                    <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">Przypięte</h2>
+                    <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">{t("pinned")}</h2>
                   </div>
                   {view === NoteViewType.GRID ? renderGrid(pinned, true) : renderList(pinned, true)}
                 </section>
               )}
               <section>
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-3 m-0">Wszystkie projekty</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-3 m-0">{t("all")}</h2>
                 {rest.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-gray-600">
-                    <p className="text-sm">Brak projektów. Utwórz pierwszy!</p>
+                    <p className="text-sm">{t("emptyAll")}</p>
                   </div>
                 ) : view === NoteViewType.GRID ? renderGrid(rest) : renderList(rest)}
               </section>
@@ -378,8 +389,8 @@ export default function ProjectsPage() {
             className="w-full max-w-sm bg-[#1a1b23] border border-white/[0.08] rounded-2xl p-5 flex flex-col gap-3"
           >
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-semibold text-gray-100 m-0">Nowy projekt</h2>
-              <button type="button" onClick={() => setIsCreateOpen(false)} className="text-gray-500 hover:text-gray-300 cursor-pointer">
+              <h2 className="text-sm font-semibold text-gray-100 m-0">{t("new")}</h2>
+              <button type="button" onClick={() => setIsCreateOpen(false)} aria-label={tCommon("close")} className="text-gray-500 hover:text-gray-300 cursor-pointer">
                 <X size={16} />
               </button>
             </div>
@@ -388,19 +399,19 @@ export default function ProjectsPage() {
               autoFocus
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nazwa projektu"
+              placeholder={t("form.name")}
               className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none"
             />
             <textarea
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
-              placeholder="Opis (opcjonalnie)"
+              placeholder={t("form.description")}
               rows={3}
               className="bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/60 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none resize-none"
             />
 
             {createProject.isError && (
-              <p className="text-xs text-red-400">Nie udało się utworzyć projektu</p>
+              <p className="text-xs text-red-400">{t("form.failed")}</p>
             )}
 
             <div className="flex justify-end gap-2 mt-1">
@@ -409,14 +420,14 @@ export default function ProjectsPage() {
                 onClick={() => setIsCreateOpen(false)}
                 className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-gray-200 cursor-pointer"
               >
-                Anuluj
+                {tCommon("cancel")}
               </button>
               <button
                 type="submit"
                 disabled={!newName.trim() || createProject.isPending}
                 className="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white cursor-pointer"
               >
-                {createProject.isPending ? "Tworzenie..." : "Utwórz"}
+                {createProject.isPending ? t("form.creating") : t("form.create")}
               </button>
             </div>
           </form>

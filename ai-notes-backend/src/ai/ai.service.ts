@@ -35,7 +35,7 @@ export class AiService {
 
   async summarizeText(content: string): Promise<string> {
     const prompt = [
-      'Streść poniższą notatkę w maksymalnie 3 krótkich zdaniach, po polsku.',
+      'Streść poniższą notatkę w maksymalnie 3 krótkich zdaniach, w tym samym języku co notatka.',
       'Zwróć wyłącznie streszczenie, bez wstępów typu "Oto streszczenie:".',
       '',
       'Notatka:',
@@ -47,7 +47,8 @@ export class AiService {
   async summarizeProject(notes: Note[]): Promise<string> {
     const prompt = [
       'Na podstawie tresci notatek wypisz mi najpierw podsumowanie o czym jest ten projekt.',
-      'Nastepnie napisz krótkie podsumowanie kazdej noatki w podpunktach'
+      'Nastepnie napisz krótkie podsumowanie kazdej noatki w podpunktach',
+      'Pisz w tym samym języku, w którym napisane są notatki.'
     ].join('\n')
     const notesList: string[] = notes.map((note, i) => {
       return `Notatka ${i + 1}: ${note.title} - tresc: ${note.content}`
@@ -57,7 +58,7 @@ export class AiService {
 
   async generateNoteContent(prompt: string): Promise<string> {
     const instruction = [
-      'Napisz treść notatki na podstawie poniższego polecenia użytkownika, po polsku.',
+      'Napisz treść notatki na podstawie poniższego polecenia użytkownika, w tym samym języku co polecenie.',
       'Możesz użyć formatowania Markdown (nagłówki, listy).',
       'Zwróć wyłącznie treść notatki, bez wstępów typu "Oto notatka:" i bez cudzysłowów.',
       '',
@@ -106,7 +107,7 @@ export class AiService {
 
   async generateTitle(content: string): Promise<string> {
     const prompt = [
-      'Wygeneruj krótki, zwięzły tytuł (maksymalnie 6 słów) dla poniższej notatki, po polsku.',
+      'Wygeneruj krótki, zwięzły tytuł (maksymalnie 6 słów) dla poniższej notatki, w tym samym języku co notatka.',
       'Zwróć wyłącznie sam tytuł — bez cudzysłowów, bez kropki na końcu, bez komentarzy.',
       '',
       'Notatka:',
@@ -117,7 +118,7 @@ export class AiService {
 
   async suggestKeywords(content: string): Promise<string[]> {
     const prompt = [
-      'Zaproponuj 3-5 krótkich słów kluczowych (po polsku) opisujących poniższą notatkę.',
+      'Zaproponuj 3-5 krótkich słów kluczowych (w tym samym języku co notatka) opisujących poniższą notatkę.',
       'Zwróć je jako listę oddzieloną przecinkami, bez numeracji i bez komentarzy.',
       '',
       'Notatka:',
@@ -153,7 +154,7 @@ export class AiService {
     const prompt = [
       'Jesteś asystentem odpowiadającym na pytania na podstawie notatek użytkownika.',
       'Odpowiadaj WYŁĄCZNIE na podstawie treści notatek podanych poniżej. Jeśli odpowiedzi nie ma w notatkach, powiedz to wprost — nie zmyślaj.',
-      'Odpowiadaj po polsku, zwięźle.',
+      'Odpowiadaj zwięźle, w języku pytania użytkownika.',
       '',
       'Notatki:',
       context,

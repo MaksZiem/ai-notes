@@ -5,6 +5,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -19,9 +20,15 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { errorBody } from '../common/error-body';
 
 export const UPLOAD_DIR = join(process.cwd(), 'uploads');
-const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+const ALLOWED_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 if (!existsSync(UPLOAD_DIR)) {
@@ -48,7 +55,10 @@ export class UploadsController {
     description: 'Plik zapisany — zwraca ścieżkę URL',
     schema: { example: { url: '/uploads/3f1c9c2e-....png' } },
   })
-  @ApiResponse({ status: 400, description: 'Brak pliku lub niedozwolony typ/rozmiar' })
+  @ApiResponse({
+    status: 400,
+    description: 'Brak pliku lub niedozwolony typ/rozmiar',
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -62,7 +72,11 @@ export class UploadsController {
         if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
           callback(
             new BadRequestException(
-              'Dozwolone są tylko pliki graficzne (PNG, JPEG, GIF, WEBP)',
+              errorBody(
+                HttpStatus.BAD_REQUEST,
+                'IMAGE_TYPE_UNSUPPORTED',
+                'Only image files are allowed (PNG, JPEG, GIF, WEBP)',
+              ),
             ),
             false,
           );
@@ -74,7 +88,9 @@ export class UploadsController {
   )
   uploadImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('Brak pliku');
+      throw new BadRequestException(
+        errorBody(HttpStatus.BAD_REQUEST, 'FILE_REQUIRED', 'File is required'),
+      );
     }
     return { url: `/uploads/${file.filename}` };
   }

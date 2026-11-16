@@ -1,28 +1,32 @@
+import { useTranslations } from "use-intl";
 import type { Notification } from "../types/notification";
 
-export function notificationMessage(n: Notification): string {
-  const actorName = n.actor ? `${n.actor.name} ${n.actor.surname}` : "Ktoś";
-  const noteTitle = n.note?.title ?? "notatkę";
-  const projectName = n.project?.name ?? "projekt";
+const KNOWN_TYPES = [
+  "NOTE_SHARED",
+  "NOTE_ACCESS_REVOKED",
+  "SHARE_LINK_CLAIMED",
+  "NOTE_INVITE",
+  "PROJECT_SHARED",
+  "PROJECT_ACCESS_REVOKED",
+  "PROJECT_SHARE_LINK_CLAIMED",
+  "PROJECT_INVITE",
+] as const;
 
-  switch (n.type) {
-    case "NOTE_SHARED":
-      return `${actorName} udostępnił(a) Ci notatkę „${noteTitle}"`;
-    case "NOTE_ACCESS_REVOKED":
-      return `${actorName} odebrał(a) Ci dostęp do notatki „${noteTitle}"`;
-    case "SHARE_LINK_CLAIMED":
-      return `${actorName} dołączył(a) do notatki „${noteTitle}" przez link`;
-    case "NOTE_INVITE":
-      return `${actorName} zaprosił(a) Cię do notatki „${noteTitle}"`;
-    case "PROJECT_SHARED":
-      return `${actorName} udostępnił(a) Ci projekt „${projectName}"`;
-    case "PROJECT_ACCESS_REVOKED":
-      return `${actorName} odebrał(a) Ci dostęp do projektu „${projectName}"`;
-    case "PROJECT_SHARE_LINK_CLAIMED":
-      return `${actorName} dołączył(a) do projektu „${projectName}" przez zaproszenie`;
-    case "PROJECT_INVITE":
-      return `${actorName} zaprosił(a) Cię do projektu „${projectName}"`;
-    default:
-      return "Nowe powiadomienie";
-  }
+type KnownType = (typeof KNOWN_TYPES)[number];
+
+function isKnownType(type: string): type is KnownType {
+  return (KNOWN_TYPES as readonly string[]).includes(type);
+}
+
+export function useNotificationMessage() {
+  const t = useTranslations();
+
+  return (n: Notification): string => {
+    if (!isKnownType(n.type)) return t("notifications.fallback");
+    return t(`notifications.types.${n.type}`, {
+      actor: n.actor ? `${n.actor.name} ${n.actor.surname}` : t("common.someone"),
+      note: n.note?.title ?? t("notifications.noteFallback"),
+      project: n.project?.name ?? t("notifications.projectFallback"),
+    });
+  };
 }

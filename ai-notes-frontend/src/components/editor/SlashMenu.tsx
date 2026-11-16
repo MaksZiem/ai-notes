@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
+import { useTranslations } from "use-intl";
 import type { SlashCommandItem } from "./slashCommands";
 
 interface SlashMenuProps {
@@ -11,6 +12,7 @@ export interface SlashMenuHandle {
 }
 
 export const SlashMenu = forwardRef<SlashMenuHandle, SlashMenuProps>(({ items, command }, ref) => {
+  const t = useTranslations("slash");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [prevItems, setPrevItems] = useState(items);
 
@@ -45,7 +47,7 @@ export const SlashMenu = forwardRef<SlashMenuHandle, SlashMenuProps>(({ items, c
   if (items.length === 0) {
     return (
       <div className="w-72 bg-[#1e1f29] border border-white/10 rounded-xl shadow-2xl p-3 text-xs text-gray-500">
-        Brak pasujących komend
+        {t("noMatch")}
       </div>
     );
   }
@@ -56,7 +58,7 @@ export const SlashMenu = forwardRef<SlashMenuHandle, SlashMenuProps>(({ items, c
         const Icon = item.icon;
         return (
           <button
-            key={item.title}
+            key={item.key}
             type="button"
             onClick={() => select(index)}
             onMouseEnter={() => setSelectedIndex(index)}
@@ -68,8 +70,8 @@ export const SlashMenu = forwardRef<SlashMenuHandle, SlashMenuProps>(({ items, c
               <Icon size={15} />
             </span>
             <span className="min-w-0">
-              <span className="block text-[13px] font-medium text-gray-200 truncate">{item.title}</span>
-              <span className="block text-[11px] text-gray-500 truncate">{item.description}</span>
+              <span className="block text-[13px] font-medium text-gray-200 truncate">{t(`${item.key}.title`)}</span>
+              <span className="block text-[11px] text-gray-500 truncate">{t(`${item.key}.description`)}</span>
             </span>
           </button>
         );

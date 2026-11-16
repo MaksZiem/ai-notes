@@ -1,7 +1,8 @@
 import { Check, X, Loader2 } from "lucide-react";
+import { useTranslations } from "use-intl";
 import type { Notification } from "../../types/notification";
-import { notificationMessage } from "../../utils/notificationMessage";
-import { formatDate } from "../../utils/formatDate";
+import { useNotificationMessage } from "../../utils/notificationMessage";
+import { useFormatDate } from "../../utils/formatDate";
 
 export function NotificationRow({
   notification: n,
@@ -20,6 +21,9 @@ export function NotificationRow({
   declinePending?: boolean;
   compact?: boolean;
 }) {
+  const t = useTranslations("notifications");
+  const notificationMessage = useNotificationMessage();
+  const formatDate = useFormatDate();
   const isPendingInvite =
     (n.type === "NOTE_INVITE" || n.type === "PROJECT_INVITE") && n.status === "PENDING";
 
@@ -49,10 +53,10 @@ export function NotificationRow({
           {formatDate(n.createdAt)}
           {(n.type === "NOTE_INVITE" || n.type === "PROJECT_INVITE") &&
             n.status === "ACCEPTED" &&
-            " · zaakceptowano"}
+            t("accepted")}
           {(n.type === "NOTE_INVITE" || n.type === "PROJECT_INVITE") &&
             n.status === "DECLINED" &&
-            " · odrzucono"}
+            t("declined")}
         </p>
 
         {isPendingInvite && (
@@ -66,7 +70,7 @@ export function NotificationRow({
               className="flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white transition-colors"
             >
               {acceptPending ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
-              Akceptuj
+              {t("accept")}
             </button>
             <button
               onClick={(e) => {
@@ -77,7 +81,7 @@ export function NotificationRow({
               className="flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 disabled:opacity-50 text-gray-300 transition-colors"
             >
               {declinePending ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
-              Odrzuć
+              {t("decline")}
             </button>
           </div>
         )}

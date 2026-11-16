@@ -3,18 +3,18 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { I18nService } from 'nestjs-i18n';
 import { Request } from 'express';
 import { UsersService } from 'src/users/users.service';
+import { errorBody } from 'src/common/error-body';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private i18n: I18nService,
-    private usersService: UsersService
+    private usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -22,21 +22,39 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException(this.i18n.t('common.auth.missing_token'));
+      throw new UnauthorizedException(
+        errorBody(
+          HttpStatus.UNAUTHORIZED,
+          'MISSING_TOKEN',
+          'Missing authorization token',
+        ),
+      );
     }
 
-    let payload: {id: number}
+    let payload: { id: number };
     try {
-      payload =  await this.jwtService.verifyAsync(token)
+      payload = await this.jwtService.verifyAsync(token);
     } catch (error) {
-      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'))
+      throw new UnauthorizedException(
+        errorBody(
+          HttpStatus.UNAUTHORIZED,
+          'INVALID_TOKEN',
+          'Token is invalid or expired',
+        ),
+      );
     }
 
-    const user = await this.usersService.findOne(payload.id)
-    if(!user) {
-      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'));
+    const user = await this.usersService.findOne(payload.id);
+    if (!user) {
+      throw new UnauthorizedException(
+        errorBody(
+          HttpStatus.UNAUTHORIZED,
+          'INVALID_TOKEN',
+          'Token is invalid or expired',
+        ),
+      );
     }
-    request['currentUser'] = user
+    request['currentUser'] = user;
     return true;
   }
 

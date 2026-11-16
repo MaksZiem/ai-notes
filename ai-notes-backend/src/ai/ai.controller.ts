@@ -6,12 +6,14 @@ import {
   ParseIntPipe,
   Post,
   UseGuards,
+  HttpStatus,
 } from '@nestjs/common';
 import { AiService, RewriteMode } from './ai.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { NotesService } from 'src/notes/notes.service';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
 import { User } from 'src/users/user.entity';
+import { errorBody } from '../common/error-body';
 
 const REWRITE_MODES: RewriteMode[] = [
   'fix',
@@ -38,7 +40,13 @@ export class AiController {
   @Post('generate')
   async generate(@Body('prompt') prompt: string) {
     if (!prompt?.trim()) {
-      throw new BadRequestException('Brak polecenia');
+      throw new BadRequestException(
+        errorBody(
+          HttpStatus.BAD_REQUEST,
+          'INSTRUCTION_REQUIRED',
+          'Instruction is required',
+        ),
+      );
     }
     const content = await this.aiService.generateNoteContent(prompt);
     return { content };
@@ -47,7 +55,9 @@ export class AiController {
   @Post('continue')
   async continue(@Body('text') text: string) {
     if (!text?.trim()) {
-      throw new BadRequestException('Brak tekstu');
+      throw new BadRequestException(
+        errorBody(HttpStatus.BAD_REQUEST, 'TEXT_REQUIRED', 'Text is required'),
+      );
     }
     const continuation = await this.aiService.continueText(text);
     return { continuation };
@@ -60,13 +70,23 @@ export class AiController {
     @Body('instruction') instruction?: string,
   ) {
     if (!text?.trim()) {
-      throw new BadRequestException('Brak tekstu');
+      throw new BadRequestException(
+        errorBody(HttpStatus.BAD_REQUEST, 'TEXT_REQUIRED', 'Text is required'),
+      );
     }
     if (!REWRITE_MODES.includes(mode)) {
-      throw new BadRequestException('Nieprawidłowy tryb');
+      throw new BadRequestException(
+        errorBody(HttpStatus.BAD_REQUEST, 'INVALID_MODE', 'Invalid mode'),
+      );
     }
     if (mode === 'custom' && !instruction?.trim()) {
-      throw new BadRequestException('Brak polecenia');
+      throw new BadRequestException(
+        errorBody(
+          HttpStatus.BAD_REQUEST,
+          'INSTRUCTION_REQUIRED',
+          'Instruction is required',
+        ),
+      );
     }
 
     const result = await this.aiService.rewriteText(text, mode, instruction);
@@ -76,7 +96,13 @@ export class AiController {
   @Post('title')
   async generateTitle(@Body('content') content: string) {
     if (!content?.trim()) {
-      throw new BadRequestException('Brak treści');
+      throw new BadRequestException(
+        errorBody(
+          HttpStatus.BAD_REQUEST,
+          'CONTENT_REQUIRED',
+          'Content is required',
+        ),
+      );
     }
     const title = await this.aiService.generateTitle(content);
     return { title };
@@ -93,7 +119,13 @@ export class AiController {
       user.role,
     );
     if (!notes.length) {
-      throw new BadRequestException('Projekt nie ma jeszcze żadnych notatek');
+      throw new BadRequestException(
+        errorBody(
+          HttpStatus.BAD_REQUEST,
+          'PROJECT_HAS_NO_NOTES',
+          'The project has no notes yet',
+        ),
+      );
     }
     const summary = await this.aiService.summarizeProject(notes);
     return { summary };
@@ -102,7 +134,13 @@ export class AiController {
   @Post('keywords')
   async suggestKeywords(@Body('content') content: string) {
     if (!content?.trim()) {
-      throw new BadRequestException('Brak treści');
+      throw new BadRequestException(
+        errorBody(
+          HttpStatus.BAD_REQUEST,
+          'CONTENT_REQUIRED',
+          'Content is required',
+        ),
+      );
     }
     const keywords = await this.aiService.suggestKeywords(content);
     return { keywords };

@@ -119,7 +119,7 @@ export class AgentService {
 
     const tools = context?.noteId ? [...TOOLS, UPDATE_CURRENT_NOTE_TOOL] : TOOLS;
     const systemInstruction =
-      'Jesteś asystentem notatnika. Masz dostęp do narzędzi pozwalających przeszukiwać, czytać i tworzyć notatki użytkownika. Używaj ich tylko wtedy, gdy naprawdę potrzebujesz informacji lub akcji, której nie masz już w kontekście — każde wywołanie narzędzia kosztuje osobne zapytanie do limitowanego API, więc unikaj zbędnych wywołań (np. nie szukaj/nie listuj czegoś, co już znasz z poniższego kontekstu). Odpowiadaj po polsku.' +
+      'Jesteś asystentem notatnika. Masz dostęp do narzędzi pozwalających przeszukiwać, czytać i tworzyć notatki użytkownika. Używaj ich tylko wtedy, gdy naprawdę potrzebujesz informacji lub akcji, której nie masz już w kontekście — każde wywołanie narzędzia kosztuje osobne zapytanie do limitowanego API, więc unikaj zbędnych wywołań (np. nie szukaj/nie listuj czegoś, co już znasz z poniższego kontekstu). Odpowiadaj w języku wiadomości użytkownika.' +
       noteContext;
 
     for (let i = 0; i < 6; i++) {

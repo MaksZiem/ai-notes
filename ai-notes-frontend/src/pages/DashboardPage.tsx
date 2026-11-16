@@ -4,7 +4,8 @@ import Sidebar from "../components/layout/SideBar/SideBar";
 import { useNotes } from "../hooks/useNotes";
 import { useProjects } from "../hooks/useProjects";
 import { NoteCard } from "../components/layout/NoteCard";
-import { formatDate } from "../utils/formatDate";
+import { useTranslations } from "use-intl";
+import { useFormatDate } from "../utils/formatDate";
 import type { Project } from "../types/project";
 
 const PROJECT_DEFAULT_COLOR = "#6366f1";
@@ -24,6 +25,8 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 function RecentProjectRow({ project, onClick }: { project: Project; onClick: () => void }) {
+  const t = useTranslations("dashboard");
+  const formatDate = useFormatDate();
   const color = project.color ?? PROJECT_DEFAULT_COLOR;
   return (
     <button
@@ -38,7 +41,7 @@ function RecentProjectRow({ project, onClick }: { project: Project; onClick: () 
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[13.5px] font-semibold text-gray-100 truncate m-0">{project.name}</p>
-        <p className="text-[11.5px] text-gray-500 truncate m-0">{project.description || "Brak opisu"}</p>
+        <p className="text-[11.5px] text-gray-500 truncate m-0">{project.description || t("noDescription")}</p>
       </div>
       <span className="flex items-center gap-1 text-[11px] text-gray-600 flex-shrink-0">
         <Clock size={11} />
@@ -59,6 +62,7 @@ function EmptyState({ icon, text }: { icon: React.ReactNode; text: string }) {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const t = useTranslations();
 
   const { notes: allNotes } = useNotes();
   const { notes: recentNotes } = useNotes({ limit: 5 });
@@ -75,9 +79,9 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
           <div>
             <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">
-              Strona główna
+              {t("dashboard.title")}
             </h1>
-            <p className="text-xs text-gray-600 mt-1 m-0">Twój przegląd notatek i projektów</p>
+            <p className="text-xs text-gray-600 mt-1 m-0">{t("dashboard.lead")}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -86,42 +90,42 @@ export default function DashboardPage() {
               className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] text-gray-300 text-sm font-medium rounded-lg transition-colors duration-150"
             >
               <Plus size={15} />
-              Nowy projekt
+              {t("dashboard.newProject")}
             </button>
             <button
               onClick={() => navigate("/notes/new")}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors duration-150"
             >
               <Plus size={15} />
-              Nowa notatka
+              {t("dashboard.newNote")}
             </button>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-8 py-6">
           <div className="flex items-center gap-4 mb-8">
-            <StatCard icon={<FileText size={18} />} label="Notatek łącznie" value={notesCount} />
-            <StatCard icon={<Folder size={18} />} label="Projektów łącznie" value={projectsCount} />
+            <StatCard icon={<FileText size={18} />} label={t("dashboard.notesTotal")} value={notesCount} />
+            <StatCard icon={<Folder size={18} />} label={t("dashboard.projectsTotal")} value={projectsCount} />
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">
-                  Ostatnio aktualizowane notatki
+                  {t("dashboard.recentNotes")}
                 </h2>
                 <button
                   onClick={() => navigate("/notes")}
                   className="flex items-center gap-1 text-[11.5px] text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
-                  Zobacz wszystkie <ArrowRight size={12} />
+                  {t("dashboard.viewAll")} <ArrowRight size={12} />
                 </button>
               </div>
 
               {recentNotes.isLoading ? (
-                <p className="text-xs text-gray-600">Ładowanie...</p>
+                <p className="text-xs text-gray-600">{t("common.loading")}</p>
               ) : (recentNotes.data ?? []).length === 0 ? (
-                <EmptyState icon={<FileText size={28} className="opacity-30" />} text="Brak notatek. Utwórz pierwszą!" />
+                <EmptyState icon={<FileText size={28} className="opacity-30" />} text={t("dashboard.noNotes")} />
               ) : (
                 <div className="flex flex-col gap-2">
                   {(recentNotes.data ?? []).map((n) => (
@@ -133,20 +137,20 @@ export default function DashboardPage() {
                         <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-600 m-0">
-                  Ostatnio aktualizowane projekty
+                  {t("dashboard.recentProjects")}
                 </h2>
                 <button
                   onClick={() => navigate("/projects")}
                   className="flex items-center gap-1 text-[11.5px] text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
-                  Zobacz wszystkie <ArrowRight size={12} />
+                  {t("dashboard.viewAll")} <ArrowRight size={12} />
                 </button>
               </div>
 
               {recentProjects.isLoading ? (
-                <p className="text-xs text-gray-600">Ładowanie...</p>
+                <p className="text-xs text-gray-600">{t("common.loading")}</p>
               ) : (recentProjects.data ?? []).length === 0 ? (
-                <EmptyState icon={<Folder size={28} className="opacity-30" />} text="Brak projektów. Utwórz pierwszy!" />
+                <EmptyState icon={<Folder size={28} className="opacity-30" />} text={t("dashboard.noProjects")} />
               ) : (
                 <div className="flex flex-col gap-2">
                   {(recentProjects.data ?? []).map((p) => (

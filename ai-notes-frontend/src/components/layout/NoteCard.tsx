@@ -1,7 +1,8 @@
 import { Pin, Star, Clock } from "lucide-react";
+import { useTranslations } from "use-intl";
 import type { Note } from "../../types/note";
 import { tagColor } from "../../utils/noteColors";
-import { formatDate } from "../../utils/formatDate";
+import { useFormatDate } from "../../utils/formatDate";
 import { NOTE_DEFAULT_COLOR } from "../../consts/noteColor";
 import { useNoteQuickActions } from "../../hooks/useNoteQuickActions";
 
@@ -14,6 +15,7 @@ interface NoteCardProps {
 }
 
 function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: boolean; favourite: boolean }) {
+  const t = useTranslations("noteCard");
   const { togglePin, toggleFavourite } = useNoteQuickActions(noteId);
 
   return (
@@ -22,7 +24,7 @@ function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: b
         type="button"
         onClick={(e) => { e.stopPropagation(); togglePin.mutate(); }}
         disabled={togglePin.isPending}
-        title={pinned ? "Odepnij" : "Przypnij"}
+        title={pinned ? t("unpin") : t("pin")}
         className={`p-1 rounded-md transition-colors cursor-pointer ${pinned ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Pin size={13} className={pinned ? "fill-amber-400/30" : ""} />
@@ -31,7 +33,7 @@ function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: b
         type="button"
         onClick={(e) => { e.stopPropagation(); toggleFavourite.mutate(); }}
         disabled={toggleFavourite.isPending}
-        title={favourite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+        title={favourite ? t("unfavourite") : t("favourite")}
         className={`p-1 rounded-md transition-colors cursor-pointer ${favourite ? "text-amber-400" : "text-gray-600 hover:text-gray-300"}`}
       >
         <Star size={13} className={favourite ? "fill-amber-400" : ""} />
@@ -41,10 +43,12 @@ function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: b
 }
 
 export function NoteCard({ note, list = false, pinned = false, favourite = false, onClick }: NoteCardProps) {
+  const t = useTranslations("common");
+  const formatDate = useFormatDate();
   const noteColor = note.color ?? NOTE_DEFAULT_COLOR;
   const projectColor = note.project?.color ?? NOTE_DEFAULT_COLOR;
   const keywords = note.keywords ?? [];
-  const projectName = note.project?.name ?? "Notatka prywatna";
+  const projectName = note.project?.name ?? t("privateNote");
 
   if (list) {
     return (

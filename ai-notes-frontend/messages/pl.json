@@ -1,0 +1,442 @@
+{
+  "access": {
+    "VIEW": "podgląd",
+    "EDIT": "edycja",
+    "DELETE": "pełny dostęp"
+  },
+  "agentPanel": {
+    "title": "Agent notatki",
+    "intro": "Poproś agenta o zmiany w tej notatce, np. „napisz notatkę o top 3 firmach IT w Polsce”.",
+    "working": "Agent pracuje…",
+    "placeholder": "Napisz polecenie dla agenta…",
+    "send": "Wyślij"
+  },
+  "aiTools": {
+    "button": "Narzędzia AI",
+    "buttonHint": "Edytuj z AI",
+    "modes": {
+      "fix": "Popraw gramatykę",
+      "improve": "Ulepsz styl",
+      "shorten": "Skróć",
+      "expand": "Rozszerz"
+    },
+    "continue": "Kontynuuj pisanie",
+    "custom": "Własne polecenie",
+    "customPlaceholder": "np. przetłumacz na angielski",
+    "selectText": "Zaznacz tekst…",
+    "run": "Wykonaj polecenie",
+    "generate": "Napisz notatkę o…",
+    "generatePlaceholder": "np. top 3 firmy IT w Polsce",
+    "generateRun": "Wygeneruj notatkę"
+  },
+  "apiErrors": {
+    "EMAIL_IN_USE": "Ten adres e-mail jest już zajęty.",
+    "INVALID_CREDENTIALS": "Nieprawidłowy e-mail lub hasło.",
+    "MISSING_TOKEN": "Brak tokenu autoryzacyjnego.",
+    "INVALID_TOKEN": "Sesja wygasła. Zaloguj się ponownie.",
+    "ADMIN_REQUIRED": "Brak uprawnień administratora.",
+    "USER_NOT_FOUND": "Nie znaleziono użytkownika.",
+    "MESSAGE_REQUIRED": "Wpisz wiadomość.",
+    "INSTRUCTION_REQUIRED": "Wpisz polecenie.",
+    "TEXT_REQUIRED": "Brak tekstu.",
+    "INVALID_MODE": "Nieprawidłowy tryb.",
+    "CONTENT_REQUIRED": "Brak treści.",
+    "PROJECT_HAS_NO_NOTES": "Projekt nie ma jeszcze żadnych notatek.",
+    "NOTE_NOT_FOUND": "Nie znaleziono notatki.",
+    "ACCESS_DENIED": "Brak dostępu.",
+    "ACCESS_LEVEL_REQUIRED": "Ta akcja wymaga wyższego poziomu dostępu.",
+    "OWNER_CANNOT_LEAVE_NOTE": "Właściciel nie może opuścić własnej notatki – może ją usunąć.",
+    "NO_DIRECT_NOTE_ACCESS": "Nie masz bezpośredniego dostępu do tej notatki.",
+    "NOTE_ACCESS_OWNER_ONLY": "Tylko właściciel notatki lub administrator może zarządzać dostępem.",
+    "NOTE_ACCESS_PROJECT_OWNER_ONLY": "Tylko właściciel projektu lub administrator może zarządzać dostępem do notatki.",
+    "SHARE_LINK_INVALID": "Link jest nieprawidłowy lub odwołany.",
+    "SHARE_LINK_EXPIRED": "Link wygasł.",
+    "SHARE_LINK_READ_ONLY": "Ten link daje tylko dostęp do odczytu.",
+    "QUESTION_REQUIRED": "Wpisz pytanie.",
+    "NOTE_EMPTY": "Notatka jest pusta.",
+    "NOTIFICATION_NOT_FOUND": "Nie znaleziono powiadomienia.",
+    "INVITATION_NOT_FOUND": "Nie znaleziono zaproszenia.",
+    "INVITATION_ALREADY_HANDLED": "To zaproszenie zostało już rozpatrzone.",
+    "INVITATION_LINK_GONE": "Link udostępniania powiązany z zaproszeniem już nie istnieje.",
+    "PROJECT_NOT_FOUND": "Nie znaleziono projektu.",
+    "PROJECT_DELETE_OWNER_ONLY": "Tylko właściciel lub administrator może usunąć projekt.",
+    "OWNER_CANNOT_LEAVE_PROJECT": "Właściciel nie może opuścić własnego projektu – może go usunąć.",
+    "NO_DIRECT_PROJECT_ACCESS": "Nie masz bezpośredniego dostępu do tego projektu.",
+    "PROJECT_ACCESS_OWNER_ONLY": "Tylko właściciel lub administrator może zarządzać dostępem.",
+    "IMAGE_TYPE_UNSUPPORTED": "Dozwolone są tylko pliki graficzne (PNG, JPEG, GIF, WEBP).",
+    "FILE_REQUIRED": "Wybierz plik.",
+    "AI_QUOTA_EXCEEDED": "Wyczerpano dzienny limit zapytań do AI. Spróbuj ponownie później."
+  },
+  "auth": {
+    "signIn": {
+      "title": "Logowanie",
+      "submit": "Zaloguj się",
+      "noAccount": "Nie masz konta?",
+      "toSignUp": "Zarejestruj się",
+      "failed": "Nie udało się zalogować."
+    },
+    "signUp": {
+      "title": "Rejestracja",
+      "submit": "Zarejestruj się",
+      "hasAccount": "Masz już konto?",
+      "toSignIn": "Zaloguj się",
+      "failed": "Nie udało się zarejestrować."
+    },
+    "fields": {
+      "name": "Imię",
+      "namePlaceholder": "Jan",
+      "surname": "Nazwisko",
+      "surnamePlaceholder": "Kowalski",
+      "email": "E-mail",
+      "emailPlaceholder": "jan@example.com",
+      "password": "Hasło",
+      "confirmPassword": "Potwierdź hasło"
+    },
+    "errors": {
+      "emailInvalid": "Nieprawidłowy e-mail",
+      "passwordRequired": "Hasło jest wymagane",
+      "nameRequired": "Imię jest wymagane",
+      "surnameRequired": "Nazwisko jest wymagane",
+      "passwordMin": "Hasło musi mieć co najmniej 6 znaków",
+      "passwordMismatch": "Hasła nie są zgodne"
+    }
+  },
+  "chat": {
+    "title": "Chat z notatkami",
+    "agentMode": "Tryb agenta",
+    "on": "(WŁ)",
+    "off": "(WYŁ)",
+    "intro": "Zapytaj o coś z Twoich notatek, np. „co ustaliłem w projekcie X?”",
+    "agentWorking": "Agent pracuje…",
+    "searching": "Szukam w notatkach…",
+    "placeholder": "Zapytaj o swoje notatki…",
+    "send": "Wyślij"
+  },
+  "common": {
+    "language": "Język",
+    "languages": {
+      "pl": "Polski",
+      "en": "English"
+    },
+    "loading": "Ładowanie…",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "close": "Zamknij",
+    "delete": "Usuń",
+    "retry": "Spróbuj ponownie",
+    "copy": "Kopiuj",
+    "copied": "Skopiowano",
+    "somethingWrong": "Coś poszło nie tak, spróbuj ponownie.",
+    "privateNote": "Notatka prywatna",
+    "someone": "Ktoś",
+    "roles": {
+      "ADMIN": "Administrator",
+      "USER": "Użytkownik"
+    }
+  },
+  "dashboard": {
+    "title": "Strona główna",
+    "lead": "Twój przegląd notatek i projektów",
+    "newProject": "Nowy projekt",
+    "newNote": "Nowa notatka",
+    "notesTotal": "Notatek łącznie",
+    "projectsTotal": "Projektów łącznie",
+    "recentNotes": "Ostatnio aktualizowane notatki",
+    "recentProjects": "Ostatnio aktualizowane projekty",
+    "viewAll": "Zobacz wszystkie",
+    "noNotes": "Brak notatek. Utwórz pierwszą!",
+    "noProjects": "Brak projektów. Utwórz pierwszy!",
+    "noDescription": "Brak opisu"
+  },
+  "dates": {
+    "yesterday": "wczoraj"
+  },
+  "editor": {
+    "saving": "Zapisywanie…",
+    "saved": "Zapisano",
+    "saveFailed": "Nie udało się zapisać",
+    "placeholder": "Napisz coś albo wpisz „/”, żeby zobaczyć komendy…",
+    "deleteConfirm": "Usunąć tę notatkę? Tej operacji nie można cofnąć.",
+    "leaveConfirm": "Opuścić tę notatkę? Zniknie z Twojej listy, ale zostanie u właściciela – w każdej chwili może udostępnić Ci ją ponownie.",
+    "back": "Notatki",
+    "sharedBadge": "Udostępniona",
+    "sharedBadgeHint": "Ta notatka jest udostępniona – kliknij, żeby zarządzać dostępem",
+    "share": "Udostępnij notatkę",
+    "pin": "Przypnij / odepnij",
+    "favourite": "Dodaj / usuń z ulubionych",
+    "download": "Pobierz jako Markdown (.md)",
+    "delete": "Usuń notatkę",
+    "leave": "Opuść notatkę – zniknie z Twojej listy, zostanie u właściciela",
+    "color": "Kolor notatki",
+    "clearColor": "Usuń kolor",
+    "move": "Przenieś notatkę do innego projektu",
+    "generateTitle": "Generuj tytuł",
+    "generateTitleHint": "Wygeneruj tytuł z treści (AI)",
+    "summarize": "Streść notatkę",
+    "summarizeHint": "Streść notatkę za pomocą AI",
+    "sharedBy": "Udostępnione przez {name}",
+    "anotherUser": "innego użytkownika",
+    "summary": "Podsumowanie AI",
+    "closeSummary": "Zamknij podsumowanie",
+    "keywordPlaceholder": "+ słowo kluczowe",
+    "removeKeyword": "Usuń słowo kluczowe {keyword}",
+    "suggestKeywords": "Zasugeruj słowa kluczowe",
+    "suggestKeywordsHint": "Zasugeruj słowa kluczowe (AI)"
+  },
+  "invite": {
+    "invalid": "To zaproszenie jest nieprawidłowe, wygasło lub zostało odwołane.",
+    "label": "Zaproszenie do projektu",
+    "invites": "zaprasza Cię —",
+    "joined": "Dołączono do projektu.",
+    "toProjects": "Przejdź do projektów",
+    "accept": "Zaakceptuj zaproszenie",
+    "signUp": "Załóż konto, żeby dołączyć",
+    "signIn": "Masz już konto? Zaloguj się",
+    "failed": "Nie udało się zaakceptować zaproszenia. Spróbuj ponownie."
+  },
+  "meta": {
+    "title": "NoteSpace"
+  },
+  "nav": {
+    "search": "Szukaj…",
+    "home": "Strona główna",
+    "notes": "Notatki",
+    "chat": "Chat AI",
+    "projects": "Projekty",
+    "notifications": "Powiadomienia",
+    "settings": "Ustawienia",
+    "recentNotes": "Ostatnie notatki",
+    "noNotifications": "Brak powiadomień",
+    "favourites": "Ulubione",
+    "noFavourites": "Brak ulubionych elementów",
+    "newProject": "Nowy projekt",
+    "signOut": "Wyloguj się"
+  },
+  "noteCard": {
+    "pin": "Przypnij",
+    "unpin": "Odepnij",
+    "favourite": "Dodaj do ulubionych",
+    "unfavourite": "Usuń z ulubionych"
+  },
+  "notes": {
+    "title": "Notatki",
+    "project": "Projekt",
+    "backToProjects": "Projekty",
+    "countTotal": "{count, plural, one {# notatka łącznie} few {# notatki łącznie} many {# notatek łącznie} other {# notatki łącznie}}",
+    "countInProject": "{count, plural, one {# notatka w projekcie} few {# notatki w projekcie} many {# notatek w projekcie} other {# notatki w projekcie}}",
+    "search": "Szukaj notatek…",
+    "semantic": "Wyszukiwanie semantyczne (AI)",
+    "grid": "Kafelki",
+    "list": "Lista",
+    "summarize": "Podsumuj",
+    "summarizeHint": "Podsumuj projekt z AI",
+    "share": "Udostępnij",
+    "shareProject": "Udostępnij projekt",
+    "downloadZip": "Pobierz .zip",
+    "downloadZipHint": "Pobierz wszystkie notatki jako .zip (.md)",
+    "zipName": "notatki",
+    "untitled": "Bez tytułu",
+    "new": "Nowa notatka",
+    "searching": "Szukam…",
+    "noResults": "Brak wyników",
+    "tryAnother": "Spróbuj innej frazy",
+    "aiResults": "Wyniki AI",
+    "pinned": "Przypięte",
+    "all": "Wszystkie notatki",
+    "empty": "Brak notatek. Utwórz pierwszą!"
+  },
+  "notifications": {
+    "accepted": " · zaakceptowano",
+    "declined": " · odrzucono",
+    "accept": "Akceptuj",
+    "decline": "Odrzuć",
+    "fallback": "Nowe powiadomienie",
+    "noteFallback": "notatkę",
+    "projectFallback": "projekt",
+    "types": {
+      "NOTE_SHARED": "{actor} udostępnił(a) Ci notatkę „{note}”",
+      "NOTE_ACCESS_REVOKED": "{actor} odebrał(a) Ci dostęp do notatki „{note}”",
+      "SHARE_LINK_CLAIMED": "{actor} dołączył(a) do notatki „{note}” przez link",
+      "NOTE_INVITE": "{actor} zaprosił(a) Cię do notatki „{note}”",
+      "PROJECT_SHARED": "{actor} udostępnił(a) Ci projekt „{project}”",
+      "PROJECT_ACCESS_REVOKED": "{actor} odebrał(a) Ci dostęp do projektu „{project}”",
+      "PROJECT_SHARE_LINK_CLAIMED": "{actor} dołączył(a) do projektu „{project}” przez zaproszenie",
+      "PROJECT_INVITE": "{actor} zaprosił(a) Cię do projektu „{project}”"
+    },
+    "page": {
+      "title": "Powiadomienia",
+      "unread": "{count, plural, one {# nieprzeczytane} few {# nieprzeczytane} many {# nieprzeczytanych} other {# nieprzeczytanego}}",
+      "allRead": "Wszystko przeczytane",
+      "markAll": "Oznacz wszystkie jako przeczytane",
+      "empty": "Brak powiadomień"
+    }
+  },
+  "projects": {
+    "title": "Projekty",
+    "count": "{count, plural, one {# projekt łącznie} few {# projekty łącznie} many {# projektów łącznie} other {# projektu łącznie}}",
+    "search": "Szukaj projektów…",
+    "favourites": "Ulubione",
+    "new": "Nowy projekt",
+    "empty": "Brak projektów",
+    "tryAnother": "Spróbuj innej frazy",
+    "createFirst": "Utwórz pierwszy projekt",
+    "pinned": "Przypięte",
+    "all": "Wszystkie projekty",
+    "emptyAll": "Brak projektów. Utwórz pierwszy!",
+    "noDescription": "Brak opisu",
+    "share": "Udostępnij projekt",
+    "leave": "Opuść projekt – zniknie z Twojej listy, zostanie u właściciela",
+    "leaveConfirm": "Opuścić ten projekt? Zniknie z Twojej listy, ale zostanie u właściciela – w każdej chwili może udostępnić Ci go ponownie.",
+    "form": {
+      "name": "Nazwa projektu",
+      "description": "Opis (opcjonalnie)",
+      "failed": "Nie udało się utworzyć projektu",
+      "create": "Utwórz",
+      "creating": "Tworzenie…"
+    }
+  },
+  "shared": {
+    "invalid": "Ten link jest nieprawidłowy, wygasł lub został odwołany.",
+    "guest": "Przeglądasz jako gość ({mode})",
+    "canEdit": "możesz edytować",
+    "viewOnly": "tylko podgląd",
+    "sharedBy": " · udostępnił(a) {name}",
+    "adding": "Dodawanie…",
+    "addToMine": "Dodaj do moich notatek",
+    "signUpToKeep": "Załóż konto, żeby zachować dostęp",
+    "saved": "Zapisano",
+    "hasAccount": "Masz już konto?",
+    "signIn": "Zaloguj się"
+  },
+  "sharing": {
+    "levels": {
+      "VIEW": "Podgląd",
+      "EDIT": "Edycja",
+      "DELETE": "Pełny dostęp"
+    },
+    "options": {
+      "VIEW": "Tylko podgląd",
+      "EDIT": "Podgląd i edycja",
+      "DELETE": "Pełny dostęp"
+    },
+    "accessLevel": "Poziom dostępu",
+    "expires": "Wygasa po (dniach)",
+    "noExpiry": "bez wygasania",
+    "expiresAt": " · wygasa {date}",
+    "emailPlaceholder": "np. ktos@example.com",
+    "pending": "nie odebrane",
+    "accepted": "zaakceptowane",
+    "loading": "Ładowanie…",
+    "noInvites": "Brak wysłanych zaproszeń.",
+    "copyLink": "Kopiuj link",
+    "revokeAccess": "Odbierz dostęp",
+    "changeLevel": "Zmień poziom dostępu",
+    "note": {
+      "title": "Udostępnij notatkę",
+      "expiresHint": "Po ilu dniach link wygaśnie (puste = bez wygasania)",
+      "email": "E-mail odbiorcy (opcjonalnie)",
+      "send": "Wyślij",
+      "createLink": "Utwórz link",
+      "invites": "Zaproszenia – czekają, aż ktoś otworzy link",
+      "publicLink": "Link publiczny",
+      "revoke": "Odwołaj link",
+      "members": "Osoby, które już mają dostęp (zalogowane)",
+      "noMembers": "Nikt tu jeszcze nie wszedł. Osoba z zaproszenia pojawi się dopiero, gdy otworzy link i zaloguje się lub założy konto."
+    },
+    "project": {
+      "title": "Udostępnij projekt",
+      "intro": "Zaproszona osoba musi być zalogowana, żeby zobaczyć projekt – dostanie mail z linkiem, a po zalogowaniu i zaakceptowaniu zaproszenia zobaczy wszystkie notatki w projekcie.",
+      "expiresHint": "Po ilu dniach zaproszenie wygaśnie (puste = bez wygasania)",
+      "email": "E-mail osoby do zaproszenia",
+      "send": "Wyślij zaproszenie",
+      "invites": "Zaproszenia – czekają, aż ktoś je zaakceptuje",
+      "link": "Link",
+      "revoke": "Odwołaj zaproszenie",
+      "members": "Osoby z dostępem do projektu",
+      "noMembers": "Nikt tu jeszcze nie dołączył. Osoba z zaproszenia pojawi się dopiero, gdy je zaakceptuje."
+    },
+    "summary": {
+      "title": "Podsumowanie projektu",
+      "analyzing": "Analizuję notatki…",
+      "failed": "Nie udało się wygenerować podsumowania."
+    }
+  },
+  "slash": {
+    "noMatch": "Brak pasujących komend",
+    "paragraph": {
+      "title": "Tekst",
+      "description": "Zwykły akapit"
+    },
+    "heading1": {
+      "title": "Nagłówek 1",
+      "description": "Duży nagłówek sekcji"
+    },
+    "heading2": {
+      "title": "Nagłówek 2",
+      "description": "Średni nagłówek sekcji"
+    },
+    "heading3": {
+      "title": "Nagłówek 3",
+      "description": "Mały nagłówek sekcji"
+    },
+    "bulletList": {
+      "title": "Lista punktowana",
+      "description": "Prosta lista wypunktowana"
+    },
+    "orderedList": {
+      "title": "Lista numerowana",
+      "description": "Lista z numeracją"
+    },
+    "taskList": {
+      "title": "Lista zadań",
+      "description": "Checklista z zadaniami do zrobienia"
+    },
+    "quote": {
+      "title": "Cytat",
+      "description": "Blok cytatu"
+    },
+    "codeBlock": {
+      "title": "Blok kodu",
+      "description": "Fragment kodu ze stałą szerokością znaków"
+    },
+    "divider": {
+      "title": "Linia pozioma",
+      "description": "Wizualny separator sekcji"
+    },
+    "table": {
+      "title": "Tabela",
+      "description": "Wstaw tabelę 3x3"
+    }
+  },
+  "toolbar": {
+    "bold": "Pogrubienie",
+    "italic": "Kursywa",
+    "underline": "Podkreślenie",
+    "strike": "Przekreślenie",
+    "code": "Kod",
+    "textColor": "Kolor tekstu",
+    "highlight": "Podświetlenie",
+    "clearColor": "Usuń kolor",
+    "heading1": "Nagłówek 1",
+    "heading2": "Nagłówek 2",
+    "heading3": "Nagłówek 3",
+    "alignLeft": "Do lewej",
+    "alignCenter": "Do środka",
+    "alignRight": "Do prawej",
+    "justify": "Wyjustuj",
+    "bulletList": "Lista punktowana",
+    "orderedList": "Lista numerowana",
+    "taskList": "Lista zadań",
+    "quote": "Cytat",
+    "divider": "Linia pozioma",
+    "insertTable": "Wstaw tabelę",
+    "addRow": "Dodaj wiersz",
+    "addColumn": "Dodaj kolumnę",
+    "deleteTable": "Usuń tabelę",
+    "insertImage": "Wstaw obrazek",
+    "undo": "Cofnij",
+    "redo": "Ponów",
+    "agentChat": "Czat z agentem",
+    "agent": "Agent"
+  }
+}

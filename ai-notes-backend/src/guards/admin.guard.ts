@@ -4,19 +4,19 @@ import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { I18nService } from 'nestjs-i18n';
 import { Request } from 'express';
 import { UserRole } from 'src/enums/user-role.enum';
 import { UsersService } from 'src/users/users.service';
+import { errorBody } from 'src/common/error-body';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private i18n: I18nService,
-    private usersService: UsersService
+    private usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -24,23 +24,47 @@ export class AdminGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException(this.i18n.t('common.auth.missing_token'));
+      throw new UnauthorizedException(
+        errorBody(
+          HttpStatus.UNAUTHORIZED,
+          'MISSING_TOKEN',
+          'Missing authorization token',
+        ),
+      );
     }
 
     let payload: { id: number };
     try {
       payload = await this.jwtService.verifyAsync(token);
     } catch {
-      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'));
+      throw new UnauthorizedException(
+        errorBody(
+          HttpStatus.UNAUTHORIZED,
+          'INVALID_TOKEN',
+          'Token is invalid or expired',
+        ),
+      );
     }
 
     const user = await this.usersService.findOne(payload.id);
     if (!user) {
-      throw new UnauthorizedException(this.i18n.t('common.auth.invalid_token'));
+      throw new UnauthorizedException(
+        errorBody(
+          HttpStatus.UNAUTHORIZED,
+          'INVALID_TOKEN',
+          'Token is invalid or expired',
+        ),
+      );
     }
 
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException(this.i18n.t('common.auth.forbidden'));
+      throw new ForbiddenException(
+        errorBody(
+          HttpStatus.FORBIDDEN,
+          'ADMIN_REQUIRED',
+          'Administrator role required',
+        ),
+      );
     }
 
     request['currentUser'] = user;

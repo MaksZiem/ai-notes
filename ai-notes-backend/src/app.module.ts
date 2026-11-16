@@ -5,10 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/user.entity';
 import { APP_PIPE } from '@nestjs/core';
 import { NotesModule } from './notes/notes.module';
-import { I18nModule, AcceptLanguageResolver } from 'nestjs-i18n';
 import { ProjectsModule } from './projects/projects.module';
 import { UploadsModule } from './uploads/uploads.module';
-import * as path from 'path';
 import { Project } from './projects/entities/project.entity';
 import { ProjectMember } from './projects/entities/project-member.entity';
 import { NoteMember } from './notes/entities/note-member.entity';
@@ -31,14 +29,6 @@ import { YjsModule } from './yjs/yjs.module';
       envFilePath: `.env`,
     }),
     EventEmitterModule.forRoot(),
-    I18nModule.forRoot({
-      fallbackLanguage: 'pl',
-      loaderOptions: {
-        path: path.join(__dirname, 'i18n/'),
-        watch: true,
-      },
-      resolvers: [AcceptLanguageResolver],
-    }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -58,7 +48,7 @@ import { YjsModule } from './yjs/yjs.module';
           ProjectShareLink,
           UserProjectPreference,
           UserNotePreference,
-          Notification
+          Notification,
         ],
         synchronize: true,
       }),
@@ -70,7 +60,7 @@ import { YjsModule } from './yjs/yjs.module';
     AiModule,
     AgentModule,
     NotificationsModule,
-    YjsModule
+    YjsModule,
   ],
   providers: [
     {

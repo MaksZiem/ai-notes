@@ -1,0 +1,442 @@
+{
+  "access": {
+    "VIEW": "view",
+    "EDIT": "edit",
+    "DELETE": "full access"
+  },
+  "agentPanel": {
+    "title": "Note agent",
+    "intro": "Ask the agent to change this note, e.g. “write a note about the top 3 IT companies in Poland”.",
+    "working": "The agent is working…",
+    "placeholder": "Write an instruction for the agent…",
+    "send": "Send"
+  },
+  "aiTools": {
+    "button": "AI tools",
+    "buttonHint": "Edit with AI",
+    "modes": {
+      "fix": "Fix grammar",
+      "improve": "Improve style",
+      "shorten": "Shorten",
+      "expand": "Expand"
+    },
+    "continue": "Continue writing",
+    "custom": "Custom instruction",
+    "customPlaceholder": "e.g. translate into Polish",
+    "selectText": "Select some text…",
+    "run": "Run instruction",
+    "generate": "Write a note about…",
+    "generatePlaceholder": "e.g. the top 3 IT companies in Poland",
+    "generateRun": "Generate note"
+  },
+  "apiErrors": {
+    "EMAIL_IN_USE": "This email address is already in use.",
+    "INVALID_CREDENTIALS": "Invalid email or password.",
+    "MISSING_TOKEN": "Missing authorization token.",
+    "INVALID_TOKEN": "Your session has expired. Sign in again.",
+    "ADMIN_REQUIRED": "Administrator role required.",
+    "USER_NOT_FOUND": "User not found.",
+    "MESSAGE_REQUIRED": "Enter a message.",
+    "INSTRUCTION_REQUIRED": "Enter an instruction.",
+    "TEXT_REQUIRED": "Text is required.",
+    "INVALID_MODE": "Invalid mode.",
+    "CONTENT_REQUIRED": "Content is required.",
+    "PROJECT_HAS_NO_NOTES": "The project has no notes yet.",
+    "NOTE_NOT_FOUND": "Note not found.",
+    "ACCESS_DENIED": "Access denied.",
+    "ACCESS_LEVEL_REQUIRED": "This action needs a higher access level.",
+    "OWNER_CANNOT_LEAVE_NOTE": "The owner cannot leave their own note; they can delete it.",
+    "NO_DIRECT_NOTE_ACCESS": "You have no direct access to this note.",
+    "NOTE_ACCESS_OWNER_ONLY": "Only the note owner or an admin can manage access.",
+    "NOTE_ACCESS_PROJECT_OWNER_ONLY": "Only the project owner or an admin can manage note access.",
+    "SHARE_LINK_INVALID": "The link is invalid or revoked.",
+    "SHARE_LINK_EXPIRED": "The link has expired.",
+    "SHARE_LINK_READ_ONLY": "This link gives read-only access.",
+    "QUESTION_REQUIRED": "Enter a question.",
+    "NOTE_EMPTY": "The note is empty.",
+    "NOTIFICATION_NOT_FOUND": "Notification not found.",
+    "INVITATION_NOT_FOUND": "Invitation not found.",
+    "INVITATION_ALREADY_HANDLED": "This invitation has already been handled.",
+    "INVITATION_LINK_GONE": "The share link for this invitation no longer exists.",
+    "PROJECT_NOT_FOUND": "Project not found.",
+    "PROJECT_DELETE_OWNER_ONLY": "Only the owner or an admin can delete a project.",
+    "OWNER_CANNOT_LEAVE_PROJECT": "The owner cannot leave their own project; they can delete it.",
+    "NO_DIRECT_PROJECT_ACCESS": "You have no direct access to this project.",
+    "PROJECT_ACCESS_OWNER_ONLY": "Only the owner or an admin can manage access.",
+    "IMAGE_TYPE_UNSUPPORTED": "Only image files are allowed (PNG, JPEG, GIF, WEBP).",
+    "FILE_REQUIRED": "Choose a file.",
+    "AI_QUOTA_EXCEEDED": "The daily AI request limit has been reached. Try again later."
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "noAccount": "No account yet?",
+      "toSignUp": "Sign up",
+      "failed": "Could not sign in."
+    },
+    "signUp": {
+      "title": "Sign up",
+      "submit": "Sign up",
+      "hasAccount": "Already have an account?",
+      "toSignIn": "Sign in",
+      "failed": "Could not sign up."
+    },
+    "fields": {
+      "name": "First name",
+      "namePlaceholder": "John",
+      "surname": "Last name",
+      "surnamePlaceholder": "Smith",
+      "email": "Email",
+      "emailPlaceholder": "john@example.com",
+      "password": "Password",
+      "confirmPassword": "Confirm password"
+    },
+    "errors": {
+      "emailInvalid": "Invalid email",
+      "passwordRequired": "Password is required",
+      "nameRequired": "First name is required",
+      "surnameRequired": "Last name is required",
+      "passwordMin": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "chat": {
+    "title": "Chat with your notes",
+    "agentMode": "Agent mode",
+    "on": "(ON)",
+    "off": "(OFF)",
+    "intro": "Ask about anything in your notes, e.g. “what did I decide in project X?”",
+    "agentWorking": "The agent is working…",
+    "searching": "Searching your notes…",
+    "placeholder": "Ask about your notes…",
+    "send": "Send"
+  },
+  "common": {
+    "language": "Language",
+    "languages": {
+      "pl": "Polski",
+      "en": "English"
+    },
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "delete": "Delete",
+    "retry": "Try again",
+    "copy": "Copy",
+    "copied": "Copied",
+    "somethingWrong": "Something went wrong, please try again.",
+    "privateNote": "Private note",
+    "someone": "Someone",
+    "roles": {
+      "ADMIN": "Administrator",
+      "USER": "User"
+    }
+  },
+  "dashboard": {
+    "title": "Home",
+    "lead": "Your overview of notes and projects",
+    "newProject": "New project",
+    "newNote": "New note",
+    "notesTotal": "Notes in total",
+    "projectsTotal": "Projects in total",
+    "recentNotes": "Recently updated notes",
+    "recentProjects": "Recently updated projects",
+    "viewAll": "View all",
+    "noNotes": "No notes yet. Create your first one!",
+    "noProjects": "No projects yet. Create your first one!",
+    "noDescription": "No description"
+  },
+  "dates": {
+    "yesterday": "yesterday"
+  },
+  "editor": {
+    "saving": "Saving…",
+    "saved": "Saved",
+    "saveFailed": "Could not save",
+    "placeholder": "Write something, or type “/” for commands…",
+    "deleteConfirm": "Delete this note? This cannot be undone.",
+    "leaveConfirm": "Leave this note? It disappears from your list but stays with the owner, who can share it with you again at any time.",
+    "back": "Notes",
+    "sharedBadge": "Shared",
+    "sharedBadgeHint": "This note is shared – click to manage access",
+    "share": "Share note",
+    "pin": "Pin / unpin",
+    "favourite": "Add to / remove from favourites",
+    "download": "Download as Markdown (.md)",
+    "delete": "Delete note",
+    "leave": "Leave note – it disappears from your list but stays with the owner",
+    "color": "Note colour",
+    "clearColor": "Remove colour",
+    "move": "Move the note to another project",
+    "generateTitle": "Generate title",
+    "generateTitleHint": "Generate a title from the content (AI)",
+    "summarize": "Summarize note",
+    "summarizeHint": "Summarize the note with AI",
+    "sharedBy": "Shared by {name}",
+    "anotherUser": "another user",
+    "summary": "AI summary",
+    "closeSummary": "Close summary",
+    "keywordPlaceholder": "+ keyword",
+    "removeKeyword": "Remove keyword {keyword}",
+    "suggestKeywords": "Suggest keywords",
+    "suggestKeywordsHint": "Suggest keywords (AI)"
+  },
+  "invite": {
+    "invalid": "This invitation is invalid, has expired or was revoked.",
+    "label": "Project invitation",
+    "invites": "invites you —",
+    "joined": "You joined the project.",
+    "toProjects": "Go to projects",
+    "accept": "Accept invitation",
+    "signUp": "Create an account to join",
+    "signIn": "Already have an account? Sign in",
+    "failed": "Could not accept the invitation. Try again."
+  },
+  "meta": {
+    "title": "NoteSpace"
+  },
+  "nav": {
+    "search": "Search…",
+    "home": "Home",
+    "notes": "Notes",
+    "chat": "AI chat",
+    "projects": "Projects",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "recentNotes": "Recent notes",
+    "noNotifications": "No notifications",
+    "favourites": "Favourites",
+    "noFavourites": "No favourite items",
+    "newProject": "New project",
+    "signOut": "Sign out"
+  },
+  "noteCard": {
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "favourite": "Add to favourites",
+    "unfavourite": "Remove from favourites"
+  },
+  "notes": {
+    "title": "Notes",
+    "project": "Project",
+    "backToProjects": "Projects",
+    "countTotal": "{count, plural, one {# note in total} other {# notes in total}}",
+    "countInProject": "{count, plural, one {# note in this project} other {# notes in this project}}",
+    "search": "Search notes…",
+    "semantic": "Semantic search (AI)",
+    "grid": "Tiles",
+    "list": "List",
+    "summarize": "Summarize",
+    "summarizeHint": "Summarize the project with AI",
+    "share": "Share",
+    "shareProject": "Share project",
+    "downloadZip": "Download .zip",
+    "downloadZipHint": "Download all notes as a .zip (.md)",
+    "zipName": "notes",
+    "untitled": "Untitled",
+    "new": "New note",
+    "searching": "Searching…",
+    "noResults": "No results",
+    "tryAnother": "Try a different phrase",
+    "aiResults": "AI results",
+    "pinned": "Pinned",
+    "all": "All notes",
+    "empty": "No notes yet. Create your first one!"
+  },
+  "notifications": {
+    "accepted": " · accepted",
+    "declined": " · declined",
+    "accept": "Accept",
+    "decline": "Decline",
+    "fallback": "New notification",
+    "noteFallback": "a note",
+    "projectFallback": "a project",
+    "types": {
+      "NOTE_SHARED": "{actor} shared the note “{note}” with you",
+      "NOTE_ACCESS_REVOKED": "{actor} removed your access to the note “{note}”",
+      "SHARE_LINK_CLAIMED": "{actor} joined the note “{note}” via a link",
+      "NOTE_INVITE": "{actor} invited you to the note “{note}”",
+      "PROJECT_SHARED": "{actor} shared the project “{project}” with you",
+      "PROJECT_ACCESS_REVOKED": "{actor} removed your access to the project “{project}”",
+      "PROJECT_SHARE_LINK_CLAIMED": "{actor} joined the project “{project}” via an invitation",
+      "PROJECT_INVITE": "{actor} invited you to the project “{project}”"
+    },
+    "page": {
+      "title": "Notifications",
+      "unread": "{count, plural, one {# unread} other {# unread}}",
+      "allRead": "All caught up",
+      "markAll": "Mark all as read",
+      "empty": "No notifications"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "count": "{count, plural, one {# project in total} other {# projects in total}}",
+    "search": "Search projects…",
+    "favourites": "Favourites",
+    "new": "New project",
+    "empty": "No projects",
+    "tryAnother": "Try a different phrase",
+    "createFirst": "Create your first project",
+    "pinned": "Pinned",
+    "all": "All projects",
+    "emptyAll": "No projects yet. Create your first one!",
+    "noDescription": "No description",
+    "share": "Share project",
+    "leave": "Leave project – it disappears from your list but stays with the owner",
+    "leaveConfirm": "Leave this project? It disappears from your list but stays with the owner, who can share it with you again at any time.",
+    "form": {
+      "name": "Project name",
+      "description": "Description (optional)",
+      "failed": "Could not create the project",
+      "create": "Create",
+      "creating": "Creating…"
+    }
+  },
+  "shared": {
+    "invalid": "This link is invalid, has expired or was revoked.",
+    "guest": "You are viewing as a guest ({mode})",
+    "canEdit": "you can edit",
+    "viewOnly": "view only",
+    "sharedBy": " · shared by {name}",
+    "adding": "Adding…",
+    "addToMine": "Add to my notes",
+    "signUpToKeep": "Create an account to keep access",
+    "saved": "Saved",
+    "hasAccount": "Already have an account?",
+    "signIn": "Sign in"
+  },
+  "sharing": {
+    "levels": {
+      "VIEW": "View",
+      "EDIT": "Edit",
+      "DELETE": "Full access"
+    },
+    "options": {
+      "VIEW": "View only",
+      "EDIT": "View and edit",
+      "DELETE": "Full access"
+    },
+    "accessLevel": "Access level",
+    "expires": "Expires after (days)",
+    "noExpiry": "no expiry",
+    "expiresAt": " · expires {date}",
+    "emailPlaceholder": "e.g. someone@example.com",
+    "pending": "not opened",
+    "accepted": "accepted",
+    "loading": "Loading…",
+    "noInvites": "No invitations sent.",
+    "copyLink": "Copy link",
+    "revokeAccess": "Remove access",
+    "changeLevel": "Change access level",
+    "note": {
+      "title": "Share note",
+      "expiresHint": "After how many days the link expires (empty = never)",
+      "email": "Recipient email (optional)",
+      "send": "Send",
+      "createLink": "Create link",
+      "invites": "Invitations – waiting for someone to open the link",
+      "publicLink": "Public link",
+      "revoke": "Revoke link",
+      "members": "People who already have access (signed in)",
+      "noMembers": "Nobody has joined yet. An invited person appears once they open the link and sign in or create an account."
+    },
+    "project": {
+      "title": "Share project",
+      "intro": "The invited person must be signed in to see the project. They get an email with a link, and after signing in and accepting the invitation they see every note in the project.",
+      "expiresHint": "After how many days the invitation expires (empty = never)",
+      "email": "Email of the person to invite",
+      "send": "Send invitation",
+      "invites": "Invitations – waiting to be accepted",
+      "link": "Link",
+      "revoke": "Revoke invitation",
+      "members": "People with access to the project",
+      "noMembers": "Nobody has joined yet. An invited person appears once they accept the invitation."
+    },
+    "summary": {
+      "title": "Project summary",
+      "analyzing": "Analyzing notes…",
+      "failed": "Could not generate the summary."
+    }
+  },
+  "slash": {
+    "noMatch": "No matching commands",
+    "paragraph": {
+      "title": "Text",
+      "description": "Plain paragraph"
+    },
+    "heading1": {
+      "title": "Heading 1",
+      "description": "Large section heading"
+    },
+    "heading2": {
+      "title": "Heading 2",
+      "description": "Medium section heading"
+    },
+    "heading3": {
+      "title": "Heading 3",
+      "description": "Small section heading"
+    },
+    "bulletList": {
+      "title": "Bulleted list",
+      "description": "Simple bulleted list"
+    },
+    "orderedList": {
+      "title": "Numbered list",
+      "description": "List with numbering"
+    },
+    "taskList": {
+      "title": "Task list",
+      "description": "Checklist of things to do"
+    },
+    "quote": {
+      "title": "Quote",
+      "description": "Quote block"
+    },
+    "codeBlock": {
+      "title": "Code block",
+      "description": "Code snippet in a monospace font"
+    },
+    "divider": {
+      "title": "Divider",
+      "description": "Visual section separator"
+    },
+    "table": {
+      "title": "Table",
+      "description": "Insert a 3×3 table"
+    }
+  },
+  "toolbar": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strikethrough",
+    "code": "Code",
+    "textColor": "Text colour",
+    "highlight": "Highlight",
+    "clearColor": "Remove colour",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "alignLeft": "Align left",
+    "alignCenter": "Align centre",
+    "alignRight": "Align right",
+    "justify": "Justify",
+    "bulletList": "Bulleted list",
+    "orderedList": "Numbered list",
+    "taskList": "Task list",
+    "quote": "Quote",
+    "divider": "Divider",
+    "insertTable": "Insert table",
+    "addRow": "Add row",
+    "addColumn": "Add column",
+    "deleteTable": "Delete table",
+    "insertImage": "Insert image",
+    "undo": "Undo",
+    "redo": "Redo",
+    "agentChat": "Chat with the agent",
+    "agent": "Agent"
+  }
+}
