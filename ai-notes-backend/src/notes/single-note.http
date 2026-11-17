@@ -3,27 +3,27 @@
 ### ===== SINGLE NOTE =====
 
 ### Get all notes użytkownika (projektowe + prywatne)
-GET http://localhost:3000/notes
+GET http://localhost:3001/notes
 Authorization: Bearer {{token}}
 
 ### Get pinned notes
-GET http://localhost:3000/notes?pinned=true
+GET http://localhost:3001/notes?pinned=true
 Authorization: Bearer {{token}}
 
 ### Get favourite notes
-GET http://localhost:3000/notes?favourite=true
+GET http://localhost:3001/notes?favourite=true
 Authorization: Bearer {{token}}
 
 ### Get recent notes
-GET http://localhost:3000/projects/recent-notes
+GET http://localhost:3001/projects/recent-notes
 Authorization: Bearer {{token}}
 
 ### Get single note
-GET http://localhost:3000/notes/1
+GET http://localhost:3001/notes/1
 Authorization: Bearer {{token}}
 
 ### Create notatka prywatna (bez projektu)
-POST http://localhost:3000/notes
+POST http://localhost:3001/notes
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -33,7 +33,7 @@ content-type: application/json
 }
 
 ### Create notatka w projekcie (przez body)
-POST http://localhost:3000/notes
+POST http://localhost:3001/notes
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -44,7 +44,7 @@ content-type: application/json
 }
 
 ### Update notee
-PATCH http://localhost:3000/notes/15
+PATCH http://localhost:3001/notes/15
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -54,25 +54,25 @@ content-type: application/json
 }
 
 ### Delete note
-DELETE http://localhost:3000/notes/1
+DELETE http://localhost:3001/notes/1
 Authorization: Bearer {{token}}
 
 ### Toggle pin
-PATCH http://localhost:3000/notes/14/pin
+PATCH http://localhost:3001/notes/14/pin
 Authorization: Bearer {{token}}
 
 ### Toggle favourite
-PATCH http://localhost:3000/notes/1/favourite
+PATCH http://localhost:3001/notes/1/favourite
 Authorization: Bearer {{token}}
 
 ### ===== NOTE ACCESS MANAGEMENT =====
 
 ### Lista członków notatki
-GET http://localhost:3000/notes/1/members
+GET http://localhost:3001/notes/1/members
 Authorization: Bearer {{token}}
 
 ### Nadaj dostęp (VIEW)
-POST http://localhost:3000/notes/1/members
+POST http://localhost:3001/notes/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -81,7 +81,7 @@ content-type: application/json
 }
 
 ### Nadaj dostęp (EDIT)
-POST http://localhost:3000/notes/1/members
+POST http://localhost:3001/notes/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -91,7 +91,7 @@ content-type: application/json
 }
 
 ### Nadaj dostęp (DELETE)
-POST http://localhost:3000/notes/1/members
+POST http://localhost:3001/notes/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -101,20 +101,20 @@ content-type: application/json
 }
 
 ### Odbierz dostęp
-DELETE http://localhost:3000/notes/1/members/5
+DELETE http://localhost:3001/notes/1/members/5
 Authorization: Bearer {{token}}
 
 ### ===== TESTY BEZPIECZENSTWA =====
 
 ### Brak tokenu → 401
-GET http://localhost:3000/notes
+GET http://localhost:3001/notes
 
 ### Cudza notatka prywatna → 403
-GET http://localhost:3000/notes/999
+GET http://localhost:3001/notes/999
 Authorization: Bearer {{token}}
 
 ### Nadanie dostępu bez bycia ownerem → 403
-POST http://localhost:3000/notes/999/members
+POST http://localhost:3001/notes/999/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -123,5 +123,5 @@ content-type: application/json
 }
 
 ### Usunięcie cudzej notatki → 403
-DELETE http://localhost:3000/notes/999
+DELETE http://localhost:3001/notes/999
 Authorization: Bearer {{token}}

@@ -3,23 +3,23 @@
 ### ===== NOTES IN PROJECT =====
 
 ### Get all notes in project
-GET http://localhost:3000/projects/3/notes
+GET http://localhost:3001/projects/3/notes
 Authorization: Bearer {{token}}
 
 ### Get pinned notes
-GET http://localhost:3000/projects/1/notes?pinned=true
+GET http://localhost:3001/projects/1/notes?pinned=true
 Authorization: Bearer {{token}}
 
 ### Get favourite notes
-GET http://localhost:3000/projects/1/notes?favourite=true
+GET http://localhost:3001/projects/1/notes?favourite=true
 Authorization: Bearer {{token}}
 
 ### Get single note
-GET http://localhost:3000/projects/1/notes/1
+GET http://localhost:3001/projects/1/notes/1
 Authorization: Bearer {{token}}
 
 ### Create note w projekcie
-POST http://localhost:3000/projects/3/notes
+POST http://localhost:3001/projects/3/notes
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -29,7 +29,7 @@ content-type: application/json
 }
 
 ### Update note
-PATCH http://localhost:3000/projects/1/notes/1
+PATCH http://localhost:3001/projects/1/notes/1
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -38,25 +38,25 @@ content-type: application/json
 }
 
 ### Delete note
-DELETE http://localhost:3000/projects/1/notes/1
+DELETE http://localhost:3001/projects/1/notes/1
 Authorization: Bearer {{token}}
 
 ### Toggle pin
-PATCH http://localhost:3000/projects/1/notes/1/pin
+PATCH http://localhost:3001/projects/1/notes/1/pin
 Authorization: Bearer {{token}}
 
 ### Toggle favourite
-PATCH http://localhost:3000/projects/1/notes/1/favourite
+PATCH http://localhost:3001/projects/1/notes/1/favourite
 Authorization: Bearer {{token}}
 
 ### ===== NOTE ACCESS MANAGEMENT =====
 
 ### Lista członków notatki
-GET http://localhost:3000/projects/1/notes/1/members
+GET http://localhost:3001/projects/1/notes/1/members
 Authorization: Bearer {{token}}
 
 ### Nadaj dostęp (VIEW)
-POST http://localhost:3000/projects/1/notes/1/members
+POST http://localhost:3001/projects/1/notes/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -65,7 +65,7 @@ content-type: application/json
 }
 
 ### Nadaj dostęp (EDIT)
-POST http://localhost:3000/projects/1/notes/1/members
+POST http://localhost:3001/projects/1/notes/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -75,7 +75,7 @@ content-type: application/json
 }
 
 ### Nadaj dostęp (DELETE)
-POST http://localhost:3000/projects/1/notes/1/members
+POST http://localhost:3001/projects/1/notes/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -85,24 +85,24 @@ content-type: application/json
 }
 
 ### Odbierz dostęp
-DELETE http://localhost:3000/projects/1/notes/1/members/5
+DELETE http://localhost:3001/projects/1/notes/1/members/5
 Authorization: Bearer {{token}}
 
 ### ===== TESTY BEZPIECZENSTWA =====
 
 ### Brak tokenu → 401
-GET http://localhost:3000/projects/1/notes
+GET http://localhost:3001/projects/1/notes
 
 ### Brak dostępu do projektu → 403
-GET http://localhost:3000/projects/999/notes/999
+GET http://localhost:3001/projects/999/notes/999
 Authorization: Bearer {{token}}
 
 ### Toggle favourite bez dostępu → 403
-PATCH http://localhost:3000/projects/999/notes/999/favourite
+PATCH http://localhost:3001/projects/999/notes/999/favourite
 Authorization: Bearer {{token}}
 
 ### Nadanie dostępu bez bycia ownerem → 403
-POST http://localhost:3000/projects/999/notes/999/members
+POST http://localhost:3001/projects/999/notes/999/members
 Authorization: Bearer {{token}}
 content-type: application/json
 

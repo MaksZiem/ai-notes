@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Server } from '@hocuspocus/server';
@@ -9,13 +10,12 @@ import { NotesService } from 'src/notes/notes.service';
 import { Note } from 'src/notes/entities/note.entity';
 import { AccessLevel, hasAccess } from 'src/enums/access-level.enum';
 
-const YJS_PORT = 1234;
-
 @Injectable()
 export class YjsGateway implements OnModuleInit {
   private readonly logger = new Logger(YjsGateway.name);
 
   constructor(
+    private readonly config: ConfigService,
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
     private readonly notesService: NotesService,
@@ -23,8 +23,9 @@ export class YjsGateway implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    const port = Number(this.config.getOrThrow<string>('YJS_PORT'));
     const server = new Server({
-      port: YJS_PORT,
+      port,
 
       onAuthenticate: async ({ token, documentName, connectionConfig }) => {
         const noteId = Number(documentName);
@@ -71,6 +72,6 @@ export class YjsGateway implements OnModuleInit {
     });
 
     await server.listen()
-    this.logger.log(`Yjs (Hocuspocus) nasłuchuje na porcie ${YJS_PORT}`);
+    this.logger.log(`Yjs (Hocuspocus) nasłuchuje na porcie ${port}`);
   }
 }

@@ -3,27 +3,27 @@
 ### ===== PROJECTS =====
 
 ### Get all projects
-GET http://localhost:3000/projects
+GET http://localhost:3001/projects
 Authorization: Bearer {{token}}
 
 ### Get recent projects
-GET http://localhost:3000/projects/recent
+GET http://localhost:3001/projects/recent
 Authorization: Bearer {{token}}
 
 ### Get pinned projects
-GET http://localhost:3000/projects?pinned=true
+GET http://localhost:3001/projects?pinned=true
 Authorization: Bearer {{token}}
 
 ### Get favourite projects
-GET http://localhost:3000/projects?favourite=true
+GET http://localhost:3001/projects?favourite=true
 Authorization: Bearer {{token}}
 
 ### Get single project
-GET http://localhost:3000/projects/1
+GET http://localhost:3001/projects/1
 Authorization: Bearer {{token}}
 
 ### Create project
-POST http://localhost:3000/projects
+POST http://localhost:3001/projects
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -33,7 +33,7 @@ content-type: application/json
 }
 
 ### Update project
-PATCH http://localhost:3000/projects/3
+PATCH http://localhost:3001/projects/3
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -43,25 +43,25 @@ content-type: application/json
 }
 
 ### Delete project
-DELETE http://localhost:3000/projects/1
+DELETE http://localhost:3001/projects/1
 Authorization: Bearer {{token}}
 
 ### Toggle pin
-PATCH http://localhost:3000/projects/1/pin
+PATCH http://localhost:3001/projects/1/pin
 Authorization: Bearer {{token}}
 
 ### Toggle favourite
-PATCH http://localhost:3000/projects/1/favourite
+PATCH http://localhost:3001/projects/1/favourite
 Authorization: Bearer {{token}}
 
 ### ===== PROJECT ACCESS MANAGEMENT =====
 
 ### Lista członków projektu
-GET http://localhost:3000/projects/1/members
+GET http://localhost:3001/projects/1/members
 Authorization: Bearer {{token}}
 
 ### Nadaj dostęp (VIEW)
-POST http://localhost:3000/projects/1/members
+POST http://localhost:3001/projects/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -70,7 +70,7 @@ content-type: application/json
 }
 
 ### Nadaj dostęp (EDIT)
-POST http://localhost:3000/projects/1/members
+POST http://localhost:3001/projects/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -80,7 +80,7 @@ content-type: application/json
 }
 
 ### Nadaj dostęp (DELETE)
-POST http://localhost:3000/projects/1/members
+POST http://localhost:3001/projects/1/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -90,20 +90,20 @@ content-type: application/json
 }
 
 ### Odbierz dostęp
-DELETE http://localhost:3000/projects/1/members/5
+DELETE http://localhost:3001/projects/1/members/5
 Authorization: Bearer {{token}}
 
 ### ===== TESTY BEZPIECZENSTWA =====
 
 ### Brak tokenu → 401
-GET http://localhost:3000/projects
+GET http://localhost:3001/projects
 
 ### Nieistniejący projekt → 404
-GET http://localhost:3000/projects/999
+GET http://localhost:3001/projects/999
 Authorization: Bearer {{token}}
 
 ### Nadanie dostępu bez bycia ownerem → 403
-POST http://localhost:3000/projects/999/members
+POST http://localhost:3001/projects/999/members
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -112,5 +112,5 @@ content-type: application/json
 }
 
 ### Toggle pin bez dostępu → 403
-PATCH http://localhost:3000/projects/999/pin
+PATCH http://localhost:3001/projects/999/pin
 Authorization: Bearer {{token}}

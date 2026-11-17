@@ -2,14 +2,16 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UPLOAD_DIR } from './uploads/uploads.controller';
 import { setupSwagger } from './common/swagger/swagger.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const config = app.get(ConfigService);
 
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: config.getOrThrow<string>('FRONTEND_URL'),
     credentials: true,
   });
 
@@ -26,6 +28,6 @@ async function bootstrap() {
 
   setupSwagger(app);
 
-  await app.listen(3000);
+  await app.listen(config.getOrThrow<number>('PORT'));
 }
 bootstrap();

@@ -11,7 +11,13 @@ import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway({
   namespace: '/notifications',
-  cors: { origin: 'http://localhost:5173', credentials: true },
+  cors: {
+    origin: (
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => callback(null, !origin || origin === process.env.FRONTEND_URL),
+    credentials: true,
+  },
 })
 export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
