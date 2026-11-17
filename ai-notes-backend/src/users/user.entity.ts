@@ -1,3 +1,4 @@
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { UserRole } from 'src/enums/user-role.enum';
 import { Project } from 'src/projects/entities/project.entity';
@@ -8,11 +9,12 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiHideProperty()
   @Exclude()
   @Column()
   password: string;
 
-  @Column({unique: true})
+  @Column({ unique: true })
   email: string;
 
   @Column()
@@ -21,9 +23,11 @@ export class User {
   @Column()
   surname: string;
 
+  @ApiProperty({ enum: UserRole })
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
+  @ApiHideProperty()
   @OneToMany(() => Project, (project) => project.owner)
   projects: Project[];
 }

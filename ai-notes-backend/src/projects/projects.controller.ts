@@ -15,12 +15,29 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import {
+  BadRequestErrorDto,
+  ForbiddenErrorDto,
+  NotFoundErrorDto,
+  UnauthorizedErrorDto,
+} from 'src/common/swagger/error-response.dto';
+import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { Project } from './entities/project.entity';
+import { ProjectMember } from './entities/project-member.entity';
+import { ProjectShareLink } from './entities/project-share-link.entity';
+import { UserProjectPreference } from './entities/project-user-preference.entity';
 import { ProjectsService } from './projects.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
@@ -31,8 +48,12 @@ import { GrantAccessDto } from './dtos/grant-access.dto';
 import { NotesService } from 'src/notes/notes.service';
 import { CreateProjectShareLinkDto } from './dtos/create-project-share-link.dto';
 
-@ApiTags('Projects')
-@ApiBearerAuth('access-token')
+@ApiTags('projects')
+@ApiBearerAuth(BEARER_AUTH)
+@ApiUnauthorizedResponse({
+  description: 'Brak tokenu lub token nieprawidłowy',
+  type: UnauthorizedErrorDto,
+})
 @UseGuards(AuthGuard)
 @Controller('projects')
 export class ProjectsController {
@@ -52,8 +73,15 @@ export class ProjectsController {
       'Zwraca projekty, których użytkownik jest właścicielem, lub do których ma nadany dostęp jako member. ' +
       'Admin widzi wszystkie projekty w systemie.',
   })
-  @ApiResponse({ status: 200, description: 'Tablica projektów' })
-  @ApiResponse({ status: 401, description: 'Brak lub nieważny token JWT' })
+  @ApiUnauthorizedResponse({
+    description: 'Brak lub nieważny token JWT',
+    type: UnauthorizedErrorDto,
+  })
+  @ApiOkResponse({
+    description: 'Projekty użytkownika',
+    type: Project,
+    isArray: true,
+  })
   findAll(
     @CurrentUser() user: User,
     @Query('pinned', new DefaultValuePipe(false), ParseBoolPipe)
@@ -72,7 +100,11 @@ export class ProjectsController {
   // ──────────────────────────────────────────────
   @Get('recent')
   @ApiOperation({ summary: 'Ostatnio modyfikowane projekty użytkownika' })
-  @ApiResponse({ status: 200, description: 'Tablica projektów' })
+  @ApiOkResponse({
+    description: 'Do 5 ostatnio zmienionych projektów',
+    type: Project,
+    isArray: true,
+  })
   findRecent(@CurrentUser() user: User) {
     return this.projectsService.findRecent(user.id, user.role);
   }
@@ -100,9 +132,15 @@ export class ProjectsController {
       'Dostęp mają: właściciel, admin oraz użytkownicy z co najmniej poziomem VIEW nadanym przez właściciela.',
   })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({ status: 200, description: 'Dane projektu' })
-  @ApiResponse({ status: 403, description: 'Brak dostępu do projektu' })
-  @ApiResponse({ status: 404, description: 'Projekt nie znaleziony' })
+  @ApiForbiddenResponse({
+    description: 'Brak dostępu do projektu',
+    type: ForbiddenErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Projekt nie znaleziony',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Projekt', type: Project })
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
     return this.projectsService.findOne(id, user.id, user.role);
   }
@@ -116,8 +154,11 @@ export class ProjectsController {
     description:
       'Twórca staje się automatycznie właścicielem projektu (ownerId = id z tokenu JWT).',
   })
-  @ApiResponse({ status: 201, description: 'Projekt utworzony' })
-  @ApiResponse({ status: 400, description: 'Błąd walidacji body' })
+  @ApiBadRequestResponse({
+    description: 'Błąd walidacji body',
+    type: BadRequestErrorDto,
+  })
+  @ApiCreatedResponse({ description: 'Utworzony projekt', type: Project })
   create(@Body() body: CreateProjectDto, @CurrentUser() user: User) {
     return this.projectsService.create(body, user.id);
   }
@@ -132,12 +173,15 @@ export class ProjectsController {
       'Wymaga co najmniej poziomu EDIT. Właściciel i admin mogą edytować zawsze. Pola pominięte w body pozostają bez zmian.',
   })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({ status: 200, description: 'Projekt zaktualizowany' })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Niewystarczający poziom dostępu (wymagany EDIT)',
+    type: ForbiddenErrorDto,
   })
-  @ApiResponse({ status: 404, description: 'Projekt nie znaleziony' })
+  @ApiNotFoundResponse({
+    description: 'Projekt nie znaleziony',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Zaktualizowany projekt', type: Project })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateProjectDto,
@@ -157,12 +201,15 @@ export class ProjectsController {
       'Usunięcie projektu kaskadowo usuwa wszystkie notatki i wpisy dostępu.',
   })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({ status: 200, description: 'Projekt usunięty' })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Tylko właściciel lub admin może usunąć projekt',
+    type: ForbiddenErrorDto,
   })
-  @ApiResponse({ status: 404, description: 'Projekt nie znaleziony' })
+  @ApiNotFoundResponse({
+    description: 'Projekt nie znaleziony',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Usunięty projekt', type: Project })
   delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
     return this.projectsService.remove(id, user.id, user.role);
   }
@@ -173,7 +220,10 @@ export class ProjectsController {
   @Patch(':id/pin')
   @ApiOperation({ summary: 'Toggle pin projekt (per-user)' })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({ status: 200, description: 'Stan pinu zaktualizowany' })
+  @ApiOkResponse({
+    description: 'Preferencje użytkownika dla projektu',
+    type: UserProjectPreference,
+  })
   togglePin(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
     return this.projectsService.togglePin(id, user.id, user.role);
   }
@@ -184,7 +234,10 @@ export class ProjectsController {
   @Patch(':id/favourite')
   @ApiOperation({ summary: 'Toggle favourite projektu (per-user)' })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({ status: 200, description: 'Stan ulubionego zaktualizowany' })
+  @ApiOkResponse({
+    description: 'Preferencje użytkownika dla projektu',
+    type: UserProjectPreference,
+  })
   toggleFavourite(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: User,
@@ -203,11 +256,15 @@ export class ProjectsController {
       'Właściciel i admin widzą listę zawsze; member z VIEW również.',
   })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista ProjectMember z dołączonym obiektem user',
+  @ApiForbiddenResponse({
+    description: 'Brak dostępu do projektu',
+    type: ForbiddenErrorDto,
   })
-  @ApiResponse({ status: 403, description: 'Brak dostępu do projektu' })
+  @ApiOkResponse({
+    description: 'Członkowie projektu z danymi użytkownika',
+    type: ProjectMember,
+    isArray: true,
+  })
   listMembers(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: User,
@@ -226,10 +283,13 @@ export class ProjectsController {
       'Jeśli użytkownik już ma dostęp, jego poziom zostanie nadpisany wartością z body.',
   })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({ status: 201, description: 'Dostęp nadany / zaktualizowany' })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Tylko właściciel lub admin może zarządzać dostępem',
+    type: ForbiddenErrorDto,
+  })
+  @ApiCreatedResponse({
+    description: 'Wpis dostępu do projektu',
+    type: ProjectMember,
   })
   grantAccess(
     @Param('id', ParseIntPipe) id: number,
@@ -254,11 +314,11 @@ export class ProjectsController {
     example: 7,
     description: 'ID użytkownika, któremu odbieramy dostęp',
   })
-  @ApiResponse({ status: 200, description: 'Dostęp odebrany' })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Tylko właściciel lub admin może odebrać dostęp',
+    type: ForbiddenErrorDto,
   })
+  @ApiOkResponse({ description: 'Dostęp odebrany' })
   revokeAccess(
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) targetUserId: number,
@@ -284,12 +344,15 @@ export class ProjectsController {
       'Właściciel projektu nie może go w ten sposób opuścić.',
   })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
-  @ApiResponse({ status: 200, description: 'Projekt opuszczony' })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Jesteś właścicielem projektu lub nie masz do niego dostępu',
+    type: ForbiddenErrorDto,
   })
-  leaveProject(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  @ApiOkResponse({ description: 'Projekt opuszczony' })
+  leaveProject(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ) {
     return this.projectsService.leaveProject(id, user.id);
   }
 
@@ -303,7 +366,19 @@ export class ProjectsController {
       'Tylko właściciel lub admin. Jeśli podano e-mail, link jest od razu wysyłany — ' +
       'a jeśli e-mail należy do zarejestrowanego konta, zaproszenie pojawia się też w powiadomieniach.',
   })
-  @ApiParam({ name: 'id', example: 1 })
+  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiCreatedResponse({
+    description: 'Utworzone zaproszenie',
+    type: ProjectShareLink,
+  })
+  @ApiForbiddenResponse({
+    description: 'Tylko właściciel lub admin (kod PROJECT_ACCESS_OWNER_ONLY)',
+    type: ForbiddenErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Projekt nie istnieje (kod PROJECT_NOT_FOUND)',
+    type: NotFoundErrorDto,
+  })
   createShareLink(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: CreateProjectShareLinkDto,
@@ -317,7 +392,20 @@ export class ProjectsController {
   // ──────────────────────────────────────────────
   @Get(':id/share-links')
   @ApiOperation({ summary: 'Lista aktywnych zaproszeń do projektu' })
-  @ApiParam({ name: 'id', example: 1 })
+  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiOkResponse({
+    description: 'Aktywne zaproszenia',
+    type: ProjectShareLink,
+    isArray: true,
+  })
+  @ApiForbiddenResponse({
+    description: 'Tylko właściciel lub admin (kod PROJECT_ACCESS_OWNER_ONLY)',
+    type: ForbiddenErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Projekt nie istnieje (kod PROJECT_NOT_FOUND)',
+    type: NotFoundErrorDto,
+  })
   listShareLinks(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: User,
@@ -330,8 +418,21 @@ export class ProjectsController {
   // ──────────────────────────────────────────────
   @Delete(':id/share-links/:linkId')
   @ApiOperation({ summary: 'Odwołaj zaproszenie do projektu' })
-  @ApiParam({ name: 'id', example: 1 })
-  @ApiParam({ name: 'linkId', example: 3 })
+  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiOkResponse({ description: 'Zaproszenie odwołane' })
+  @ApiParam({
+    name: 'linkId',
+    example: 3,
+    description: 'ID linku udostępniania',
+  })
+  @ApiForbiddenResponse({
+    description: 'Tylko właściciel lub admin (kod PROJECT_ACCESS_OWNER_ONLY)',
+    type: ForbiddenErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Projekt lub zaproszenie nie istnieje',
+    type: NotFoundErrorDto,
+  })
   revokeShareLink(
     @Param('id', ParseIntPipe) id: number,
     @Param('linkId', ParseIntPipe) linkId: number,

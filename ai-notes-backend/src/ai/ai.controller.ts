@@ -8,6 +8,40 @@ import {
   UseGuards,
   HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiTooManyRequestsResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import {
+  BadRequestErrorDto,
+  ForbiddenErrorDto,
+  NotFoundErrorDto,
+  TooManyRequestsErrorDto,
+  UnauthorizedErrorDto,
+} from 'src/common/swagger/error-response.dto';
+import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import {
+  ContentDto,
+  ContinuationDto,
+  GeneratedContentDto,
+  GeneratedTextDto,
+  KeywordsDto,
+  PromptDto,
+  RewriteDto,
+  RewriteResultDto,
+  SummaryDto,
+  TextDto,
+  TitleDto,
+} from './dtos/ai.dto';
 import { AiService, RewriteMode } from './ai.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { NotesService } from 'src/notes/notes.service';
@@ -24,6 +58,16 @@ const REWRITE_MODES: RewriteMode[] = [
 ];
 
 @UseGuards(AuthGuard)
+@ApiTags('ai')
+@ApiBearerAuth(BEARER_AUTH)
+@ApiUnauthorizedResponse({
+  description: 'Brak tokenu lub token nieprawidłowy',
+  type: UnauthorizedErrorDto,
+})
+@ApiTooManyRequestsResponse({
+  description: 'Wyczerpany limit zapytań do AI (kod AI_QUOTA_EXCEEDED)',
+  type: TooManyRequestsErrorDto,
+})
 @Controller('ai')
 export class AiController {
   constructor(
@@ -32,12 +76,28 @@ export class AiController {
   ) {}
 
   @Post('ping')
+  @ApiOperation({ summary: 'Test połączenia z AI' })
+  @ApiCreatedResponse({
+    description: 'Odpowiedź modelu',
+    type: GeneratedTextDto,
+  })
+  @ApiBody({ type: PromptDto })
   async ping(@Body('prompt') prompt: string) {
     const text = await this.aiService.generateText(prompt);
     return { text };
   }
 
   @Post('generate')
+  @ApiOperation({ summary: 'Wygeneruj treść notatki z polecenia' })
+  @ApiCreatedResponse({
+    description: 'Wygenerowana treść',
+    type: GeneratedContentDto,
+  })
+  @ApiBody({ type: PromptDto })
+  @ApiBadRequestResponse({
+    description: 'Brak polecenia (kod INSTRUCTION_REQUIRED)',
+    type: BadRequestErrorDto,
+  })
   async generate(@Body('prompt') prompt: string) {
     if (!prompt?.trim()) {
       throw new BadRequestException(
@@ -53,6 +113,16 @@ export class AiController {
   }
 
   @Post('continue')
+  @ApiOperation({ summary: 'Kontynuuj pisanie tekstu' })
+  @ApiCreatedResponse({
+    description: 'Dalszy ciąg tekstu',
+    type: ContinuationDto,
+  })
+  @ApiBody({ type: TextDto })
+  @ApiBadRequestResponse({
+    description: 'Brak tekstu (kod TEXT_REQUIRED)',
+    type: BadRequestErrorDto,
+  })
   async continue(@Body('text') text: string) {
     if (!text?.trim()) {
       throw new BadRequestException(
@@ -64,6 +134,17 @@ export class AiController {
   }
 
   @Post('rewrite')
+  @ApiOperation({ summary: 'Przepisz zaznaczony tekst' })
+  @ApiCreatedResponse({
+    description: 'Przepisany tekst',
+    type: RewriteResultDto,
+  })
+  @ApiBody({ type: RewriteDto })
+  @ApiBadRequestResponse({
+    description:
+      'Brak tekstu (TEXT_REQUIRED), nieznany tryb (INVALID_MODE) lub brak instrukcji dla trybu custom (INSTRUCTION_REQUIRED)',
+    type: BadRequestErrorDto,
+  })
   async rewrite(
     @Body('text') text: string,
     @Body('mode') mode: RewriteMode,
@@ -94,6 +175,13 @@ export class AiController {
   }
 
   @Post('title')
+  @ApiOperation({ summary: 'Zaproponuj tytuł notatki' })
+  @ApiCreatedResponse({ description: 'Proponowany tytuł', type: TitleDto })
+  @ApiBody({ type: ContentDto })
+  @ApiBadRequestResponse({
+    description: 'Brak treści (kod CONTENT_REQUIRED)',
+    type: BadRequestErrorDto,
+  })
   async generateTitle(@Body('content') content: string) {
     if (!content?.trim()) {
       throw new BadRequestException(
@@ -109,6 +197,24 @@ export class AiController {
   }
 
   @Post('projects/:projectId/summary')
+  @ApiOperation({ summary: 'Streść wszystkie notatki projektu' })
+  @ApiCreatedResponse({
+    description: 'Streszczenie projektu',
+    type: SummaryDto,
+  })
+  @ApiParam({ name: 'projectId', example: 1, description: 'ID projektu' })
+  @ApiBadRequestResponse({
+    description: 'Projekt nie ma notatek (kod PROJECT_HAS_NO_NOTES)',
+    type: BadRequestErrorDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Brak dostępu do projektu',
+    type: ForbiddenErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Projekt nie istnieje (kod PROJECT_NOT_FOUND)',
+    type: NotFoundErrorDto,
+  })
   async generateProjectSummary(
     @Param('projectId', ParseIntPipe) projectId: number,
     @CurrentUser() user: User,
@@ -132,6 +238,16 @@ export class AiController {
   }
 
   @Post('keywords')
+  @ApiOperation({ summary: 'Zaproponuj słowa kluczowe' })
+  @ApiCreatedResponse({
+    description: 'Proponowane słowa kluczowe',
+    type: KeywordsDto,
+  })
+  @ApiBody({ type: ContentDto })
+  @ApiBadRequestResponse({
+    description: 'Brak treści (kod CONTENT_REQUIRED)',
+    type: BadRequestErrorDto,
+  })
   async suggestKeywords(@Body('content') content: string) {
     if (!content?.trim()) {
       throw new BadRequestException(

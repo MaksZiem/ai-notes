@@ -13,12 +13,27 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import {
+  BadRequestErrorDto,
+  ForbiddenErrorDto,
+  NotFoundErrorDto,
+  UnauthorizedErrorDto,
+} from 'src/common/swagger/error-response.dto';
+import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { Note } from './entities/note.entity';
+import { NoteMember } from './entities/note-member.entity';
+import { UserNotePreference } from './entities/note-user-preference.entity';
 import { NotesService } from './notes.service';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
 import { User } from 'src/users/user.entity';
@@ -27,8 +42,12 @@ import { UpdateNoteDto } from './dtos/update-note.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { GrantAccessDto } from 'src/projects/dtos/grant-access.dto';
 
-@ApiTags('Notes')
-@ApiBearerAuth('access-token')
+@ApiTags('notes')
+@ApiBearerAuth(BEARER_AUTH)
+@ApiUnauthorizedResponse({
+  description: 'Brak tokenu lub token nieprawidłowy',
+  type: UnauthorizedErrorDto,
+})
 @UseGuards(AuthGuard)
 @Controller('projects/:projectId/notes')
 export class NotesController {
@@ -49,9 +68,15 @@ export class NotesController {
     example: 1,
     description: 'ID projektu nadrzędnego',
   })
-  @ApiResponse({ status: 200, description: 'Tablica notatek' })
-  @ApiResponse({ status: 403, description: 'Brak dostępu do projektu' })
-  @ApiResponse({ status: 404, description: 'Projekt nie znaleziony' })
+  @ApiForbiddenResponse({
+    description: 'Brak dostępu do projektu',
+    type: ForbiddenErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Projekt nie znaleziony',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Notatki projektu', type: Note, isArray: true })
   findAll(
     @Param('projectId', ParseIntPipe) projectId: number,
     @CurrentUser() user: User,
@@ -87,12 +112,15 @@ export class NotesController {
     description: 'ID projektu nadrzędnego',
   })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
-  @ApiResponse({ status: 200, description: 'Dane notatki' })
-  @ApiResponse({ status: 403, description: 'Brak dostępu do notatki' })
-  @ApiResponse({
-    status: 404,
-    description: 'Notatka lub projekt nie znaleziony',
+  @ApiForbiddenResponse({
+    description: 'Brak dostępu do notatki',
+    type: ForbiddenErrorDto,
   })
+  @ApiNotFoundResponse({
+    description: 'Notatka lub projekt nie znaleziony',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Notatka', type: Note })
   findOne(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -114,12 +142,15 @@ export class NotesController {
     example: 1,
     description: 'ID projektu nadrzędnego',
   })
-  @ApiResponse({ status: 201, description: 'Notatka utworzona' })
-  @ApiResponse({ status: 400, description: 'Błąd walidacji body' })
-  @ApiResponse({
-    status: 403,
-    description: 'Niewystarczający poziom dostępu (wymagany EDIT)',
+  @ApiBadRequestResponse({
+    description: 'Błąd walidacji body',
+    type: BadRequestErrorDto,
   })
+  @ApiForbiddenResponse({
+    description: 'Niewystarczający poziom dostępu (wymagany EDIT)',
+    type: ForbiddenErrorDto,
+  })
+  @ApiCreatedResponse({ description: 'Utworzona notatka', type: Note })
   create(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Body() body: CreateNoteDto,
@@ -144,9 +175,15 @@ export class NotesController {
     description: 'ID projektu nadrzędnego',
   })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
-  @ApiResponse({ status: 200, description: 'Notatka zaktualizowana' })
-  @ApiResponse({ status: 403, description: 'Niewystarczający poziom dostępu' })
-  @ApiResponse({ status: 404, description: 'Notatka nie znaleziona' })
+  @ApiForbiddenResponse({
+    description: 'Niewystarczający poziom dostępu',
+    type: ForbiddenErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Notatka nie znaleziona',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Zaktualizowana notatka', type: Note })
   update(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -171,12 +208,15 @@ export class NotesController {
     description: 'ID projektu nadrzędnego',
   })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
-  @ApiResponse({ status: 200, description: 'Notatka usunięta' })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Niewystarczający poziom dostępu (wymagany DELETE)',
+    type: ForbiddenErrorDto,
   })
-  @ApiResponse({ status: 404, description: 'Notatka nie znaleziona' })
+  @ApiNotFoundResponse({
+    description: 'Notatka nie znaleziona',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Usunięta notatka', type: Note })
   remove(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -190,9 +230,12 @@ export class NotesController {
   // ──────────────────────────────────────────────
   @Patch(':id/pin')
   @ApiOperation({ summary: 'Toggle pin notatki (per-user)' })
-  @ApiParam({ name: 'projectId', example: 1 })
-  @ApiParam({ name: 'id', example: 5 })
-  @ApiResponse({ status: 200, description: 'Stan pinu zaktualizowany' })
+  @ApiParam({ name: 'projectId', example: 1, description: 'ID projektu' })
+  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiOkResponse({
+    description: 'Preferencje użytkownika dla notatki',
+    type: UserNotePreference,
+  })
   togglePin(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -206,9 +249,12 @@ export class NotesController {
   // ──────────────────────────────────────────────
   @Patch(':id/favourite')
   @ApiOperation({ summary: 'Toggle favourite notatki (per-user)' })
-  @ApiParam({ name: 'projectId', example: 1 })
-  @ApiParam({ name: 'id', example: 5 })
-  @ApiResponse({ status: 200, description: 'Stan ulubionego zaktualizowany' })
+  @ApiParam({ name: 'projectId', example: 1, description: 'ID projektu' })
+  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiOkResponse({
+    description: 'Preferencje użytkownika dla notatki',
+    type: UserNotePreference,
+  })
   toggleFavourite(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -232,11 +278,15 @@ export class NotesController {
     description: 'ID projektu nadrzędnego',
   })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista NoteMember z dołączonym obiektem user',
+  @ApiForbiddenResponse({
+    description: 'Brak dostępu do notatki',
+    type: ForbiddenErrorDto,
   })
-  @ApiResponse({ status: 403, description: 'Brak dostępu do notatki' })
+  @ApiOkResponse({
+    description: 'Członkowie notatki z danymi użytkownika',
+    type: NoteMember,
+    isArray: true,
+  })
   listMembers(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -261,13 +311,13 @@ export class NotesController {
     description: 'ID projektu nadrzędnego',
   })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
-  @ApiResponse({
-    status: 201,
-    description: 'Dostęp do notatki nadany / zaktualizowany',
-  })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Tylko właściciel projektu lub admin',
+    type: ForbiddenErrorDto,
+  })
+  @ApiCreatedResponse({
+    description: 'Wpis dostępu do notatki',
+    type: NoteMember,
   })
   grantAccess(
     @Param('projectId', ParseIntPipe) projectId: number,
@@ -303,11 +353,11 @@ export class NotesController {
     example: 7,
     description: 'ID użytkownika, któremu odbieramy dostęp',
   })
-  @ApiResponse({ status: 200, description: 'Dostęp odebrany' })
-  @ApiResponse({
-    status: 403,
+  @ApiForbiddenResponse({
     description: 'Tylko właściciel projektu lub admin',
+    type: ForbiddenErrorDto,
   })
+  @ApiOkResponse({ description: 'Dostęp odebrany' })
   revokeAccess(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('id', ParseIntPipe) id: number,

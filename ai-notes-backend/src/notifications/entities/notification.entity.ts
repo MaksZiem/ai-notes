@@ -1,3 +1,4 @@
+import { ApiHideProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -16,10 +17,11 @@ import { AccessLevel } from 'src/enums/access-level.enum';
 
 @Entity()
 export class Notification {
- @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   // odbiorca powiadomienia
+  @ApiHideProperty()
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
@@ -30,6 +32,7 @@ export class Notification {
   type: NotificationType;
 
   // kto wywołał zdarzenie (np. kto udostępnił notatkę/projekt)
+  @ApiPropertyOptional({ type: () => User, nullable: true })
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   actor: User | null;
 
@@ -37,6 +40,7 @@ export class Notification {
   actorId: number | null;
 
   // notatka, której dotyczy powiadomienie
+  @ApiPropertyOptional({ type: () => Note, nullable: true })
   @ManyToOne(() => Note, { onDelete: 'CASCADE', nullable: true })
   note: Note | null;
 
@@ -44,6 +48,7 @@ export class Notification {
   noteId: number | null;
 
   // projekt, którego dotyczy powiadomienie
+  @ApiPropertyOptional({ type: () => Project, nullable: true })
   @ManyToOne(() => Project, { onDelete: 'CASCADE', nullable: true })
   project: Project | null;
 
@@ -54,6 +59,7 @@ export class Notification {
   accessLevel: AccessLevel | null;
 
   // link udostępniania notatki, którego dotyczy zaproszenie (tylko dla NOTE_INVITE)
+  @ApiHideProperty()
   @ManyToOne(() => NoteShareLink, { onDelete: 'CASCADE', nullable: true })
   shareLink: NoteShareLink | null;
 
@@ -61,6 +67,7 @@ export class Notification {
   shareLinkId: number | null;
 
   // link udostępniania projektu, którego dotyczy zaproszenie (tylko dla PROJECT_INVITE)
+  @ApiHideProperty()
   @ManyToOne(() => ProjectShareLink, { onDelete: 'CASCADE', nullable: true })
   projectShareLink: ProjectShareLink | null;
 

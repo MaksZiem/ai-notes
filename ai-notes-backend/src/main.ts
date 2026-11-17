@@ -1,9 +1,9 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import { UPLOAD_DIR } from './uploads/uploads.controller';
+import { setupSwagger } from './common/swagger/swagger.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -24,27 +24,7 @@ async function bootstrap() {
     next();
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('Notes API')
-    .setDescription('API do zarządzania projektami i notatkami')
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Wpisz token JWT otrzymany po zalogowaniu',
-      },
-      'access-token',
-    )
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+  setupSwagger(app);
 
   await app.listen(3000);
 }

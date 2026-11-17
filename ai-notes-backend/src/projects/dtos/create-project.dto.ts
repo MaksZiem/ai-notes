@@ -10,7 +10,8 @@ export class CreateProjectDto {
   name: string;
 
   @ApiPropertyOptional({
-    example: 'Projekt obejmuje przeprojektowanie UI i migrację na nowy stos technologiczny.',
+    example:
+      'Projekt obejmuje przeprojektowanie UI i migrację na nowy stos technologiczny.',
     description: 'Opcjonalny opis projektu',
   })
   @IsString()

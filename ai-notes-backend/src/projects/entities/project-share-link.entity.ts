@@ -1,3 +1,4 @@
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -16,12 +17,14 @@ export class ProjectShareLink {
   @Column({ unique: true })
   token: string;
 
+  @ApiHideProperty()
   @ManyToOne(() => Project, { onDelete: 'CASCADE' })
   project: Project;
 
   @Column()
   projectId: number;
 
+  @ApiProperty({ enum: AccessLevel })
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })
   accessLevel: AccessLevel;
 

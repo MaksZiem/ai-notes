@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Unique } from 'typeorm';
+import { ApiHideProperty } from '@nestjs/swagger';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  Unique,
+} from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Note } from './note.entity';
 
@@ -20,9 +27,11 @@ export class UserNotePreference {
   @Column({ default: false })
   isFavourite: boolean;
 
+  @ApiHideProperty()
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
+  @ApiHideProperty()
   @ManyToOne(() => Note, { onDelete: 'CASCADE' })
   note: Note;
 }

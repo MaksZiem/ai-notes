@@ -11,12 +11,25 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import {
+  BadRequestErrorDto,
+  ForbiddenErrorDto,
+  NotFoundErrorDto,
+  UnauthorizedErrorDto,
+} from 'src/common/swagger/error-response.dto';
+import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { TokenResponseDto } from './dtos/token-response.dto';
 import { UsersService } from './users.service';
 import { AuthService } from './auth.service';
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -30,7 +43,7 @@ import { plainToInstance } from 'class-transformer';
 import { AdminGuard } from 'src/guards/admin.guard';
 import { UserRole } from 'src/enums/user-role.enum';
 
-@ApiTags('Auth & Users')
+@ApiTags('auth')
 @Controller('auth')
 export class UsersController {
   constructor(
@@ -43,18 +56,17 @@ export class UsersController {
   // ──────────────────────────────────────────────
   @Get('/context')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth(BEARER_AUTH)
   @ApiOperation({
     summary: 'Zwróć dane zalogowanego użytkownika',
     description:
       'Na podstawie tokenu JWT odczytuje ID użytkownika z payload i zwraca pełny rekord z bazy.',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Dane bieżącego użytkownika',
-    type: UserDto,
+  @ApiUnauthorizedResponse({
+    description: 'Brak lub nieważny token JWT',
+    type: UnauthorizedErrorDto,
   })
-  @ApiResponse({ status: 401, description: 'Brak lub nieważny token JWT' })
+  @ApiOkResponse({ description: 'Dane bieżącego użytkownika', type: UserDto })
   async getContext(@CurrentUser() user: User) {
     const found = await this.usersService.findOne(user.id);
     return plainToInstance(UserDto, found, { excludeExtraneousValues: true });
@@ -69,14 +81,22 @@ export class UsersController {
     description:
       'Tworzy konto, hashuje hasło algorytmem scrypt i zwraca JWT access_token gotowy do użycia.',
   })
-  @ApiResponse({
-    status: 201,
-    description: 'Konto utworzone — zwraca JWT access_token',
-    schema: { example: { access_token: 'eyJhbGci...' } },
+  @ApiCreatedResponse({
+    description: 'Konto utworzone, zwraca token JWT',
+    type: TokenResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Podany e-mail jest już zajęty' })
+  @ApiBadRequestResponse({
+    description:
+      'Nieprawidłowe dane lub e-mail jest już zajęty (kod EMAIL_IN_USE)',
+    type: BadRequestErrorDto,
+  })
   signUp(@Body() body: CreateUserDto) {
-    return this.authService.signup(body.email, body.password, body.name, body.surname);
+    return this.authService.signup(
+      body.email,
+      body.password,
+      body.name,
+      body.surname,
+    );
   }
 
   // ──────────────────────────────────────────────
@@ -87,14 +107,13 @@ export class UsersController {
     summary: 'Logowanie użytkownika',
     description: 'Weryfikuje hasło i zwraca JWT access_token ważny 7 dni.',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Zalogowano pomyślnie — zwraca JWT access_token',
-    schema: { example: { access_token: 'eyJhbGci...' } },
+  @ApiCreatedResponse({
+    description: 'Zalogowano, zwraca token JWT',
+    type: TokenResponseDto,
   })
-  @ApiResponse({
-    status: 401,
-    description: 'Nieprawidłowy email lub hasło',
+  @ApiUnauthorizedResponse({
+    description: 'Nieprawidłowy e-mail lub hasło (kod INVALID_CREDENTIALS)',
+    type: UnauthorizedErrorDto,
   })
   signin(@Body() body: SigninDto) {
     return this.authService.signin(body.email, body.password);
@@ -111,8 +130,20 @@ export class UsersController {
     example: 3,
     description: 'ID użytkownika do usunięcia',
   })
-  @ApiResponse({ status: 200, description: 'Użytkownik usunięty' })
-  @ApiResponse({ status: 404, description: 'Użytkownik nie znaleziony' })
+  @ApiNotFoundResponse({
+    description: 'Użytkownik nie znaleziony',
+    type: NotFoundErrorDto,
+  })
+  @ApiOkResponse({ description: 'Usunięty użytkownik', type: User })
+  @ApiBearerAuth(BEARER_AUTH)
+  @ApiUnauthorizedResponse({
+    description: 'Brak tokenu lub token nieprawidłowy',
+    type: UnauthorizedErrorDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Wymagana rola admina (kod ADMIN_REQUIRED)',
+    type: ForbiddenErrorDto,
+  })
   removeUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
   }
@@ -121,7 +152,7 @@ export class UsersController {
   // PATCH /auth/:id
   // ──────────────────────────────────────────────
   @Patch('/:id')
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth(BEARER_AUTH)
   @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Zaktualizuj dane użytkownika',
@@ -132,25 +163,33 @@ export class UsersController {
     example: 3,
     description: 'ID użytkownika do aktualizacji',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Użytkownik zaktualizowany',
-    type: UserDto,
+  @ApiNotFoundResponse({
+    description: 'Użytkownik nie znaleziony',
+    type: NotFoundErrorDto,
   })
-  @ApiResponse({ status: 404, description: 'Użytkownik nie znaleziony' })
+  @ApiOkResponse({ description: 'Zaktualizowany użytkownik', type: User })
+  @ApiUnauthorizedResponse({
+    description: 'Brak tokenu lub token nieprawidłowy',
+    type: UnauthorizedErrorDto,
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Można edytować tylko własne konto, a rolę zmienia tylko admin',
+    type: ForbiddenErrorDto,
+  })
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateUserDto,
-    @CurrentUser() currentUser: User
+    @CurrentUser() currentUser: User,
   ) {
-    const isAdmin = currentUser.role === UserRole.ADMIN
-    const isSelf = currentUser.id === id
+    const isAdmin = currentUser.role === UserRole.ADMIN;
+    const isSelf = currentUser.id === id;
 
-    if(!isAdmin && !isSelf) {
-      throw new ForbiddenException()
+    if (!isAdmin && !isSelf) {
+      throw new ForbiddenException();
     }
     if (!isAdmin && body.role !== undefined) {
-      throw new ForbiddenException()
+      throw new ForbiddenException();
     }
     return this.usersService.update(id, body);
   }

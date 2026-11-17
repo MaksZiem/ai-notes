@@ -13,12 +13,21 @@ import { existsSync, mkdirSync } from 'fs';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
   ApiConsumes,
+  ApiCreatedResponse,
   ApiOperation,
-  ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import {
+  BadRequestErrorDto,
+  UnauthorizedErrorDto,
+} from 'src/common/swagger/error-response.dto';
+import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { UploadResponseDto } from './dtos/upload-response.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { errorBody } from '../common/error-body';
 
@@ -35,8 +44,12 @@ if (!existsSync(UPLOAD_DIR)) {
   mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-@ApiTags('Uploads')
-@ApiBearerAuth('access-token')
+@ApiTags('uploads')
+@ApiBearerAuth(BEARER_AUTH)
+@ApiUnauthorizedResponse({
+  description: 'Brak tokenu lub token nieprawidłowy',
+  type: UnauthorizedErrorDto,
+})
 @UseGuards(AuthGuard)
 @Controller('uploads')
 export class UploadsController {
@@ -49,15 +62,6 @@ export class UploadsController {
     summary: 'Wgraj obraz do treści notatki',
     description:
       'Przyjmuje pojedynczy plik graficzny (PNG/JPEG/GIF/WEBP, maks. 5MB) i zapisuje go lokalnie na dysku serwera.',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Plik zapisany — zwraca ścieżkę URL',
-    schema: { example: { url: '/uploads/3f1c9c2e-....png' } },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Brak pliku lub niedozwolony typ/rozmiar',
   })
   @UseInterceptors(
     FileInterceptor('file', {
@@ -86,6 +90,22 @@ export class UploadsController {
       },
     }),
   )
+  @ApiCreatedResponse({
+    description: 'Obraz zapisany',
+    type: UploadResponseDto,
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiBadRequestResponse({
+    description:
+      'Brak pliku (FILE_REQUIRED), niedozwolony typ (IMAGE_TYPE_UNSUPPORTED) lub plik większy niż 5 MB',
+    type: BadRequestErrorDto,
+  })
   uploadImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException(

@@ -1,3 +1,4 @@
+import { ApiHideProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { User } from 'src/users/user.entity';
 import {
   Column,
@@ -19,21 +20,26 @@ export class Project {
   @Column()
   name: string;
 
+  @ApiPropertyOptional({ type: String, nullable: true })
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @ApiPropertyOptional({ type: String, nullable: true })
   @Column({ nullable: true })
   color: string;
 
+  @ApiHideProperty()
   @ManyToOne(() => User, (user) => user.projects, { onDelete: 'CASCADE' })
   owner: User;
 
   @Column()
   ownerId: number;
 
+  @ApiHideProperty()
   @OneToMany(() => Note, (note) => note.project)
   notes: Note[];
 
+  @ApiHideProperty()
   @OneToMany(() => ProjectMember, (member) => member.project)
   members: ProjectMember[];
 

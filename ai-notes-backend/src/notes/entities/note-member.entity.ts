@@ -1,3 +1,8 @@
+import {
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import { User } from 'src/users/user.entity';
 import {
   Column,
@@ -15,12 +20,14 @@ export class NoteMember {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiPropertyOptional({ type: () => User })
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
   @Column()
   userId: number;
 
+  @ApiHideProperty()
   @ManyToOne(() => Note, (note) => note.members, { onDelete: 'CASCADE' })
   note: Note;
 
@@ -28,6 +35,7 @@ export class NoteMember {
   noteId: number;
 
   /** VIEW < EDIT < DELETE (addytywne) */
+  @ApiProperty({ enum: AccessLevel })
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })
   accessLevel: AccessLevel;
 }
