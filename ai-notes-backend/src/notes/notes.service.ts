@@ -57,8 +57,6 @@ export class NotesService {
     private usersService: UsersService,
   ) {}
 
-  // ── findAll w projekcie ───────────────────────────────────────────────────
-
   async findAllNotesInProject(
     projectId: number,
     callerId: number,
@@ -93,8 +91,6 @@ export class NotesService {
     });
   }
 
-  // ── findAll globalnie (wszystkie notatki użytkownika) ────────────────────
-
   async findAllNotes(
     callerId: number,
     callerRole: UserRole,
@@ -102,7 +98,6 @@ export class NotesService {
     limit?: number,
     search?: string,
   ): Promise<Note[]> {
-    // helper — dodaje warunki wyszukiwania do każdego warunku where
     const withSearch = (conditions: object[]) => {
       if (!search) return conditions;
       const term = ILike(`%${search}%`);
@@ -128,14 +123,12 @@ export class NotesService {
       });
     }
 
-    // notatki dostępne przez projekt
     const memberships = await this.projectMemberRepo.find({
       where: { userId: callerId },
       select: ['projectId'],
     });
     const projectIds = memberships.map((m) => m.projectId);
 
-    // notatki z bezpośrednim dostępem (NoteMember)
     const noteMembers = await this.memberRepo.find({
       where: { userId: callerId },
       select: ['noteId'],
@@ -143,13 +136,9 @@ export class NotesService {
     const directNoteIds = noteMembers.map((m) => m.noteId);
 
     const baseWhere = [
-      // notatki bez projektu, których jest właścicielem
       { ownerId: callerId, projectId: IsNull() },
-      // notatki w projektach, które posiada
       { project: { ownerId: callerId } },
-      // notatki w projektach, do których ma dostęp jako member
       ...(projectIds.length ? [{ projectId: In(projectIds) }] : []),
-      // notatki z bezpośrednim wpisem NoteMember
       ...(directNoteIds.length ? [{ id: In(directNoteIds) }] : []),
     ];
 
@@ -183,53 +172,6 @@ export class NotesService {
     });
   }
 
-  // ── findRecent ────────────────────────────────────────────────────────────
-
-  // async findRecent(
-  //   callerId: number,
-  //   callerRole: UserRole,
-  //   limit = 5,
-  // ): Promise<Note[]> {
-  //   if (callerRole === UserRole.ADMIN) {
-  //     return this.repo.find({
-  //       order: { updatedAt: 'DESC' },
-  //       take: limit,
-  //       relations: ['project'],
-  //     });
-  //   }
-
-  //   const memberships = await this.projectMemberRepo.find({
-  //     where: { userId: callerId },
-  //     select: ['projectId'],
-  //   });
-  //   const projectIds = memberships.map((m) => m.projectId);
-
-  //   return this.repo.find({
-  //     where: [
-  //       { ownerId: callerId, projectId: IsNull() },
-  //       { project: { ownerId: callerId } },
-  //       ...(projectIds.length ? [{ projectId: In(projectIds) }] : []),
-  //     ],
-  //     order: { updatedAt: 'DESC' },
-  //     take: limit,
-  //     relations: ['project'],
-  //   });
-  // }
-
-  // ── findOne (bramka dostępu) ───────────────────────────────────────────────
-
-  /**
-   * Zwraca notatkę jeśli caller ma wymagany poziom dostępu.
-   *
-   * Notatka BEZ projektu (projectId = null):
-   *   - ADMIN → zawsze OK
-   *   - ownerId === callerId → zawsze OK
-   *   - wpis NoteMember z wymaganym poziomem → OK
-   *
-   * Notatka Z projektem:
-   *   - dostęp przez projekt (owner / admin / project member) → OK
-   *   - LUB bezpośredni wpis NoteMember → OK
-   */
   async findOne(
     id: number,
     projectId: number | null,
@@ -246,7 +188,6 @@ export class NotesService {
         errorBody(HttpStatus.NOT_FOUND, 'NOTE_NOT_FOUND', 'Note not found'),
       );
 
-    // ── notatka bez projektu ──────────────────────────────────────────────
     if (!note.projectId) {
       if (callerRole === UserRole.ADMIN || note.ownerId === callerId) {
         return note;
@@ -273,7 +214,6 @@ export class NotesService {
       return note;
     }
 
-    // ── notatka z projektem ───────────────────────────────────────────────
     try {
       await this.projectsService.findOne(
         note.projectId,
@@ -308,10 +248,6 @@ export class NotesService {
     return note;
   }
 
-  /**
-   * Zwraca efektywny poziom dostępu callera do notatki (bez wymuszania minimum).
-   * Używane do poinformowania frontendu, czy notatka powinna być tylko-do-odczytu.
-   */
   async getAccessLevel(
     id: number,
     projectId: number | null,
@@ -353,8 +289,6 @@ export class NotesService {
     return membership.accessLevel;
   }
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────
-
   async create(
     dto: CreateNoteDto,
     callerId: number,
@@ -364,7 +298,6 @@ export class NotesService {
     const resolvedProjectId = projectId ?? dto.projectId ?? null;
 
     if (resolvedProjectId != null) {
-      // notatka w projekcie — wymagany EDIT na projekcie
       await this.projectsService.findOne(
         resolvedProjectId,
         callerId,
@@ -433,11 +366,6 @@ export class NotesService {
     return this.repo.remove(note);
   }
 
-  /**
-   * Przenosi notatkę do innego projektu (lub poza projekty, jeśli targetProjectId === null).
-   * Wymaga DELETE tam, skąd notatka jest zabierana (tyle samo władzy co jej usunięcie stamtąd)
-   * oraz EDIT w projekcie docelowym (tyle samo władzy co utworzenie w nim nowej notatki).
-   */
   async moveToProject(
     id: number,
     targetProjectId: number | null,
@@ -465,8 +393,6 @@ export class NotesService {
     return this.repo.save(note);
   }
 
-  // ── pin / favourite ───────────────────────────────────────────────────────
-
   async togglePin(
     noteId: number,
     projectId: number | null,
@@ -490,8 +416,6 @@ export class NotesService {
     pref.isFavourite = !pref.isFavourite;
     return this.notePrefRepo.save(pref);
   }
-
-  // ── members ───────────────────────────────────────────────────────────────
 
   async grantAccess(
     noteId: number,
@@ -587,14 +511,6 @@ export class NotesService {
     }
   }
 
-  // ── helpers ───────────────────────────────────────────────────────────────
-
-  /**
-   * Sprawdza czy caller może zarządzać dostępem do notatki:
-   *   - ADMIN → zawsze OK
-   *   - notatka bez projektu → musi być ownerId notatki
-   *   - notatka z projektem → musi być właścicielem projektu
-   */
   private async assertNoteOwnerOrAdmin(
     noteId: number,
     projectId: number | null,
@@ -610,7 +526,6 @@ export class NotesService {
       );
 
     if (!note.projectId) {
-      // notatka bez projektu — tylko jej owner może zarządzać dostępem
       if (note.ownerId !== callerId) {
         throw new ForbiddenException(
           errorBody(
@@ -623,7 +538,6 @@ export class NotesService {
       return;
     }
 
-    // notatka z projektem — tylko właściciel projektu może zarządzać dostępem
     const project = await this.projectsService.findOneRaw(note.projectId);
     if (project.ownerId !== callerId) {
       throw new ForbiddenException(
@@ -757,7 +671,6 @@ export class NotesService {
         shareUrl,
       );
 
-      // jeśli e-mail odpowiada istniejącemu kontu — dodatkowo zaproszenie w aplikacji
       const [invitedUser] = await this.usersService.find(dto.email);
       if (invitedUser) {
         this.eventEmitter.emit(
@@ -799,8 +712,6 @@ export class NotesService {
     await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
     await this.shareLinkRepo.update({ id: linkId, noteId }, { revoked: true });
   }
-
-  // ── publiczny dostęp przez token (bez konta) ────────────────────────────
 
   private async resolveShareLink(token: string): Promise<NoteShareLink> {
     const link = await this.shareLinkRepo.findOneBy({ token });

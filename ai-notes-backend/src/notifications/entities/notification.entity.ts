@@ -20,7 +20,6 @@ export class Notification {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // odbiorca powiadomienia
   @ApiHideProperty()
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
@@ -31,7 +30,6 @@ export class Notification {
   @Column({ type: 'enum', enum: NotificationType })
   type: NotificationType;
 
-  // kto wywołał zdarzenie (np. kto udostępnił notatkę/projekt)
   @ApiPropertyOptional({ type: () => User, nullable: true })
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   actor: User | null;
@@ -39,7 +37,6 @@ export class Notification {
   @Column({ nullable: true })
   actorId: number | null;
 
-  // notatka, której dotyczy powiadomienie
   @ApiPropertyOptional({ type: () => Note, nullable: true })
   @ManyToOne(() => Note, { onDelete: 'CASCADE', nullable: true })
   note: Note | null;
@@ -47,7 +44,6 @@ export class Notification {
   @Column({ nullable: true })
   noteId: number | null;
 
-  // projekt, którego dotyczy powiadomienie
   @ApiPropertyOptional({ type: () => Project, nullable: true })
   @ManyToOne(() => Project, { onDelete: 'CASCADE', nullable: true })
   project: Project | null;
@@ -58,7 +54,6 @@ export class Notification {
   @Column({ type: 'enum', enum: AccessLevel, nullable: true })
   accessLevel: AccessLevel | null;
 
-  // link udostępniania notatki, którego dotyczy zaproszenie (tylko dla NOTE_INVITE)
   @ApiHideProperty()
   @ManyToOne(() => NoteShareLink, { onDelete: 'CASCADE', nullable: true })
   shareLink: NoteShareLink | null;
@@ -66,7 +61,6 @@ export class Notification {
   @Column({ nullable: true })
   shareLinkId: number | null;
 
-  // link udostępniania projektu, którego dotyczy zaproszenie (tylko dla PROJECT_INVITE)
   @ApiHideProperty()
   @ManyToOne(() => ProjectShareLink, { onDelete: 'CASCADE', nullable: true })
   projectShareLink: ProjectShareLink | null;
@@ -74,7 +68,6 @@ export class Notification {
   @Column({ nullable: true })
   projectShareLinkId: number | null;
 
-  // stan akceptacji — tylko dla *_INVITE, dla reszty typów pozostaje null
   @Column({ type: 'enum', enum: NotificationStatus, nullable: true })
   status: NotificationStatus | null;
 

@@ -34,7 +34,6 @@ export class NoteMember {
   @Column()
   noteId: number;
 
-  /** VIEW < EDIT < DELETE (addytywne) */
   @ApiProperty({ enum: AccessLevel })
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })
   accessLevel: AccessLevel;

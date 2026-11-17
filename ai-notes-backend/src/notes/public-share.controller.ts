@@ -38,9 +38,6 @@ import { User } from 'src/users/user.entity';
 export class PublicShareController {
   constructor(private readonly notesService: NotesService) {}
 
-  // ──────────────────────────────────────────────
-  // GET /shared/:token — bez logowania
-  // ──────────────────────────────────────────────
   @Get(':token')
   @ApiOperation({ summary: 'Podgląd notatki po tokenie (bez konta)' })
   @ApiParam({
@@ -61,9 +58,6 @@ export class PublicShareController {
     return this.notesService.getSharedNote(token);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /shared/:token — bez logowania, wymaga accessLevel EDIT na linku
-  // ──────────────────────────────────────────────
   @Patch(':token')
   @ApiOperation({ summary: 'Edycja notatki po tokenie (jeśli link ma EDIT)' })
   @ApiParam({
@@ -85,10 +79,6 @@ export class PublicShareController {
     return this.notesService.updateSharedNote(token, body);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /shared/:token/claim — wymaga zalogowania
-  // Zamienia dostęp z linku na trwały NoteMember dla zalogowanego usera
-  // ──────────────────────────────────────────────
   @Post(':token/claim')
   @UseGuards(AuthGuard)
   @ApiBearerAuth(BEARER_AUTH)

@@ -173,7 +173,6 @@ export class NotificationsService {
       notification.type === NotificationType.PROJECT_INVITE &&
       notification.projectShareLinkId
     ) {
-      // odrzucenie zaproszenia unieważnia też sam link — nie da się go później zaakceptować
       await this.projectsService.revokeShareLinkById(
         notification.projectShareLinkId,
       );
@@ -186,11 +185,6 @@ export class NotificationsService {
     return saved;
   }
 
-  /**
-   * Synchronizuje zaproszenie do notatki, gdy dostęp zostaje przyznany inną drogą niż
-   * przycisk "Akceptuj" (np. "Dodaj do moich notatek" na /shared/:token).
-   * No-op, jeśli nie ma pasującego oczekującego zaproszenia.
-   */
   async markInviteAccepted(shareLinkId: number, userId: number): Promise<void> {
     await this.repo.update(
       {
@@ -204,9 +198,6 @@ export class NotificationsService {
     this.gateway.notifyUser(userId);
   }
 
-  /**
-   * To samo co markInviteAccepted, ale dla zaproszeń do projektów.
-   */
   async markProjectInviteAccepted(
     projectShareLinkId: number,
     userId: number,

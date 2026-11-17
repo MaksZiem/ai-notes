@@ -51,7 +51,6 @@ export class NotificationsListener {
 
   @OnEvent(SHARE_LINK_CLAIMED_EVENT)
   async handleShareLinkClaimed(event: ShareLinkClaimedEvent) {
-    // niezależnie od tego, którędy dostęp powstał — zsynchronizuj ew. oczekujące zaproszenie
     await this.notificationsService.markInviteAccepted(event.shareLinkId, event.claimerId);
 
     if (event.ownerId === event.claimerId) return;

@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Note } from "../types/note";
 
-// useProjectNotes lista notatek w projekcie + createNote
 export function useProjectNotes(projectId: number, filters?: { pinned?: boolean; favourite?: boolean }) {
   const queryClient = useQueryClient();
   const base = `/projects/${projectId}/notes`;

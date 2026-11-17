@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Note } from "../types/note";
 
-// useNotes lista wszystkich notatek + createNote
 export function useNotes(
   filters?: { pinned?: boolean; favourite?: boolean; limit?: number; search?: string },
   options?: { enabled?: boolean }

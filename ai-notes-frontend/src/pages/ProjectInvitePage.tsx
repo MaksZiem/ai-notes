@@ -51,7 +51,6 @@ export default function ProjectInvitePage() {
           <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
             {t("invite.label")}
           </span>
-          {/* nadpisujemy globalny styl h1 (index.css) klasami !important — inaczej wchodzi 56px */}
           <h1 className="!text-xl !font-semibold !tracking-normal !leading-snug !m-0 text-gray-100">
             „{project.name}”
           </h1>

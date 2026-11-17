@@ -137,9 +137,6 @@ export class AgentService {
         return { answer: response.text ?? '', steps };
       }
 
-      // WAŻNE: pushujemy surowy content z odpowiedzi (nie odbudowujemy ręcznie
-      // z response.functionCalls), bo tylko tak zachowujemy thoughtSignature —
-      // bez niej kolejne wywołanie generateContent zwróci 400.
       history.push(response.candidates![0].content!);
 
       const responseParts: Part[] = [];

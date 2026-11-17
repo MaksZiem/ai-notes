@@ -42,16 +42,12 @@ export class YjsGateway implements OnModuleInit {
         if (!note) {
           throw new Error('Note not exists');
         }
-        // Wymaga co najmniej VIEW — rzuci, jeśli caller nie ma żadnego dostępu.
         const accessLevel = await this.notesService.getAccessLevel(
           noteId,
           note.projectId,
           user.id,
           user.role,
         );
-        // Przy samym VIEW połączenie zostaje oznaczone jako readOnly — Hocuspocus
-        // wtedy po cichu odrzuca każdą przychodzącą aktualizację dokumentu, więc
-        // klient dostaje żywe zmiany, ale nie może nic zapisać.
         connectionConfig.readOnly = !hasAccess(accessLevel, AccessLevel.EDIT);
         return { userId: user.id };
       },

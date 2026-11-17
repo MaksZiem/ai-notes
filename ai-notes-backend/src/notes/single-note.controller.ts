@@ -74,9 +74,6 @@ export class SingleNoteController {
     private readonly aiService: AiService,
   ) {}
 
-  // ──────────────────────────────────────────────
-  // GET /notes
-  // ──────────────────────────────────────────────
   @Get()
   @ApiOperation({
     summary: 'Lista wszystkich notatek użytkownika',
@@ -123,9 +120,6 @@ export class SingleNoteController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // POST /notes
-  // ──────────────────────────────────────────────
   @Post()
   @ApiOperation({
     summary: 'Utwórz nową notatkę (prywatną lub w projekcie)',
@@ -146,11 +140,6 @@ export class SingleNoteController {
     return this.notesService.create(body, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /notes/search
-  // (musi być zadeklarowane przed GET /notes/:id, inaczej Nest
-  // potraktuje "search" jako :id)
-  // ──────────────────────────────────────────────
   @Get('search')
   @ApiOperation({ summary: 'Wyszukiwanie semantyczne notatek (AI)' })
   @ApiQuery({ name: 'q', required: true, type: String })
@@ -179,9 +168,6 @@ export class SingleNoteController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // POST /notes/reindex
-  // ──────────────────────────────────────────────
   @Post('reindex')
   @ApiOperation({
     summary:
@@ -199,9 +185,6 @@ export class SingleNoteController {
     return this.notesService.reindexEmbeddings(user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /notes/chat
-  // ──────────────────────────────────────────────
   @Post('chat')
   @ApiOperation({ summary: 'Zadaj pytanie do własnych notatek (RAG chat)' })
   @ApiCreatedResponse({
@@ -230,9 +213,6 @@ export class SingleNoteController {
     return this.notesService.ragChat(question, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /notes/:id
-  // ──────────────────────────────────────────────
   @Get(':id')
   @ApiOperation({
     summary: 'Pobierz notatkę po ID',
@@ -264,9 +244,6 @@ export class SingleNoteController {
     return { ...note, accessLevel };
   }
 
-  // ──────────────────────────────────────────────
-  // POST /notes/:id/summarize
-  // ──────────────────────────────────────────────
   @Post(':id/summarize')
   @ApiOperation({ summary: 'Wygeneruj krótkie streszczenie notatki' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -305,9 +282,6 @@ export class SingleNoteController {
     return { summary };
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /notes/:id
-  // ──────────────────────────────────────────────
   @Patch(':id')
   @ApiOperation({
     summary: 'Zaktualizuj notatkę',
@@ -331,9 +305,6 @@ export class SingleNoteController {
     return this.notesService.update(id, body, null, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /notes/:id/move
-  // ──────────────────────────────────────────────
   @Patch(':id/move')
   @ApiOperation({
     summary: 'Przenieś notatkę do innego projektu (lub poza projekty)',
@@ -361,9 +332,6 @@ export class SingleNoteController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /notes/:id
-  // ──────────────────────────────────────────────
   @Delete(':id')
   @ApiOperation({ summary: 'Usuń notatkę', description: 'Wymaga DELETE.' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -380,9 +348,6 @@ export class SingleNoteController {
     return this.notesService.remove(id, null, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /notes/:id/pin
-  // ──────────────────────────────────────────────
   @Patch(':id/pin')
   @ApiOperation({ summary: 'Toggle pin notatki (per-user)' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -394,9 +359,6 @@ export class SingleNoteController {
     return this.notesService.togglePin(id, null, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /notes/:id/favourite
-  // ──────────────────────────────────────────────
   @Patch(':id/favourite')
   @ApiOperation({ summary: 'Toggle favourite notatki (per-user)' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -411,9 +373,6 @@ export class SingleNoteController {
     return this.notesService.toggleFavourite(id, null, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /notes/:id/members
-  // ──────────────────────────────────────────────
   @Get(':id/members')
   @ApiOperation({ summary: 'Lista członków notatki' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -433,9 +392,6 @@ export class SingleNoteController {
     return this.notesService.listMembers(id, null, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /notes/:id/members
-  // ──────────────────────────────────────────────
   @Post(':id/members')
   @ApiOperation({
     summary: 'Nadaj lub zaktualizuj bezpośredni dostęp do notatki',
@@ -460,9 +416,6 @@ export class SingleNoteController {
     return this.notesService.grantAccess(id, null, user.id, user.role, body);
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /notes/:id/members/:userId
-  // ──────────────────────────────────────────────
   @Delete(':id/members/:userId')
   @ApiOperation({ summary: 'Odbierz bezpośredni dostęp do notatki' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -486,9 +439,6 @@ export class SingleNoteController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /notes/:id/leave
-  // ──────────────────────────────────────────────
   @Delete(':id/leave')
   @ApiOperation({
     summary: 'Opuść notatkę udostępnioną Ci przez kogoś innego',
@@ -507,9 +457,6 @@ export class SingleNoteController {
     return this.notesService.leaveNote(id, null, user.id);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /notes/:id/share-links
-  // ──────────────────────────────────────────────
   @Post(':id/share-links')
   @ApiOperation({ summary: 'Utwórz link do udostępnienia notatki bez konta' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -537,9 +484,6 @@ export class SingleNoteController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // GET /notes/:id/share-links
-  // ──────────────────────────────────────────────
   @Get(':id/share-links')
   @ApiOperation({ summary: 'Lista aktywnych linków udostępniania notatki' })
   @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
@@ -564,9 +508,6 @@ export class SingleNoteController {
     return this.notesService.listShareLinks(id, null, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /notes/:id/share-links/:linkId
-  // ──────────────────────────────────────────────
   @Delete(':id/share-links/:linkId')
   @ApiOperation({ summary: 'Odwołaj link udostępniania' })
   @ApiOkResponse({ description: 'Link odwołany' })

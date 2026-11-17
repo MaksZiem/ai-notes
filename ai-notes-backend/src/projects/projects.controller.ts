@@ -63,9 +63,6 @@ export class ProjectsController {
     private readonly notesService: NotesService,
   ) {}
 
-  // ──────────────────────────────────────────────
-  // GET /projects
-  // ──────────────────────────────────────────────
   @Get()
   @ApiOperation({
     summary: 'Lista projektów bieżącego użytkownika',
@@ -95,9 +92,6 @@ export class ProjectsController {
     });
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/recent
-  // ──────────────────────────────────────────────
   @Get('recent')
   @ApiOperation({ summary: 'Ostatnio modyfikowane projekty użytkownika' })
   @ApiOkResponse({
@@ -109,22 +103,6 @@ export class ProjectsController {
     return this.projectsService.findRecent(user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/recent-notes
-  // ──────────────────────────────────────────────
-  // @Get('recent-notes')
-  // @ApiOperation({ summary: 'Ostatnio modyfikowane notatki użytkownika' })
-  // @ApiResponse({ status: 200, description: 'Tablica notatek' })
-  // findRecentNotes(
-  //   @CurrentUser() user: User,
-  //   @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number,
-  // ) {
-  //   return this.notesService.findRecent(user.id, user.role, limit);
-  // }
-
-  // ──────────────────────────────────────────────
-  // GET /projects/:id
-  // ──────────────────────────────────────────────
   @Get(':id')
   @ApiOperation({
     summary: 'Pobierz projekt po ID',
@@ -145,9 +123,6 @@ export class ProjectsController {
     return this.projectsService.findOne(id, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /projects
-  // ──────────────────────────────────────────────
   @Post()
   @ApiOperation({
     summary: 'Utwórz nowy projekt',
@@ -163,9 +138,6 @@ export class ProjectsController {
     return this.projectsService.create(body, user.id);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /projects/:id
-  // ──────────────────────────────────────────────
   @Patch(':id')
   @ApiOperation({
     summary: 'Zaktualizuj projekt',
@@ -190,9 +162,6 @@ export class ProjectsController {
     return this.projectsService.update(id, body, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /projects/:id
-  // ──────────────────────────────────────────────
   @Delete(':id')
   @ApiOperation({
     summary: 'Usuń projekt',
@@ -214,9 +183,6 @@ export class ProjectsController {
     return this.projectsService.remove(id, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/:id/pin
-  // ──────────────────────────────────────────────
   @Patch(':id/pin')
   @ApiOperation({ summary: 'Toggle pin projekt (per-user)' })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
@@ -228,9 +194,6 @@ export class ProjectsController {
     return this.projectsService.togglePin(id, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/:id/favourite
-  // ──────────────────────────────────────────────
   @Patch(':id/favourite')
   @ApiOperation({ summary: 'Toggle favourite projektu (per-user)' })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
@@ -245,9 +208,6 @@ export class ProjectsController {
     return this.projectsService.toggleFavourite(id, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/:id/members
-  // ──────────────────────────────────────────────
   @Get(':id/members')
   @ApiOperation({
     summary: 'Lista członków projektu',
@@ -272,9 +232,6 @@ export class ProjectsController {
     return this.projectsService.listMembers(id, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /projects/:id/members
-  // ──────────────────────────────────────────────
   @Post(':id/members')
   @ApiOperation({
     summary: 'Nadaj lub zaktualizuj dostęp do projektu',
@@ -299,9 +256,6 @@ export class ProjectsController {
     return this.projectsService.grantAccess(id, user.id, user.role, body);
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /projects/:id/members/:userId
-  // ──────────────────────────────────────────────
   @Delete(':id/members/:userId')
   @ApiOperation({
     summary: 'Odbierz dostęp do projektu',
@@ -332,9 +286,6 @@ export class ProjectsController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /projects/:id/leave
-  // ──────────────────────────────────────────────
   @Delete(':id/leave')
   @ApiOperation({
     summary: 'Opuść projekt udostępniony Ci przez kogoś innego',
@@ -356,9 +307,6 @@ export class ProjectsController {
     return this.projectsService.leaveProject(id, user.id);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /projects/:id/share-links
-  // ──────────────────────────────────────────────
   @Post(':id/share-links')
   @ApiOperation({
     summary: 'Utwórz zaproszenie mailowe do projektu',
@@ -387,9 +335,6 @@ export class ProjectsController {
     return this.projectsService.createShareLink(id, user.id, user.role, body);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/:id/share-links
-  // ──────────────────────────────────────────────
   @Get(':id/share-links')
   @ApiOperation({ summary: 'Lista aktywnych zaproszeń do projektu' })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
@@ -413,9 +358,6 @@ export class ProjectsController {
     return this.projectsService.listShareLinks(id, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /projects/:id/share-links/:linkId
-  // ──────────────────────────────────────────────
   @Delete(':id/share-links/:linkId')
   @ApiOperation({ summary: 'Odwołaj zaproszenie do projektu' })
   @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })

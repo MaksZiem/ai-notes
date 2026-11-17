@@ -51,9 +51,6 @@ export class UsersController {
     private authService: AuthService,
   ) {}
 
-  // ──────────────────────────────────────────────
-  // GET /auth/whoami
-  // ──────────────────────────────────────────────
   @Get('/context')
   @UseGuards(AuthGuard)
   @ApiBearerAuth(BEARER_AUTH)
@@ -72,9 +69,6 @@ export class UsersController {
     return plainToInstance(UserDto, found, { excludeExtraneousValues: true });
   }
 
-  // ──────────────────────────────────────────────
-  // POST /auth/signup
-  // ──────────────────────────────────────────────
   @Post('/signup')
   @ApiOperation({
     summary: 'Rejestracja nowego użytkownika',
@@ -99,9 +93,6 @@ export class UsersController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // POST /auth/signin
-  // ──────────────────────────────────────────────
   @Post('/signin')
   @ApiOperation({
     summary: 'Logowanie użytkownika',
@@ -119,9 +110,6 @@ export class UsersController {
     return this.authService.signin(body.email, body.password);
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /auth/:id
-  // ──────────────────────────────────────────────
   @Delete('/:id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Usuń użytkownika po ID' })
@@ -148,9 +136,6 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /auth/:id
-  // ──────────────────────────────────────────────
   @Patch('/:id')
   @ApiBearerAuth(BEARER_AUTH)
   @UseGuards(AuthGuard)

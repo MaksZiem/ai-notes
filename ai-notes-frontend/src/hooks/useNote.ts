@@ -3,14 +3,11 @@ import { api } from "../api/client";
 import type { Note } from "../types/note";
 import type { NoteMember } from "../types/note-member";
 
-// useNote wszystkie operacje na pojedynczej notatce bez projektu
 export function useNote(noteId: number) {
   const queryClient = useQueryClient();
 
   const invalidateNote = () =>
     queryClient.invalidateQueries({ queryKey: ["notes", noteId] });
-  // Tylko dane tej notatki (bez members/share-links) — używane przy
-  // częstym autosave treści, gdzie pin/ulubione/lista notatek się nie zmieniają.
   const invalidateNoteOnly = () =>
     queryClient.invalidateQueries({ queryKey: ["notes", noteId], exact: true });
   const invalidateAll = () => {

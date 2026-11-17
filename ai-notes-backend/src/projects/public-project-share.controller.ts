@@ -26,9 +26,6 @@ import { User } from 'src/users/user.entity';
 export class PublicProjectShareController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  // ──────────────────────────────────────────────
-  // GET /project-invites/:token — bez logowania (tylko metadane, bez notatek)
-  // ──────────────────────────────────────────────
   @Get(':token')
   @ApiOperation({ summary: 'Podgląd zaproszenia do projektu po tokenie' })
   @ApiParam({
@@ -46,9 +43,6 @@ export class PublicProjectShareController {
     return this.projectsService.getSharedProject(token);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /project-invites/:token/claim — wymaga zalogowania
-  // ──────────────────────────────────────────────
   @Post(':token/claim')
   @UseGuards(AuthGuard)
   @ApiBearerAuth(BEARER_AUTH)

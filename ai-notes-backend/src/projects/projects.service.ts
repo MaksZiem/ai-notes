@@ -94,10 +94,6 @@ export class ProjectsService {
     return qb.getMany();
   }
 
-  /**
-   * Zwraca projekt po ID bez sprawdzania uprawnień.
-   * Używane wewnętrznie przez NotesService.
-   */
   async findOneRaw(id: number): Promise<Project> {
     const project = await this.repo.findOneBy({ id });
     if (!project)
@@ -155,9 +151,6 @@ export class ProjectsService {
     return project;
   }
 
-  /**
-   * Zwraca efektywny poziom dostępu callera do projektu (bez wymuszania minimum).
-   */
   async getAccessLevel(
     id: number,
     callerId: number,
@@ -274,7 +267,7 @@ export class ProjectsService {
   ): Promise<UserProjectPreference> {
     await this.findOne(projectId, callerId, callerRole);
     const pref = await this.getOrCreatePref(projectId, callerId);
-    pref.isFavourite = !pref.isFavourite; // fix: było isPinned
+    pref.isFavourite = !pref.isFavourite;
     return this.prefRepo.save(pref);
   }
 
@@ -378,8 +371,6 @@ export class ProjectsService {
     }
   }
 
-  // ── linki udostępniania (zaproszenia mailowe) ──────────────────────────────
-
   async createShareLink(
     projectId: number,
     callerId: number,
@@ -414,7 +405,6 @@ export class ProjectsService {
         shareUrl,
       );
 
-      // jeśli e-mail odpowiada istniejącemu kontu — dodatkowo zaproszenie w aplikacji
       const [invitedUser] = await this.usersService.find(dto.email);
       if (invitedUser) {
         this.eventEmitter.emit(
@@ -458,10 +448,6 @@ export class ProjectsService {
     );
   }
 
-  /**
-   * Odwołuje link bez sprawdzania właściciela — używane wewnętrznie,
-   * gdy zaproszony sam odrzuca zaproszenie (NotificationsService.decline).
-   */
   async revokeShareLinkById(linkId: number): Promise<void> {
     await this.shareLinkRepo.update({ id: linkId }, { revoked: true });
   }
@@ -489,11 +475,6 @@ export class ProjectsService {
     return link;
   }
 
-  /**
-   * Publiczny podgląd zaproszenia — bez treści projektu, tylko metadane.
-   * Nie wymaga logowania (żeby niezalogowany widział "zaproszono Cię do X"
-   * i mógł się zalogować/zarejestrować), ale nie ujawnia notatek.
-   */
   async getSharedProject(token: string): Promise<{
     project: { id: number; name: string; description?: string };
     invitedBy: { name: string; surname: string } | null;
@@ -558,8 +539,6 @@ export class ProjectsService {
 
     return saved;
   }
-
-  // ── helpers ──────────────────────────────────────────────────────────────
 
   private async assertOwnerOrAdmin(
     projectId: number,

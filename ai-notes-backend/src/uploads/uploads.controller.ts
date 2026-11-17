@@ -53,9 +53,6 @@ if (!existsSync(UPLOAD_DIR)) {
 @UseGuards(AuthGuard)
 @Controller('uploads')
 export class UploadsController {
-  // ──────────────────────────────────────────────
-  // POST /uploads/image
-  // ──────────────────────────────────────────────
   @Post('image')
   @ApiConsumes('multipart/form-data')
   @ApiOperation({

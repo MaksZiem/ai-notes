@@ -5,8 +5,6 @@ import type { Notification } from "../types/notification";
 import { useAuth } from "../context/AuthContext";
 import { getNotificationsSocket } from "../api/notificationsSocket";
 
-// push idzie przez websocket ("notifications:changed"), polling zostaje jako fallback
-// na wypadek zerwanego połączenia
 const POLL_INTERVAL = 60_000;
 
 export function useNotifications() {

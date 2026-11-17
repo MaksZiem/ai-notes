@@ -165,16 +165,10 @@ function NoteEditor({ routeId }: { routeId: string }) {
     !note.data ||
     !currentUser.data ||
     note.data.ownerId === currentUser.data.id;
-  // Notatka jeszcze nieistniejąca (draft) — zawsze edytowalna przez twórcę.
-  // Istniejąca notatka — o edytowalności decyduje accessLevel zwrócony przez backend.
   const canEdit = !savedId || !note.data || note.data.accessLevel !== "VIEW";
   const isShared =
     isOwner &&
     ((members.data?.length ?? 0) > 0 || (shareLinks.data?.length ?? 0) > 0);
-  // Łączymy się z każdą istniejącą notatką, także przy samym VIEW — backend
-  // (onAuthenticate) oznacza wtedy połączenie jako readOnly i po cichu odrzuca
-  // każdą przychodzącą aktualizację dokumentu, więc viewer dostaje żywe zmiany
-  // od innych, ale sam nic nie zapisze (a i tak `canEdit` blokuje mu edytor lokalnie).
   const isCollabEligible = !isNew && !!savedId;
 
   const [collab, setCollab] = useState<{ provider: HocuspocusProvider; doc: Y.Doc } | null>(null);
@@ -243,9 +237,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
         attributes: { class: "note-editor-content" },
       },
       onUpdate: ({ transaction }) => {
-        // Zmiany zsynchronizowane od innego użytkownika przez Yjs też trafiają
-        // tutaj (to zwykła transakcja ProseMirror) — nie zapisujemy ich
-        // ponownie przez REST, bo Hocuspocus już je trwale zapisał.
         if (isChangeOrigin(transaction)) return;
         triggerAutosaveRef.current();
       },
@@ -280,9 +271,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
     }
   }, [note.data, isNew, editor, collab]);
 
-  // Współdzielona notatka: jeśli Y.Doc jest jeszcze pusty (nikt nigdy nie
-  // edytował jej na żywo), zasiej go istniejącą treścią z bazy — tylko raz,
-  // i tylko właściciel (żeby dwie osoby otwierające naraz nie zdublowały treści).
   useEffect(() => {
     if (!collab || !editor || !isOwner) return;
     const { provider, doc } = collab;
@@ -466,7 +454,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
       <Sidebar />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
         <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06] flex-shrink-0">
           <button
             onClick={() => navigate(backToNotesPath)}
@@ -561,10 +548,8 @@ function NoteEditor({ routeId }: { routeId: string }) {
           </div>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-10 py-10">
-            {/* Color + project meta */}
             <div className="flex items-center flex-wrap gap-4 mb-6">
               <span className="text-[11px] text-gray-600 uppercase tracking-wide">
                 {t("editor.color")}
@@ -673,7 +658,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
                 </div>
               )}
 
-            {/* Title */}
             {(summary || summarizeNote.isPending) && (
               <div className="relative rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-violet-500/5 px-5 py-4 mb-6 animate-fade-in-up">
                 <div className="flex items-center gap-2 mb-2.5">
@@ -715,7 +699,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
               readOnly={!canEdit}
             />
 
-            {/* Keywords */}
             <div className="flex items-center flex-wrap gap-1.5 mt-4 mb-6">
               {keywords.map((kw) => (
                 <span
@@ -764,7 +747,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
               </button>
             </div>
 
-            {/* Toolbar */}
             {editor && canEdit && (
               <div className="sticky top-0 z-10 -mx-1 px-1 py-2 mb-4 bg-[#0f1014]/95 backdrop-blur">
                 <EditorToolbar
@@ -775,7 +757,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
               </div>
             )}
 
-            {/* Content */}
             <div className="border border-white/[0.07] focus-within:border-white/[0.14] rounded-xl px-4 py-3 transition-colors">
               <EditorContent editor={editor} />
             </div>

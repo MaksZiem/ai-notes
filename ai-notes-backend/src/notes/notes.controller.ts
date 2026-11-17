@@ -53,9 +53,6 @@ import { GrantAccessDto } from 'src/projects/dtos/grant-access.dto';
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
-  // ──────────────────────────────────────────────
-  // GET /projects/:projectId/notes
-  // ──────────────────────────────────────────────
   @Get()
   @ApiOperation({
     summary: 'Lista notatek projektu',
@@ -96,9 +93,6 @@ export class NotesController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/:projectId/notes/:id
-  // ──────────────────────────────────────────────
   @Get(':id')
   @ApiOperation({
     summary: 'Pobierz notatkę po ID',
@@ -129,9 +123,6 @@ export class NotesController {
     return this.notesService.findOne(id, projectId, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /projects/:projectId/notes
-  // ──────────────────────────────────────────────
   @Post()
   @ApiOperation({
     summary: 'Utwórz nową notatkę w projekcie',
@@ -159,9 +150,6 @@ export class NotesController {
     return this.notesService.create(body, user.id, user.role, projectId);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /projects/:projectId/notes/:id
-  // ──────────────────────────────────────────────
   @Patch(':id')
   @ApiOperation({
     summary: 'Zaktualizuj notatkę',
@@ -193,9 +181,6 @@ export class NotesController {
     return this.notesService.update(id, body, projectId, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /projects/:projectId/notes/:id
-  // ──────────────────────────────────────────────
   @Delete(':id')
   @ApiOperation({
     summary: 'Usuń notatkę',
@@ -225,9 +210,6 @@ export class NotesController {
     return this.notesService.remove(id, projectId, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /projects/:projectId/notes/:id/pin
-  // ──────────────────────────────────────────────
   @Patch(':id/pin')
   @ApiOperation({ summary: 'Toggle pin notatki (per-user)' })
   @ApiParam({ name: 'projectId', example: 1, description: 'ID projektu' })
@@ -244,9 +226,6 @@ export class NotesController {
     return this.notesService.togglePin(id, projectId, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // PATCH /projects/:projectId/notes/:id/favourite
-  // ──────────────────────────────────────────────
   @Patch(':id/favourite')
   @ApiOperation({ summary: 'Toggle favourite notatki (per-user)' })
   @ApiParam({ name: 'projectId', example: 1, description: 'ID projektu' })
@@ -263,9 +242,6 @@ export class NotesController {
     return this.notesService.toggleFavourite(id, projectId, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // GET /projects/:projectId/notes/:id/members
-  // ──────────────────────────────────────────────
   @Get(':id/members')
   @ApiOperation({
     summary: 'Lista członków notatki',
@@ -295,9 +271,6 @@ export class NotesController {
     return this.notesService.listMembers(id, projectId, user.id, user.role);
   }
 
-  // ──────────────────────────────────────────────
-  // POST /projects/:projectId/notes/:id/members
-  // ──────────────────────────────────────────────
   @Post(':id/members')
   @ApiOperation({
     summary: 'Nadaj lub zaktualizuj bezpośredni dostęp do notatki',
@@ -334,9 +307,6 @@ export class NotesController {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // DELETE /projects/:projectId/notes/:id/members/:userId
-  // ──────────────────────────────────────────────
   @Delete(':id/members/:userId')
   @ApiOperation({
     summary: 'Odbierz bezpośredni dostęp do notatki',

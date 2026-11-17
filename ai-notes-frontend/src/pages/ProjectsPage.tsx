@@ -101,7 +101,6 @@ function QuickActions({
   );
 }
 
-// ─── ProjectCard (grid) ───────────────────────────────────────────────────────
 function ProjectCard({ project, pinned = false, favourite = false, canManage, onClick, onShare }: {
   project: Project;
   pinned?: boolean;
@@ -147,7 +146,6 @@ function ProjectCard({ project, pinned = false, favourite = false, canManage, on
   );
 }
 
-// ─── ProjectRow (list) ────────────────────────────────────────────────────────
 function ProjectRow({ project, pinned = false, favourite = false, canManage, onClick, onShare }: {
   project: Project;
   pinned?: boolean;
@@ -190,7 +188,6 @@ function ProjectRow({ project, pinned = false, favourite = false, canManage, onC
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ProjectsPage() {
   const navigate = useNavigate();
   const t = useTranslations("projects");
@@ -287,7 +284,6 @@ export default function ProjectsPage() {
       <Sidebar />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
           <div>
             <h1 className="text-2xl font-bold text-gray-100 tracking-tight leading-none m-0">{t("title")}</h1>
@@ -346,7 +342,6 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto px-8 py-6">
           {!hasResults ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-600">
