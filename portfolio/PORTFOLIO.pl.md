@@ -11,23 +11,24 @@ stack:
   backend: [NestJS 11, TypeScript, TypeORM, Socket.IO, Hocuspocus server, EventEmitter, nestjs-i18n, Swagger]
   database: [PostgreSQL]
   infra: [Resend (email), local file uploads]
-  ai: [Google Gemini (text, function calling), Gemini embeddings]
+  ai: ["Google Gemini (text, function calling)", Gemini embeddings]
 tags: [notes, collaboration, crdt, yjs, realtime, rag, embeddings, semantic-search, ai-agent, react, nestjs]
 repo: https://github.com/MaksZiem/ai-notes
 demo: null
-cover: screenshots/cover.png
+apiDocs: http://localhost:3001/api/docs
+cover: screenshots/cover.webp
 screenshots:
-  - file: screenshots/editor.png
+  - file: screenshots/editor.webp
     caption: Edytor rich-text z komendami „/”, paskiem narzędzi i akcjami AI
-  - file: screenshots/collab.png
+  - file: screenshots/collab.webp
     caption: Dwóch użytkowników edytuje tę samą notatkę na żywo, z podpisanymi kursorami
-  - file: screenshots/agent.png
+  - file: screenshots/agent.webp
     caption: Panel agenta AI – wyszukiwanie, czytanie i aktualizacja notatek z widocznymi krokami
-  - file: screenshots/rag-chat.png
+  - file: screenshots/rag-chat.webp
     caption: Czat z notatkami – odpowiedź ze źródłami
-  - file: screenshots/share.png
+  - file: screenshots/share.webp
     caption: Okno udostępniania – członkowie, poziomy dostępu i wygasające linki
-  - file: screenshots/projects.png
+  - file: screenshots/projects.webp
     caption: Projekty, przypięte i ulubione notatki oraz podsumowanie projektu przez AI
 featured: true
 order: 4
@@ -332,13 +333,13 @@ Authorization: Bearer <jwt>
 
 ## Przykładowy przebieg
 
-1. **Użytkownik A** tworzy projekt *Marketing* i pisze notatki w edytorze, używając „/” do nagłówków, list zadań i tabeli oraz wgrywając obraz. *(screen: editor.png)*
+1. **Użytkownik A** tworzy projekt *Marketing* i pisze notatki w edytorze, używając „/” do nagłówków, list zadań i tabeli oraz wgrywając obraz. *(screen: editor.webp)*
 2. A zaznacza akapit i klika **Przeredaguj → bardziej formalnie**, a potem **Zaproponuj tytuł** i **Zaproponuj słowa kluczowe**.
-3. A udostępnia projekt **użytkownikowi B** na poziomie `EDIT`, a **użytkownikowi C** przez link przypisany do jego e-maila, z poziomem `VIEW` i ważnością 7 dni. B i C dostają powiadomienie na żywo i maila; C akceptuje zaproszenie. *(screen: share.png)*
-4. A i B otwierają tę samą notatkę i piszą jednocześnie; ich podpisane kursory przesuwają się na żywo. C widzi zmiany, ale nie może edytować. *(screen: collab.png)*
-5. W **czacie z notatkami** A pyta *„Jaki budżet ustaliliśmy?”* i dostaje odpowiedź z linkami do 2 notatek źródłowych. *(screen: rag-chat.png)*
-6. W **panelu agenta** w notatce A prosi: *„Dodaj checklistę kolejnych kroków na podstawie moich innych notatek o kampanii.”* Agent wykonuje `search_notes` → `get_note` ×2 → `update_current_note`, a każdy krok jest widoczny. *(screen: agent.png)*
-7. A klika **Podsumuj projekt**, żeby dostać przegląd wszystkich notatek od AI, a potem **pobiera** projekt jako ZIP z plikami Markdown. *(screen: projects.png)*
+3. A udostępnia projekt **użytkownikowi B** na poziomie `EDIT`, a **użytkownikowi C** przez link przypisany do jego e-maila, z poziomem `VIEW` i ważnością 7 dni. B i C dostają powiadomienie na żywo i maila; C akceptuje zaproszenie. *(screen: share.webp)*
+4. A i B otwierają tę samą notatkę i piszą jednocześnie; ich podpisane kursory przesuwają się na żywo. C widzi zmiany, ale nie może edytować. *(screen: collab.webp)*
+5. W **czacie z notatkami** A pyta *„Jaki budżet ustaliliśmy?”* i dostaje odpowiedź z linkami do 2 notatek źródłowych. *(screen: rag-chat.webp)*
+6. W **panelu agenta** w notatce A prosi: *„Dodaj checklistę kolejnych kroków na podstawie moich innych notatek o kampanii.”* Agent wykonuje `search_notes` → `get_note` ×2 → `update_current_note`, a każdy krok jest widoczny. *(screen: agent.webp)*
+7. A klika **Podsumuj projekt**, żeby dostać przegląd wszystkich notatek od AI, a potem **pobiera** projekt jako ZIP z plikami Markdown. *(screen: projects.webp)*
 
 ## Kluczowe decyzje i kompromisy
 
@@ -376,12 +377,12 @@ Authorization: Bearer <jwt>
 Wymagania: Node.js, PostgreSQL, klucz API Gemini i (opcjonalnie) klucz API Resend.
 
 ```bash
-cd ai-notes-backend
+cd backend
 cp .env.example .env       # PORT, YJS_PORT, DB_*, JWT_SECRET, GEMINI_*, RESEND_API_KEY, FRONTEND_URL
 npm install
 npm run start:dev          # http://localhost:3001 (Swagger: /api/docs), Hocuspocus na :1234
 
-cd ../ai-notes-frontend
+cd ../frontend
 npm install
 npm run dev                # http://localhost:3000
 ```

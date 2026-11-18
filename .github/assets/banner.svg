@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="AI Notes">
+  <defs>
+    <radialGradient id="glow" cx="78%" cy="40%" r="55%">
+      <stop offset="0" stop-color="#3ccf91" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#3ccf91" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0%" cy="100%" r="60%">
+      <stop offset="0" stop-color="#3ccf91" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#3ccf91" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#a6f0cf"/>
+    </linearGradient>
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3ccf91" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#3ccf91" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.05"/>
+    </pattern>
+    <clipPath id="frame"><rect width="1280" height="420" rx="24"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="420" fill="#09090b"/>
+    <rect width="1280" height="420" fill="url(#grid)"/>
+    <rect width="1280" height="420" fill="url(#glow)"/>
+    <rect width="1280" height="420" fill="url(#glow2)"/>
+    
+    
+    <g transform="translate(900 110) rotate(-8)" opacity="0.55">
+      <rect width="190" height="230" rx="16" fill="#0a1510" stroke="#a6f0cf" stroke-opacity="0.45"/>
+      <rect x="22" y="26" width="110" height="12" rx="6" fill="#a6f0cf" fill-opacity="0.8"/>
+      <rect x="22" y="58" width="146" height="8" rx="4" fill="#ffffff" fill-opacity="0.18"/>
+      <rect x="22" y="76" width="128" height="8" rx="4" fill="#ffffff" fill-opacity="0.18"/>
+      <rect x="22" y="94" width="138" height="8" rx="4" fill="#ffffff" fill-opacity="0.18"/>
+      <rect x="22" y="124" width="96" height="8" rx="4" fill="#ffffff" fill-opacity="0.12"/>
+      <rect x="22" y="142" width="120" height="8" rx="4" fill="#ffffff" fill-opacity="0.12"/>
+    </g>
+    
+    <g transform="translate(1030 90) rotate(6)" opacity="0.85">
+      <rect width="190" height="230" rx="16" fill="#0a1510" stroke="#a6f0cf" stroke-opacity="0.45"/>
+      <rect x="22" y="26" width="110" height="12" rx="6" fill="#a6f0cf" fill-opacity="0.8"/>
+      <rect x="22" y="58" width="146" height="8" rx="4" fill="#ffffff" fill-opacity="0.18"/>
+      <rect x="22" y="76" width="128" height="8" rx="4" fill="#ffffff" fill-opacity="0.18"/>
+      <rect x="22" y="94" width="138" height="8" rx="4" fill="#ffffff" fill-opacity="0.18"/>
+      <rect x="22" y="124" width="96" height="8" rx="4" fill="#ffffff" fill-opacity="0.12"/>
+      <rect x="22" y="142" width="120" height="8" rx="4" fill="#ffffff" fill-opacity="0.12"/>
+    </g>
+    <g>
+      <line x1="1080" y1="244" x2="1080" y2="266" stroke="#3ccf91" stroke-width="3"><animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></line>
+      <rect x="1086" y="230" width="58" height="20" rx="4" fill="#3ccf91"/>
+      <text x="1115" y="244" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="600" fill="#05130c">Ola</text>
+    </g>
+    <g transform="translate(1150 300)">
+      <circle r="22" fill="#3ccf91"/>
+      <path d="M-8 -2 l6 6 l10 -12" fill="none" stroke="#05130c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g>
+      <circle cx="80" cy="96" r="5" fill="#3ccf91"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></circle>
+      <text x="96" y="101" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" letter-spacing="2.5" fill="#a6f0cf">CRDT · SHARING · RAG · AGENT</text>
+    </g>
+    <text x="68" y="205" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="84" font-weight="700" letter-spacing="-3" fill="url(#title)">AI Notes</text>
+    <text x="72" y="262" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" fill="#a1a1aa"><tspan x="72" dy="0">Notion-style notes with real-time co-editing,</tspan><tspan x="72" dy="30">semantic search, RAG chat and a tool-using agent.</tspan></text>
+    <text x="72" y="364" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#71717a">NestJS · React + Vite · Tiptap · Yjs · PostgreSQL · Gemini</text>
+    <rect x="0.5" y="0.5" width="1279" height="419" rx="24" fill="none" stroke="#ffffff" stroke-opacity="0.08"/>
+  </g>
+</svg>

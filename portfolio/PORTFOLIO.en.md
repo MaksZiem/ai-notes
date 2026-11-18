@@ -11,23 +11,24 @@ stack:
   backend: [NestJS 11, TypeScript, TypeORM, Socket.IO, Hocuspocus server, EventEmitter, nestjs-i18n, Swagger]
   database: [PostgreSQL]
   infra: [Resend (email), local file uploads]
-  ai: [Google Gemini (text, function calling), Gemini embeddings]
+  ai: ["Google Gemini (text, function calling)", Gemini embeddings]
 tags: [notes, collaboration, crdt, yjs, realtime, rag, embeddings, semantic-search, ai-agent, react, nestjs]
 repo: https://github.com/MaksZiem/ai-notes
 demo: null
-cover: screenshots/cover.png
+apiDocs: http://localhost:3001/api/docs
+cover: screenshots/cover.webp
 screenshots:
-  - file: screenshots/editor.png
+  - file: screenshots/editor.webp
     caption: Rich-text editor with slash commands, toolbar and AI actions
-  - file: screenshots/collab.png
+  - file: screenshots/collab.webp
     caption: Two users editing the same note live, with named cursors
-  - file: screenshots/agent.png
+  - file: screenshots/agent.webp
     caption: AI agent panel – searching, reading and updating notes with visible tool steps
-  - file: screenshots/rag-chat.png
+  - file: screenshots/rag-chat.webp
     caption: Chat with your notes – answer with source notes
-  - file: screenshots/share.png
+  - file: screenshots/share.webp
     caption: Sharing dialog – members, access levels and expiring share links
-  - file: screenshots/projects.png
+  - file: screenshots/projects.webp
     caption: Projects, pinned and favourite notes, and an AI project summary
 featured: true
 order: 4
@@ -332,13 +333,13 @@ Authorization: Bearer <jwt>
 
 ## Example run
 
-1. **User A** creates the project *Marketing* and writes notes in the editor, using `/` for headings, task lists and a table, plus an uploaded image. *(screenshot: editor.png)*
+1. **User A** creates the project *Marketing* and writes notes in the editor, using `/` for headings, task lists and a table, plus an uploaded image. *(screenshot: editor.webp)*
 2. A selects a paragraph and clicks **Rewrite → more formal**, then **Suggest title** and **Suggest keywords**.
-3. A shares the project with **user B** at `EDIT`, and with **user C** through a link that is locked to C's email, set to `VIEW` and expires in 7 days. B and C get a live notification plus an email; C accepts the invite. *(screenshot: share.png)*
-4. A and B open the same note and type at the same time; their named cursors move live. C watches the changes but can't edit. *(screenshot: collab.png)*
-5. In **Chat with notes**, A asks *"What budget did we agree on?"* and gets an answer with links to the 2 source notes. *(screenshot: rag-chat.png)*
-6. In the **agent panel** inside a note, A asks *"Add a checklist of next steps based on my other campaign notes."* The agent runs `search_notes` → `get_note` ×2 → `update_current_note`, and each step is visible. *(screenshot: agent.png)*
-7. A clicks **Summarize project** for an AI overview of all notes, then **downloads** the project as a ZIP of Markdown files. *(screenshot: projects.png)*
+3. A shares the project with **user B** at `EDIT`, and with **user C** through a link that is locked to C's email, set to `VIEW` and expires in 7 days. B and C get a live notification plus an email; C accepts the invite. *(screenshot: share.webp)*
+4. A and B open the same note and type at the same time; their named cursors move live. C watches the changes but can't edit. *(screenshot: collab.webp)*
+5. In **Chat with notes**, A asks *"What budget did we agree on?"* and gets an answer with links to the 2 source notes. *(screenshot: rag-chat.webp)*
+6. In the **agent panel** inside a note, A asks *"Add a checklist of next steps based on my other campaign notes."* The agent runs `search_notes` → `get_note` ×2 → `update_current_note`, and each step is visible. *(screenshot: agent.webp)*
+7. A clicks **Summarize project** for an AI overview of all notes, then **downloads** the project as a ZIP of Markdown files. *(screenshot: projects.webp)*
 
 ## Key decisions & trade-offs
 
@@ -376,12 +377,12 @@ Authorization: Bearer <jwt>
 Requirements: Node.js, PostgreSQL, a Gemini API key and (optionally) a Resend API key.
 
 ```bash
-cd ai-notes-backend
+cd backend
 cp .env.example .env       # PORT, YJS_PORT, DB_*, JWT_SECRET, GEMINI_*, RESEND_API_KEY, FRONTEND_URL
 npm install
 npm run start:dev          # http://localhost:3001 (Swagger: /api/docs), Hocuspocus on :1234
 
-cd ../ai-notes-frontend
+cd ../frontend
 npm install
 npm run dev                # http://localhost:3000
 ```
