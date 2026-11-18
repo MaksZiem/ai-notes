@@ -17,7 +17,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "typeorm": "node --env-file-if-exists=.env ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run build && npm run typeorm -- migration:generate -d dist/database/data-source.js",
+    "migration:run": "npm run build && npm run typeorm -- migration:run -d dist/database/data-source.js",
+    "migration:revert": "npm run build && npm run typeorm -- migration:revert -d dist/database/data-source.js"
   },
   "dependencies": {
     "@google/genai": "^2.17.1",

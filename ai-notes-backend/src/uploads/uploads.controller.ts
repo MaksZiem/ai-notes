@@ -10,7 +10,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { extname, resolve } from 'path';
 import { randomUUID } from 'crypto';
 import {
   ApiBadRequestResponse,
@@ -31,7 +31,14 @@ import { UploadResponseDto } from './dtos/upload-response.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { errorBody } from '../common/error-body';
 
-export const UPLOAD_DIR = join(process.cwd(), 'uploads');
+export function uploadDir(): string {
+  const dir = resolve(process.env.UPLOAD_DIR ?? 'uploads');
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
+
 const ALLOWED_MIME_TYPES = [
   'image/png',
   'image/jpeg',
@@ -39,10 +46,6 @@ const ALLOWED_MIME_TYPES = [
   'image/webp',
 ];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-if (!existsSync(UPLOAD_DIR)) {
-  mkdirSync(UPLOAD_DIR, { recursive: true });
-}
 
 @ApiTags('uploads')
 @ApiBearerAuth(BEARER_AUTH)
@@ -63,7 +66,7 @@ export class UploadsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: UPLOAD_DIR,
+        destination: (_req, _file, callback) => callback(null, uploadDir()),
         filename: (_req, file, callback) => {
           callback(null, `${randomUUID()}${extname(file.originalname)}`);
         },

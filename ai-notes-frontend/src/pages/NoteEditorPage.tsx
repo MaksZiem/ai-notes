@@ -178,7 +178,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
       return;
     }
     const provider = new HocuspocusProvider({
-      url: "ws://localhost:1234",
+      url: import.meta.env.VITE_YJS_URL ?? "ws://localhost:1234",
       name: String(savedId),
       token: () => localStorage.getItem("token") ?? "",
       onAuthenticated: () => {

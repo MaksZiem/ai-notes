@@ -21,6 +21,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationsModule } from './notifications/notifications.module';
 import { Notification } from './notifications/entities/notification.entity';
 import { YjsModule } from './yjs/yjs.module';
+import { HealthModule } from './health/health.module';
+import { createDataSourceOptions } from './database/database.options';
 
 @Module({
   imports: [
@@ -32,12 +34,7 @@ import { YjsModule } from './yjs/yjs.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get('DB_USER'),
-        password: config.get('DB_PASS'),
-        database: config.get('DB_NAME'),
+        ...createDataSourceOptions((key) => config.get<string>(key)),
         entities: [
           User,
           Project,
@@ -50,7 +47,6 @@ import { YjsModule } from './yjs/yjs.module';
           UserNotePreference,
           Notification,
         ],
-        synchronize: true,
       }),
     }),
     UsersModule,
@@ -61,6 +57,7 @@ import { YjsModule } from './yjs/yjs.module';
     AgentModule,
     NotificationsModule,
     YjsModule,
+    HealthModule,
   ],
   providers: [
     {

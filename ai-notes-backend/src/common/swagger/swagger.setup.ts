@@ -48,6 +48,7 @@ const TAGS: [string, string][] = [
   ],
   ['agent', 'Agent AI, który wykonuje polecenia na notatkach i projektach'],
   ['uploads', 'Wgrywanie obrazów do treści notatek'],
+  ['health', 'Stan aplikacji dla monitoringu i reverse proxy'],
 ];
 
 export function setupSwagger(app: INestApplication): void {

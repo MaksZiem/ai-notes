@@ -3,19 +3,21 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UPLOAD_DIR } from './uploads/uploads.controller';
+import { uploadDir } from './uploads/uploads.controller';
 import { setupSwagger } from './common/swagger/swagger.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 
+  app.set('trust proxy', 1);
+
   app.enableCors({
     origin: config.getOrThrow<string>('FRONTEND_URL'),
     credentials: true,
   });
 
-  app.useStaticAssets(UPLOAD_DIR, { prefix: '/uploads/' });
+  app.useStaticAssets(uploadDir(), { prefix: '/uploads/' });
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
