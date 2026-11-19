@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/MaksZiem/ai-notes/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/MaksZiem/ai-notes/ci.yml?branch=main&style=flat-square&label=CI&logo=githubactions&logoColor=white" alt="CI"></a>
   <img src="https://img.shields.io/badge/status-completed-3ccf91?style=flat-square" alt="Status: completed">
   <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS 11">
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19">
@@ -162,7 +163,7 @@ sequenceDiagram
 | **Data** | PostgreSQL: `jsonb` embeddings, `bytea` Yjs state, per-user pin and favourite preferences |
 | **AI** | Google Gemini: text generation, function calling, embeddings |
 | **Infra** | Resend (email) · local image uploads |
-| **Quality** | Jest · class-validator DTOs · ESLint · Prettier · `*.http` request files |
+| **Quality** | Jest (permission resolver unit tests) · GitHub Actions CI · class-validator DTOs · ESLint · Prettier · `*.http` request files |
 
 ## 🚀 Quick start
 
