@@ -16,6 +16,17 @@ tags: [notes, collaboration, crdt, yjs, realtime, rag, embeddings, semantic-sear
 repo: https://github.com/MaksZiem/ai-notes
 demo: null
 apiDocs: http://localhost:3001/api/docs
+quality:
+  tests: 74
+  kinds: [unit]
+  framework: Jest
+  ci: https://github.com/MaksZiem/ai-notes/actions/workflows/ci.yml
+  covered:
+    - "Permission resolver: VIEW < EDIT < DELETE, project inheritance, direct membership fallback"
+    - "Share links: random tokens, expiry, revocation, read-only links"
+    - "Who can manage access: note owner, project owner, admin"
+    - "Semantic search and RAG context: best match first, max 5 sources"
+    - "Auth: hashed passwords, wrong credentials rejected"
 cover: screenshots/cover.webp
 screenshots:
   - file: screenshots/editor.webp
@@ -359,10 +370,10 @@ Authorization: Bearer <jwt>
 
 ## Testing & quality
 
-- Jest unit tests for the notes, projects and users services and controllers.
+- **Unit tests (Jest, 74 tests):** the permission resolver for notes and projects, sharing (who can manage access, share links: expiry, revocation, read-only), note creation and updates with embeddings, semantic search and RAG context, auth, and helpers.
 - DTO validation with class-validator; Swagger docs; ESLint + Prettier on both apps.
 - Example requests in `*.http` files.
-- <!-- TODO: add e2e tests for sharing + permissions and CI -->
+- **CI (GitHub Actions):** every push and pull request runs the backend build and tests, plus frontend lint and build.
 
 ## Security
 

@@ -16,6 +16,17 @@ tags: [notes, collaboration, crdt, yjs, realtime, rag, embeddings, semantic-sear
 repo: https://github.com/MaksZiem/ai-notes
 demo: null
 apiDocs: http://localhost:3001/api/docs
+quality:
+  tests: 74
+  kinds: [unit]
+  framework: Jest
+  ci: https://github.com/MaksZiem/ai-notes/actions/workflows/ci.yml
+  covered:
+    - "Rozstrzyganie uprawnień: VIEW < EDIT < DELETE, dziedziczenie z projektu, bezpośrednie członkostwo"
+    - "Linki do udostępniania: losowe tokeny, wygasanie, odwoływanie, tylko do odczytu"
+    - "Kto może zarządzać dostępem: właściciel notatki, właściciel projektu, admin"
+    - "Wyszukiwanie semantyczne i kontekst RAG: najlepsze dopasowanie najpierw, maks. 5 źródeł"
+    - "Logowanie: hashowane hasła, odrzucanie błędnych danych"
 cover: screenshots/cover.webp
 screenshots:
   - file: screenshots/editor.webp
@@ -359,10 +370,10 @@ Authorization: Bearer <jwt>
 
 ## Testy i jakość
 
-- Testy jednostkowe w Jest dla serwisów i kontrolerów notatek, projektów i użytkowników.
+- **Testy jednostkowe (Jest, 74 testy):** rozstrzyganie uprawnień do notatek i projektów, udostępnianie (kto może zarządzać dostępem, linki: wygasanie, odwoływanie, tylko do odczytu), tworzenie i edycja notatek z embeddingami, wyszukiwanie semantyczne i kontekst RAG, logowanie oraz helpery.
 - Walidacja DTO przez class-validator, dokumentacja Swagger, ESLint + Prettier w obu aplikacjach.
 - Przykładowe żądania w plikach `*.http`.
-- <!-- TODO: dodać testy e2e udostępniania i uprawnień oraz CI -->
+- **CI (GitHub Actions):** każdy push i pull request uruchamia build i testy backendu oraz lint i build frontendu.
 
 ## Bezpieczeństwo
 
