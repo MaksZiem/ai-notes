@@ -11,7 +11,7 @@ import Color from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import { TableKit } from "@tiptap/extension-table";
-import ImageExtension from "@tiptap/extension-image";
+import { NoteImage } from "../components/editor/noteImage";
 import { Markdown } from "tiptap-markdown";
 import Sidebar from "../components/layout/SideBar/SideBar";
 import { EditorToolbar } from "../components/editor/EditorToolbar";
@@ -212,7 +212,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
         Highlight.configure({ multicolor: true }),
         TextAlign.configure({ types: ["heading", "paragraph"] }),
         TableKit.configure({ table: { resizable: true } }),
-        ImageExtension.configure({
+        NoteImage.configure({
           HTMLAttributes: { class: "note-editor-image" },
         }),
         Markdown.configure({ html: true, transformPastedText: true }),

@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import type { Note } from "../types/note";
+import { absolutizeUploadUrls } from "./uploadUrl";
 
 function sanitizeFilename(name: string, untitled: string): string {
   const cleaned = name.trim().replace(/[/\\?%*:|"<>]/g, "-");
@@ -8,7 +9,7 @@ function sanitizeFilename(name: string, untitled: string): string {
 
 function noteToMarkdown(title: string, content: string, untitled: string): string {
   const heading = `# ${title.trim() || untitled}`;
-  return content.trim() ? `${heading}\n\n${content}` : `${heading}\n`;
+  return content.trim() ? `${heading}\n\n${absolutizeUploadUrls(content)}` : `${heading}\n`;
 }
 
 function triggerBlobDownload(blob: Blob, filename: string) {

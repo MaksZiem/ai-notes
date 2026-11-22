@@ -9,7 +9,7 @@ export function useImageUpload() {
       const { data } = await api.post<{ url: string }>("/uploads/image", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      return `${api.defaults.baseURL}${data.url}`;
+      return data.url;
     },
   });
 }

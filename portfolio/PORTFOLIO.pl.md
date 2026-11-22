@@ -14,8 +14,8 @@ stack:
   ai: ["Google Gemini (text, function calling)", Gemini embeddings]
 tags: [notes, collaboration, crdt, yjs, realtime, rag, embeddings, semantic-search, ai-agent, react, nestjs]
 repo: https://github.com/MaksZiem/ai-notes
-demo: null
-apiDocs: http://localhost:3001/api/docs
+demo: https://ai-notes.zmax-dev.pl
+apiDocs: https://api.ai-notes.zmax-dev.pl/api/docs
 quality:
   tests: 74
   kinds: [unit]
