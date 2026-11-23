@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOkResponse,
@@ -23,7 +23,7 @@ import {
   ForbiddenErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { Note } from './entities/note.entity';
 import { NoteMember } from './entities/note-member.entity';
 import { SharedNoteDto } from './dtos/note-response.dto';
@@ -81,7 +81,7 @@ export class PublicShareController {
 
   @Post(':token/claim')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth(BEARER_AUTH)
+  @ApiCookieAuth(SESSION_AUTH)
   @ApiOperation({
     summary: 'Zamień dostęp z linku na trwały dostęp konta',
     description: 'Wywołaj po zalogowaniu/rejestracji, mając token w URL.',
@@ -96,7 +96,7 @@ export class PublicShareController {
     type: NoteMember,
   })
   @ApiUnauthorizedResponse({
-    description: 'Brak tokenu lub token nieprawidłowy',
+    description: 'Brak lub nieważne cookie sesji',
     type: UnauthorizedErrorDto,
   })
   @ApiForbiddenResponse({

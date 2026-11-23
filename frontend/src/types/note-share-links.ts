@@ -1,9 +1,9 @@
 export type AccessLevel = 'VIEW' | 'EDIT' | 'DELETE'
 
 export interface NoteShareLink {
-  id: number;
+  id: string;
   token: string;
-  noteId: number;
+  noteId: string;
   accessLevel: AccessLevel;
   email: string | null;
   expiresAt: string | null;

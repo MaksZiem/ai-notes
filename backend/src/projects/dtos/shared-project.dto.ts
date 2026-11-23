@@ -3,7 +3,7 @@ import { AccessLevel } from 'src/enums/access-level.enum';
 
 export class SharedProjectInfoDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id: string;
 
   @ApiProperty({ example: 'Redesign strony głównej' })
   name: string;

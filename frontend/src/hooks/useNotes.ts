@@ -20,7 +20,7 @@ export function useNotes(
   });
 
   const createNote = useMutation({
-    mutationFn: (body: { title: string; content?: string; projectId?: number; color?: string; keywords?: string[] }) =>
+    mutationFn: (body: { title: string; content?: string; projectId?: string; color?: string; keywords?: string[] }) =>
       api.post("/notes", body),
     onSuccess: invalidate,
   });

@@ -2,20 +2,20 @@ import type { Project } from "./project";
 import type { AccessLevel } from "./note-share-links";
 
 export interface NoteOwner {
-  id: number;
+  id: string;
   name: string;
   surname: string;
   email: string;
 }
 
 export interface Note {
-  id: number;
+  id: string;
   title: string;
   content?: string;
   color?: string;
-  projectId: number | null;
+  projectId: string | null;
   project: Project | null;
-  ownerId: number;
+  ownerId: string;
   owner?: NoteOwner;
   keywords?: string[];
   createdAt: string;

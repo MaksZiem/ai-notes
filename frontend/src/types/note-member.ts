@@ -2,7 +2,7 @@ import type { AccessLevel } from "./note-share-links";
 import type { UserRole } from "./user";
 
 export interface NoteMemberUser {
-  id: number;
+  id: string;
   email: string;
   name: string;
   surname: string;
@@ -10,9 +10,9 @@ export interface NoteMemberUser {
 }
 
 export interface NoteMember {
-  id: number;
-  noteId: number;
-  userId: number;
+  id: string;
+  noteId: string;
+  userId: string;
   accessLevel: AccessLevel;
   user: NoteMemberUser;
 }

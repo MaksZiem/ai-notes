@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { hashId, parseId } from "../utils/ids";
 import { useTranslations } from "use-intl";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -120,18 +121,18 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const isNew = routeId === "new";
   const initialProjectId = (() => {
     const raw = searchParams.get("projectId");
-    return raw ? Number(raw) : undefined;
+    return parseId(raw) ?? undefined;
   })();
 
   const [summary, setSummary] = useState<string | null>(null);
-  const [savedId, setSavedId] = useState<number | null>(
-    isNew ? null : Number(routeId),
+  const [savedId, setSavedId] = useState<string | null>(
+    isNew ? null : routeId,
   );
   const [title, setTitle] = useState("");
   const [color, setColor] = useState<string | undefined>(undefined);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordDraft, setKeywordDraft] = useState("");
-  const [projectId, setProjectId] = useState<number | undefined>(
+  const [projectId, setProjectId] = useState<string | undefined>(
     isNew ? initialProjectId : undefined,
   );
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -150,8 +151,8 @@ function NoteEditor({ routeId }: { routeId: string }) {
     leaveNote,
     moveNote,
     summarizeNote,
-  } = useNote(savedId ?? 0);
-  const { shareLinks } = useNoteShareLinks(savedId ?? 0);
+  } = useNote(savedId ?? "");
+  const { shareLinks } = useNoteShareLinks(savedId ?? "");
   const currentUser = useCurrentUser();
   const { createNote } = useNotes();
   const { notes: pinnedNotes } = useNotes({ pinned: true });
@@ -180,7 +181,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
     const provider = new HocuspocusProvider({
       url: import.meta.env.VITE_YJS_URL ?? "ws://localhost:1234",
       name: String(savedId),
-      token: () => localStorage.getItem("token") ?? "",
       onAuthenticated: () => {
         setCollab({ provider, doc: provider.document });
       },
@@ -193,7 +193,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   }, [isCollabEligible, savedId]);
 
   const cursorColor =
-    COLOR_PALETTE[(currentUser.data?.id ?? 0) % COLOR_PALETTE.length];
+    COLOR_PALETTE[hashId(currentUser.data?.id ?? "") % COLOR_PALETTE.length];
 
   const editor = useEditor(
     {
@@ -289,7 +289,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   const ensureSavedId = async (overrides?: {
     color?: string | null;
     keywords?: string[];
-  }): Promise<number> => {
+  }): Promise<string> => {
     if (savedId) return savedId;
     const res = await createNote.mutateAsync({
       title: title.trim() || t("notes.untitled"),
@@ -369,7 +369,7 @@ function NoteEditor({ routeId }: { routeId: string }) {
   };
 
   const handleProjectSelect = (rawValue: string) => {
-    const newProjectId = rawValue ? Number(rawValue) : undefined;
+    const newProjectId = parseId(rawValue) ?? undefined;
     if (!savedId) {
       setProjectId(newProjectId);
       return;
@@ -783,5 +783,6 @@ function NoteEditor({ routeId }: { routeId: string }) {
 
 export default function NoteEditorPage() {
   const { id = "new" } = useParams<{ id: string }>();
+  if (id !== "new" && !parseId(id)) return <Navigate to="/notes" replace />;
   return <NoteEditor key={id} routeId={id} />;
 }

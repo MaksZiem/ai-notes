@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import type { UserRole } from "../types/user";
 
 interface User {
-  id: number;
+  id: string;
   email: string;
   role: UserRole;
   name: string;
@@ -12,7 +12,7 @@ interface User {
 }
 
 export function useCurrentUser() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return useQuery<User>({
     queryKey: ["currentUser"],
@@ -20,7 +20,7 @@ export function useCurrentUser() {
       const { data } = await api.get("/auth/context");
       return data;
     },
-    enabled: !!token,
+    enabled: isAuthenticated,
     staleTime: 5 * 60_000,
   });
 }

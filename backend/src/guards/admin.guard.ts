@@ -11,6 +11,7 @@ import { Request } from 'express';
 import { UserRole } from 'src/enums/user-role.enum';
 import { UsersService } from 'src/users/users.service';
 import { errorBody } from 'src/common/error-body';
+import { readSessionToken } from 'src/users/session-cookie';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -21,7 +22,7 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
+    const token = readSessionToken(request.headers.cookie);
 
     if (!token) {
       throw new UnauthorizedException(
@@ -33,7 +34,7 @@ export class AdminGuard implements CanActivate {
       );
     }
 
-    let payload: { id: number };
+    let payload: { id: string };
     try {
       payload = await this.jwtService.verifyAsync(token);
     } catch {
@@ -69,10 +70,5 @@ export class AdminGuard implements CanActivate {
 
     request['currentUser'] = user;
     return true;
-  }
-
-  private extractTokenFromHeader(request: Request): string | null {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : null;
   }
 }

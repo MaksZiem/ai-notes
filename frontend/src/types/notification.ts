@@ -11,13 +11,13 @@ export type NotificationType =
 export type NotificationStatus = "PENDING" | "ACCEPTED" | "DECLINED";
 
 export interface Notification {
-  id: number;
+  id: string;
   type: NotificationType;
   isRead: boolean;
   createdAt: string;
   accessLevel: "VIEW" | "EDIT" | "DELETE" | null;
   status: NotificationStatus | null;
-  actor: { id: number; name: string; surname: string } | null;
-  note: { id: number; title: string } | null;
-  project: { id: number; name: string } | null;
+  actor: { id: string; name: string; surname: string } | null;
+  note: { id: string; title: string } | null;
+  project: { id: string; name: string } | null;
 }

@@ -4,7 +4,7 @@ import type { AccessLevel } from "../types/note-share-links";
 import type { NoteOwner } from "../types/note";
 
 interface SharedNoteResponse {
-  note: { id: number; title: string; content: string; owner?: NoteOwner };
+  note: { id: string; title: string; content: string; owner?: NoteOwner };
   accessLevel: AccessLevel;
 }
 

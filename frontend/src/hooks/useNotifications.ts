@@ -8,20 +8,20 @@ import { getNotificationsSocket } from "../api/notificationsSocket";
 const POLL_INTERVAL = 60_000;
 
 export function useNotifications() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
   useEffect(() => {
-    if (!token) return;
-    const socket = getNotificationsSocket(token);
+    if (!isAuthenticated) return;
+    const socket = getNotificationsSocket();
     socket.on("notifications:changed", invalidate);
     return () => {
       socket.off("notifications:changed", invalidate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [isAuthenticated]);
 
   const notifications = useQuery<Notification[]>({
     queryKey: ["notifications"],
@@ -44,7 +44,7 @@ export function useNotifications() {
   });
 
   const markAsRead = useMutation({
-    mutationFn: (id: number) => api.patch(`/notifications/${id}/read`),
+    mutationFn: (id: string) => api.patch(`/notifications/${id}/read`),
     onSuccess: invalidate,
   });
 
@@ -54,12 +54,12 @@ export function useNotifications() {
   });
 
   const acceptInvite = useMutation({
-    mutationFn: (id: number) => api.post(`/notifications/${id}/accept`),
+    mutationFn: (id: string) => api.post(`/notifications/${id}/accept`),
     onSuccess: invalidate,
   });
 
   const declineInvite = useMutation({
-    mutationFn: (id: number) => api.post(`/notifications/${id}/decline`),
+    mutationFn: (id: string) => api.post(`/notifications/${id}/decline`),
     onSuccess: invalidate,
   });
 

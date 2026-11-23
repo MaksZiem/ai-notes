@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -22,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { Notification } from './notifications/entities/notification.entity';
 import { YjsModule } from './yjs/yjs.module';
 import { HealthModule } from './health/health.module';
+import { createValidationPipe } from './common/pipes/validation.pipe';
 import { createDataSourceOptions } from './database/database.options';
 
 @Module({
@@ -62,7 +63,7 @@ import { createDataSourceOptions } from './database/database.options';
   providers: [
     {
       provide: APP_PIPE,
-      useValue: new ValidationPipe({ whitelist: true }),
+      useValue: createValidationPipe(),
     },
   ],
 })

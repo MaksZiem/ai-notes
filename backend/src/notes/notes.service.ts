@@ -58,8 +58,8 @@ export class NotesService {
   ) {}
 
   async findAllNotesInProject(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
     filters?: { pinned?: boolean; favourite?: boolean },
   ): Promise<Note[]> {
@@ -92,7 +92,7 @@ export class NotesService {
   }
 
   async findAllNotes(
-    callerId: number,
+    callerId: string,
     callerRole: UserRole,
     filters?: { pinned?: boolean; favourite?: boolean },
     limit?: number,
@@ -173,9 +173,9 @@ export class NotesService {
   }
 
   async findOne(
-    id: number,
-    projectId: number | null,
-    callerId: number,
+    id: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
     required: AccessLevel = AccessLevel.VIEW,
   ): Promise<Note> {
@@ -249,9 +249,9 @@ export class NotesService {
   }
 
   async getAccessLevel(
-    id: number,
-    projectId: number | null,
-    callerId: number,
+    id: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<AccessLevel> {
     const note = await this.repo.findOne({
@@ -291,9 +291,9 @@ export class NotesService {
 
   async create(
     dto: CreateNoteDto,
-    callerId: number,
+    callerId: string,
     callerRole: UserRole,
-    projectId?: number,
+    projectId?: string,
   ): Promise<Note> {
     const resolvedProjectId = projectId ?? dto.projectId ?? null;
 
@@ -323,10 +323,10 @@ export class NotesService {
   }
 
   async update(
-    id: number,
+    id: string,
     dto: UpdateNoteDto,
-    projectId: number | null,
-    callerId: number,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<Note> {
     const note = await this.findOne(
@@ -351,9 +351,9 @@ export class NotesService {
   }
 
   async remove(
-    id: number,
-    projectId: number | null,
-    callerId: number,
+    id: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<Note> {
     const note = await this.findOne(
@@ -367,9 +367,9 @@ export class NotesService {
   }
 
   async moveToProject(
-    id: number,
-    targetProjectId: number | null,
-    callerId: number,
+    id: string,
+    targetProjectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<Note> {
     const note = await this.findOne(
@@ -394,9 +394,9 @@ export class NotesService {
   }
 
   async togglePin(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<UserNotePreference> {
     await this.findOne(noteId, projectId, callerId, callerRole);
@@ -406,9 +406,9 @@ export class NotesService {
   }
 
   async toggleFavourite(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<UserNotePreference> {
     await this.findOne(noteId, projectId, callerId, callerRole);
@@ -418,9 +418,9 @@ export class NotesService {
   }
 
   async grantAccess(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
     dto: GrantAccessDto,
   ): Promise<NoteMember> {
@@ -453,10 +453,10 @@ export class NotesService {
   }
 
   async revokeAccess(
-    noteId: number,
-    projectId: number | null,
-    targetUserId: number,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    targetUserId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<void> {
     await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
@@ -468,9 +468,9 @@ export class NotesService {
   }
 
   async listMembers(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<NoteMember[]> {
     await this.findOne(noteId, projectId, callerId, callerRole);
@@ -478,9 +478,9 @@ export class NotesService {
   }
 
   async leaveNote(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
   ): Promise<void> {
     const note = await this.repo.findOneBy(
       projectId != null ? { id: noteId, projectId } : { id: noteId },
@@ -512,9 +512,9 @@ export class NotesService {
   }
 
   private async assertNoteOwnerOrAdmin(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<void> {
     if (callerRole === UserRole.ADMIN) return;
@@ -551,8 +551,8 @@ export class NotesService {
   }
 
   private async getOrCreateNotePref(
-    noteId: number,
-    userId: number,
+    noteId: string,
+    userId: string,
   ): Promise<UserNotePreference> {
     let pref = await this.notePrefRepo.findOneBy({ noteId, userId });
     if (!pref) {
@@ -564,9 +564,9 @@ export class NotesService {
 
   async ragChat(
     question: string,
-    callerId: number,
+    callerId: string,
     callerRole: UserRole,
-  ): Promise<{ answer: string; sources: { id: number; title: string }[] }> {
+  ): Promise<{ answer: string; sources: { id: string; title: string }[] }> {
     const relevant = await this.semanticSearch(question, callerId, callerRole);
     const topNotes = relevant.slice(0, 5);
 
@@ -594,9 +594,9 @@ export class NotesService {
 
   async semanticSearch(
     query: string,
-    callerId: number,
+    callerId: string,
     callerRole: UserRole,
-    projectId?: number,
+    projectId?: string,
   ): Promise<Note[]> {
     const queryEmbedding = await this.aiService.embedText(query);
     const candidates = await this.findAllNotes(callerId, callerRole);
@@ -616,7 +616,7 @@ export class NotesService {
   }
 
   async reindexEmbeddings(
-    callerId: number,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<{ updated: number }> {
     const notes = await this.findAllNotes(callerId, callerRole);
@@ -637,9 +637,9 @@ export class NotesService {
   }
 
   async createShareLink(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
     dto: CreateShareLinkDto,
   ): Promise<NoteShareLink> {
@@ -690,9 +690,9 @@ export class NotesService {
   }
 
   async listShareLinks(
-    noteId: number,
-    projectId: number | null,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<NoteShareLink[]> {
     await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
@@ -703,10 +703,10 @@ export class NotesService {
   }
 
   async revokeShareLink(
-    noteId: number,
-    projectId: number | null,
-    linkId: number,
-    callerId: number,
+    noteId: string,
+    projectId: string | null,
+    linkId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<void> {
     await this.assertNoteOwnerOrAdmin(noteId, projectId, callerId, callerRole);
@@ -773,7 +773,7 @@ export class NotesService {
     return this.repo.save(note);
   }
 
-  async claimShareLink(token: string, userId: number): Promise<NoteMember> {
+  async claimShareLink(token: string, userId: string): Promise<NoteMember> {
     const link = await this.resolveShareLink(token);
     const existing = await this.memberRepo.findOneBy({
       noteId: link.noteId,

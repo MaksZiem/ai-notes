@@ -3,7 +3,7 @@ import { api } from "../api/client";
 
 interface RagChatResult {
   answer: string;
-  sources: { id: number; title: string }[];
+  sources: { id: string; title: string }[];
 }
 
 export function useRagChat() {

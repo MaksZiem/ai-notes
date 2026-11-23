@@ -16,6 +16,7 @@ import { ProjectSummaryDialog } from "../components/projects/ProjectSummaryDialo
 import { usePermissions } from "../context/PermissionsContext";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { downloadNotesAsZip } from "../utils/downloadNotes";
+import { parseId } from "../utils/ids";
 
 function noteMatchesSearch(note: Note, query: string) {
   const q = query.toLowerCase();
@@ -30,8 +31,8 @@ export default function NotesPage() {
   const navigate = useNavigate();
   const t = useTranslations("notes");
   const { id: projectIdParam } = useParams<{ id: string }>();
-  const projectId = projectIdParam ? Number(projectIdParam) : undefined;
-  const isProjectScoped = projectId !== undefined && !Number.isNaN(projectId);
+  const projectId = parseId(projectIdParam) ?? undefined;
+  const isProjectScoped = projectId !== undefined;
 
   const [search, setSearch] = useState("");
   const [view, setView] = useState<NoteViewType>(NoteViewType.GRID);
@@ -51,7 +52,7 @@ export default function NotesPage() {
     aiMode && debouncedSearch.trim().length > 0,
   );
 
-  const { project } = useProject(isProjectScoped ? projectId! : 0);
+  const { project } = useProject(projectId ?? "");
 
   const canManageProject =
     isProjectScoped && (isAdmin || project.data?.ownerId === currentUser?.id);
@@ -68,13 +69,13 @@ export default function NotesPage() {
 
   const {
     notes: { data: projectPinnedNotes = [] },
-  } = useProjectNotes(isProjectScoped ? projectId! : 0, { pinned: true });
+  } = useProjectNotes(projectId ?? "", { pinned: true });
   const {
     notes: { data: projectFavouriteNotes = [] },
-  } = useProjectNotes(isProjectScoped ? projectId! : 0, { favourite: true });
+  } = useProjectNotes(projectId ?? "", { favourite: true });
   const {
     notes: { data: projectAllNotesRaw = [] },
-  } = useProjectNotes(isProjectScoped ? projectId! : 0);
+  } = useProjectNotes(projectId ?? "");
 
   const projectAllNotes = debouncedSearch
     ? projectAllNotesRaw.filter((n) => noteMatchesSearch(n, debouncedSearch))
@@ -92,7 +93,7 @@ export default function NotesPage() {
   const totalCount = allNotes.length;
   const hasResults = filteredPinned.length + filteredRest.length > 0;
 
-  const openNote = (noteId: number) => navigate(`/notes/${noteId}`);
+  const openNote = (noteId: string) => navigate(`/notes/${noteId}`);
   const createNotePath = isProjectScoped ? `/notes/new?projectId=${projectId}` : "/notes/new";
 
   const handleDownloadAll = async () => {

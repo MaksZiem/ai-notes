@@ -8,7 +8,7 @@ export class UserDto {
     description: 'Unikalny identyfikator użytkownika',
   })
   @Expose()
-  id: number;
+  id: string;
 
   @ApiProperty({
     example: 'jan.kowalski@example.com',

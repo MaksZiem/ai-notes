@@ -2,15 +2,11 @@ import { io, type Socket } from "socket.io-client";
 import { API_BASE_URL } from "./client";
 
 let socket: Socket | null = null;
-let socketToken: string | null = null;
 
-export function getNotificationsSocket(token: string): Socket {
-  if (socket && socketToken === token) return socket;
-
-  socket?.disconnect();
-  socketToken = token;
+export function getNotificationsSocket(): Socket {
+  if (socket) return socket;
   socket = io(`${API_BASE_URL}/notifications`, {
-    auth: { token },
+    withCredentials: true,
     transports: ["websocket"],
   });
   return socket;
@@ -19,5 +15,4 @@ export function getNotificationsSocket(token: string): Socket {
 export function disconnectNotificationsSocket() {
   socket?.disconnect();
   socket = null;
-  socketToken = null;
 }

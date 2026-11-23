@@ -1,20 +1,40 @@
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { api } from "../api/client"
 import { disconnectNotificationsSocket } from "../api/notificationsSocket"
 
+type AuthStatus = "checking" | "authenticated" | "anonymous"
+
 interface AuthState {
-  token: string | null
+  status: AuthStatus
+  isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
   signup: (email: string, password: string, name: string, surname: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({children}: {children: ReactNode}) {
-  const [token, setToken] = useState<string | null>(
-    () => localStorage.getItem('token')
-  )
+  const queryClient = useQueryClient()
+  const [status, setStatus] = useState<AuthStatus>("checking")
+
+  useEffect(() => {
+    let active = true
+    api
+      .get("/auth/context", { skipAuthRedirect: true })
+      .then(({ data }) => {
+        if (!active) return
+        queryClient.setQueryData(["currentUser"], data)
+        setStatus("authenticated")
+      })
+      .catch(() => {
+        if (active) setStatus("anonymous")
+      })
+    return () => {
+      active = false
+    }
+  }, [queryClient])
 
   const claimPendingShareLink = async () => {
     const shareToken = new URLSearchParams(window.location.search).get('shareToken')
@@ -27,27 +47,31 @@ export function AuthProvider({children}: {children: ReactNode}) {
   }
 
   const login = async (email: string, password: string) => {
-    const {data } = await api.post('/auth/signin', {email, password})
-    localStorage.setItem('token', data.access_token)
-    setToken(data.access_token)
+    const { data } = await api.post("/auth/signin", { email, password }, { skipAuthRedirect: true })
+    queryClient.setQueryData(["currentUser"], data)
+    setStatus("authenticated")
     await claimPendingShareLink()
   }
 
   const signup = async (email: string, password: string, name: string, surname: string) => {
-    const { data } = await api.post('/auth/signup', { email, password, name, surname })
-    localStorage.setItem('token', data.access_token)
-    setToken(data.access_token)
+    const { data } = await api.post("/auth/signup", { email, password, name, surname }, { skipAuthRedirect: true })
+    queryClient.setQueryData(["currentUser"], data)
+    setStatus("authenticated")
     await claimPendingShareLink()
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    setToken(null)
-    disconnectNotificationsSocket()
+  const logout = async () => {
+    try {
+      await api.post("/auth/signout", undefined, { skipAuthRedirect: true })
+    } finally {
+      disconnectNotificationsSocket()
+      queryClient.clear()
+      setStatus("anonymous")
+    }
   }
 
   return (
-    <AuthContext.Provider value={{token, login, signup, logout}}>
+    <AuthContext.Provider value={{ status, isAuthenticated: status === "authenticated", login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -9,9 +9,17 @@ import { NotesModule } from 'src/notes/notes.module';
 import { ProjectsModule } from 'src/projects/projects.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification]), NotesModule, ProjectsModule],
+  imports: [
+    TypeOrmModule.forFeature([Notification]),
+    NotesModule,
+    ProjectsModule,
+  ],
   controllers: [NotificationsController],
-  providers: [NotificationsService, NotificationsListener, NotificationsGateway],
+  providers: [
+    NotificationsService,
+    NotificationsListener,
+    NotificationsGateway,
+  ],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

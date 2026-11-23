@@ -9,7 +9,7 @@ export function ProjectSummaryDialog({
   projectId,
   onClose,
 }: {
-  projectId: number;
+  projectId: string;
   onClose: () => void;
 }) {
   const t = useTranslations("sharing.summary");

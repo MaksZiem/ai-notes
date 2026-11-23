@@ -14,8 +14,8 @@ import { NoteMember } from './note-member.entity';
 
 @Entity()
 export class Note {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   title: string;
@@ -39,15 +39,15 @@ export class Note {
   })
   project: Project | null;
 
-  @Column({ nullable: true })
-  projectId: number | null;
+  @Column({ type: 'uuid', nullable: true })
+  projectId: string | null;
 
   @ApiPropertyOptional({ type: () => User })
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   owner: User;
 
-  @Column()
-  ownerId: number;
+  @Column('uuid')
+  ownerId: string;
 
   @ApiHideProperty()
   @OneToMany(() => NoteMember, (member) => member.note)

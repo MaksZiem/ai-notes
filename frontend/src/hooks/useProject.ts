@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Project } from "../types/project";
 
-export function useProject(projectId: number) {
+export function useProject(projectId: string) {
   const queryClient = useQueryClient();
 
   const invalidateProject = () =>
@@ -58,13 +58,13 @@ export function useProject(projectId: number) {
   });
 
   const grantAccess = useMutation({
-    mutationFn: ({ userId, accessLevel }: { userId: number; accessLevel?: string }) =>
+    mutationFn: ({ userId, accessLevel }: { userId: string; accessLevel?: string }) =>
       api.post(`/projects/${projectId}/members`, { userId, accessLevel }),
     onSuccess: invalidateMembers,
   });
 
   const revokeAccess = useMutation({
-    mutationFn: (userId: number) =>
+    mutationFn: (userId: string) =>
       api.delete(`/projects/${projectId}/members/${userId}`),
     onSuccess: invalidateMembers,
   });

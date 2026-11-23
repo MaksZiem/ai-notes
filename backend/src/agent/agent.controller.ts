@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiOperation,
   ApiTags,
@@ -20,7 +20,7 @@ import {
   TooManyRequestsErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { AgentChatResponseDto } from './dtos/agent-chat.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
@@ -31,9 +31,9 @@ import { errorBody } from '../common/error-body';
 
 @UseGuards(AuthGuard)
 @ApiTags('agent')
-@ApiBearerAuth(BEARER_AUTH)
+@ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
-  description: 'Brak tokenu lub token nieprawidłowy',
+  description: 'Brak lub nieważne cookie sesji',
   type: UnauthorizedErrorDto,
 })
 @ApiTooManyRequestsResponse({

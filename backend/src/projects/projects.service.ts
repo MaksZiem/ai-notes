@@ -51,7 +51,7 @@ export class ProjectsService {
   ) {}
 
   async findAllByUser(
-    callerId: number,
+    callerId: string,
     callerRole: UserRole,
     filters?: { pinned?: boolean; favourite?: boolean },
   ): Promise<Project[]> {
@@ -94,7 +94,7 @@ export class ProjectsService {
     return qb.getMany();
   }
 
-  async findOneRaw(id: number): Promise<Project> {
+  async findOneRaw(id: string): Promise<Project> {
     const project = await this.repo.findOneBy({ id });
     if (!project)
       throw new NotFoundException(
@@ -108,8 +108,8 @@ export class ProjectsService {
   }
 
   async findOne(
-    id: number,
-    callerId: number,
+    id: string,
+    callerId: string,
     callerRole: UserRole,
     required: AccessLevel = AccessLevel.VIEW,
   ): Promise<Project> {
@@ -152,8 +152,8 @@ export class ProjectsService {
   }
 
   async getAccessLevel(
-    id: number,
-    callerId: number,
+    id: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<AccessLevel> {
     const project = await this.repo.findOneBy({ id });
@@ -181,7 +181,7 @@ export class ProjectsService {
     return membership.accessLevel;
   }
 
-  async findRecent(callerId: number, callerRole: UserRole) {
+  async findRecent(callerId: string, callerRole: UserRole) {
     if (callerRole === UserRole.ADMIN) {
       return this.repo.find({ order: { updatedAt: 'DESC' }, take: 5 });
     }
@@ -205,15 +205,15 @@ export class ProjectsService {
     return qb.getMany();
   }
 
-  create(dto: CreateProjectDto, ownerId: number): Promise<Project> {
+  create(dto: CreateProjectDto, ownerId: string): Promise<Project> {
     const project = this.repo.create({ ...dto, ownerId });
     return this.repo.save(project);
   }
 
   async update(
-    id: number,
+    id: string,
     dto: UpdateProjectDto,
-    callerId: number,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<Project> {
     const project = await this.findOne(
@@ -227,8 +227,8 @@ export class ProjectsService {
   }
 
   async remove(
-    id: number,
-    callerId: number,
+    id: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<Project> {
     const project = await this.findOne(
@@ -250,8 +250,8 @@ export class ProjectsService {
   }
 
   async togglePin(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<UserProjectPreference> {
     await this.findOne(projectId, callerId, callerRole);
@@ -261,8 +261,8 @@ export class ProjectsService {
   }
 
   async toggleFavourite(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<UserProjectPreference> {
     await this.findOne(projectId, callerId, callerRole);
@@ -272,8 +272,8 @@ export class ProjectsService {
   }
 
   async grantAccess(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
     dto: GrantAccessDto,
   ): Promise<ProjectMember> {
@@ -311,9 +311,9 @@ export class ProjectsService {
   }
 
   async revokeAccess(
-    projectId: number,
-    targetUserId: number,
-    callerId: number,
+    projectId: string,
+    targetUserId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<void> {
     await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
@@ -325,8 +325,8 @@ export class ProjectsService {
   }
 
   async listMembers(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<ProjectMember[]> {
     await this.findOne(projectId, callerId, callerRole);
@@ -336,7 +336,7 @@ export class ProjectsService {
     });
   }
 
-  async leaveProject(projectId: number, callerId: number): Promise<void> {
+  async leaveProject(projectId: string, callerId: string): Promise<void> {
     const project = await this.repo.findOneBy({ id: projectId });
     if (!project)
       throw new NotFoundException(
@@ -372,8 +372,8 @@ export class ProjectsService {
   }
 
   async createShareLink(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
     dto: CreateProjectShareLinkDto,
   ): Promise<ProjectShareLink> {
@@ -424,8 +424,8 @@ export class ProjectsService {
   }
 
   async listShareLinks(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<ProjectShareLink[]> {
     await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
@@ -436,9 +436,9 @@ export class ProjectsService {
   }
 
   async revokeShareLink(
-    projectId: number,
-    linkId: number,
-    callerId: number,
+    projectId: string,
+    linkId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<void> {
     await this.assertOwnerOrAdmin(projectId, callerId, callerRole);
@@ -448,7 +448,7 @@ export class ProjectsService {
     );
   }
 
-  async revokeShareLinkById(linkId: number): Promise<void> {
+  async revokeShareLinkById(linkId: string): Promise<void> {
     await this.shareLinkRepo.update({ id: linkId }, { revoked: true });
   }
 
@@ -476,7 +476,7 @@ export class ProjectsService {
   }
 
   async getSharedProject(token: string): Promise<{
-    project: { id: number; name: string; description?: string };
+    project: { id: string; name: string; description?: string };
     invitedBy: { name: string; surname: string } | null;
     accessLevel: AccessLevel;
   }> {
@@ -504,7 +504,7 @@ export class ProjectsService {
     };
   }
 
-  async claimShareLink(token: string, userId: number): Promise<ProjectMember> {
+  async claimShareLink(token: string, userId: string): Promise<ProjectMember> {
     const link = await this.resolveShareLink(token);
     const existing = await this.memberRepo.findOneBy({
       projectId: link.projectId,
@@ -541,8 +541,8 @@ export class ProjectsService {
   }
 
   private async assertOwnerOrAdmin(
-    projectId: number,
-    callerId: number,
+    projectId: string,
+    callerId: string,
     callerRole: UserRole,
   ): Promise<void> {
     if (callerRole === UserRole.ADMIN) return;
@@ -566,8 +566,8 @@ export class ProjectsService {
   }
 
   private async getOrCreatePref(
-    projectId: number,
-    userId: number,
+    projectId: string,
+    userId: string,
   ): Promise<UserProjectPreference> {
     let pref = await this.prefRepo.findOneBy({ projectId, userId });
     if (!pref) {

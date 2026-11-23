@@ -17,22 +17,22 @@ import { Note } from './note.entity';
 @Entity()
 @Unique(['userId', 'noteId'])
 export class NoteMember {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ApiPropertyOptional({ type: () => User })
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column()
-  userId: number;
+  @Column('uuid')
+  userId: string;
 
   @ApiHideProperty()
   @ManyToOne(() => Note, (note) => note.members, { onDelete: 'CASCADE' })
   note: Note;
 
-  @Column()
-  noteId: number;
+  @Column('uuid')
+  noteId: string;
 
   @ApiProperty({ enum: AccessLevel })
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })

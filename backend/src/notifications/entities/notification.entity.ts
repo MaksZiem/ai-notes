@@ -17,15 +17,15 @@ import { AccessLevel } from 'src/enums/access-level.enum';
 
 @Entity()
 export class Notification {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ApiHideProperty()
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column()
-  userId: number;
+  @Column('uuid')
+  userId: string;
 
   @Column({ type: 'enum', enum: NotificationType })
   type: NotificationType;
@@ -34,22 +34,22 @@ export class Notification {
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   actor: User | null;
 
-  @Column({ nullable: true })
-  actorId: number | null;
+  @Column({ type: 'uuid', nullable: true })
+  actorId: string | null;
 
   @ApiPropertyOptional({ type: () => Note, nullable: true })
   @ManyToOne(() => Note, { onDelete: 'CASCADE', nullable: true })
   note: Note | null;
 
-  @Column({ nullable: true })
-  noteId: number | null;
+  @Column({ type: 'uuid', nullable: true })
+  noteId: string | null;
 
   @ApiPropertyOptional({ type: () => Project, nullable: true })
   @ManyToOne(() => Project, { onDelete: 'CASCADE', nullable: true })
   project: Project | null;
 
-  @Column({ nullable: true })
-  projectId: number | null;
+  @Column({ type: 'uuid', nullable: true })
+  projectId: string | null;
 
   @Column({ type: 'enum', enum: AccessLevel, nullable: true })
   accessLevel: AccessLevel | null;
@@ -58,15 +58,15 @@ export class Notification {
   @ManyToOne(() => NoteShareLink, { onDelete: 'CASCADE', nullable: true })
   shareLink: NoteShareLink | null;
 
-  @Column({ nullable: true })
-  shareLinkId: number | null;
+  @Column({ type: 'uuid', nullable: true })
+  shareLinkId: string | null;
 
   @ApiHideProperty()
   @ManyToOne(() => ProjectShareLink, { onDelete: 'CASCADE', nullable: true })
   projectShareLink: ProjectShareLink | null;
 
-  @Column({ nullable: true })
-  projectShareLinkId: number | null;
+  @Column({ type: 'uuid', nullable: true })
+  projectShareLinkId: string | null;
 
   @Column({ type: 'enum', enum: NotificationStatus, nullable: true })
   status: NotificationStatus | null;

@@ -24,7 +24,7 @@ import { MailModule } from 'src/mail/mail.module';
     ]),
     forwardRef(() => ProjectsModule),
     forwardRef(() => AiModule),
-    MailModule
+    MailModule,
   ],
   controllers: [NotesController, SingleNoteController, PublicShareController],
   providers: [NotesService],

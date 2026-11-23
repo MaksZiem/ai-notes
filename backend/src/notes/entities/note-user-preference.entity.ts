@@ -12,14 +12,14 @@ import { Note } from './note.entity';
 @Entity()
 @Unique(['userId', 'noteId'])
 export class UserNotePreference {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
-  userId: number;
+  @Column('uuid')
+  userId: string;
 
-  @Column()
-  noteId: number;
+  @Column('uuid')
+  noteId: string;
 
   @Column({ default: false })
   isPinned: boolean;

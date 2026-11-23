@@ -1,28 +1,27 @@
-import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { Controller, Get } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  ApiOkResponse,
-  ApiOperation,
-  ApiServiceUnavailableResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { DataSource } from 'typeorm';
+  HealthCheck,
+  HealthCheckService,
+  TypeOrmHealthIndicator,
+} from '@nestjs/terminus';
 
 @ApiTags('health')
-@Controller('health')
+@Controller('api/health')
 export class HealthController {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly health: HealthCheckService,
+    private readonly db: TypeOrmHealthIndicator,
+  ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Stan aplikacji i połączenia z bazą' })
-  @ApiOkResponse({ description: 'Aplikacja i baza działają' })
-  @ApiServiceUnavailableResponse({ description: 'Brak połączenia z bazą' })
-  async check(): Promise<{ status: 'ok' }> {
-    try {
-      await this.dataSource.query('SELECT 1');
-    } catch {
-      throw new ServiceUnavailableException('Database unavailable');
-    }
-    return { status: 'ok' };
+  @HealthCheck()
+  @ApiOperation({
+    summary: 'Stan aplikacji',
+    description:
+      'Sprawdza połączenie z bazą danych. Zwraca 503, gdy baza nie odpowiada.',
+  })
+  check() {
+    return this.health.check([() => this.db.pingCheck('database')]);
   }
 }

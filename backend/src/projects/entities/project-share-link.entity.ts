@@ -11,8 +11,8 @@ import { Project } from './project.entity';
 
 @Entity()
 export class ProjectShareLink {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   token: string;
@@ -21,8 +21,8 @@ export class ProjectShareLink {
   @ManyToOne(() => Project, { onDelete: 'CASCADE' })
   project: Project;
 
-  @Column()
-  projectId: number;
+  @Column('uuid')
+  projectId: string;
 
   @ApiProperty({ enum: AccessLevel })
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })
@@ -37,8 +37,8 @@ export class ProjectShareLink {
   @Column({ default: false })
   revoked: boolean;
 
-  @Column()
-  createdByUserId: number;
+  @Column('uuid')
+  createdByUserId: string;
 
   @CreateDateColumn()
   createdAt: Date;

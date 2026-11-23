@@ -1,14 +1,7 @@
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
+import { Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -23,7 +16,7 @@ import {
   NotFoundErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { Notification } from './entities/notification.entity';
 import {
   SuccessResponseDto,
@@ -35,9 +28,9 @@ import { User } from 'src/users/user.entity';
 import { NotificationsService } from './notifications.service';
 
 @ApiTags('notifications')
-@ApiBearerAuth(BEARER_AUTH)
+@ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
-  description: 'Brak tokenu lub token nieprawidłowy',
+  description: 'Brak lub nieważne cookie sesji',
   type: UnauthorizedErrorDto,
 })
 @UseGuards(AuthGuard)
@@ -83,12 +76,18 @@ export class NotificationsController {
   @Patch(':id/read')
   @ApiOperation({ summary: 'Oznacz powiadomienie jako przeczytane' })
   @ApiOkResponse({ description: 'Powiadomienie', type: Notification })
-  @ApiParam({ name: 'id', example: 12, description: 'ID powiadomienia' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID powiadomienia',
+  })
   @ApiNotFoundResponse({
     description: 'Powiadomienie nie istnieje (kod NOTIFICATION_NOT_FOUND)',
     type: NotFoundErrorDto,
   })
-  markAsRead(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  markAsRead(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.notificationsService.markAsRead(id, user.id);
   }
 
@@ -102,7 +101,13 @@ export class NotificationsController {
     description: 'Zaakceptowane zaproszenie',
     type: Notification,
   })
-  @ApiParam({ name: 'id', example: 12, description: 'ID powiadomienia' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID powiadomienia',
+  })
   @ApiForbiddenResponse({
     description:
       'Zaproszenie zostało już obsłużone (kod INVITATION_ALREADY_HANDLED)',
@@ -112,7 +117,7 @@ export class NotificationsController {
     description: 'Powiadomienie lub zaproszenie nie istnieje',
     type: NotFoundErrorDto,
   })
-  accept(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  accept(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.notificationsService.accept(id, user.id);
   }
 
@@ -122,7 +127,13 @@ export class NotificationsController {
     description: 'Odrzucone zaproszenie',
     type: Notification,
   })
-  @ApiParam({ name: 'id', example: 12, description: 'ID powiadomienia' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID powiadomienia',
+  })
   @ApiForbiddenResponse({
     description:
       'Zaproszenie zostało już obsłużone (kod INVITATION_ALREADY_HANDLED)',
@@ -132,7 +143,7 @@ export class NotificationsController {
     description: 'Powiadomienie nie istnieje (kod NOTIFICATION_NOT_FOUND)',
     type: NotFoundErrorDto,
   })
-  decline(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  decline(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.notificationsService.decline(id, user.id);
   }
 }

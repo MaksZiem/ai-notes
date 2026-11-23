@@ -25,14 +25,14 @@ export class NotificationsService {
   ) {}
 
   async create(data: {
-    userId: number;
+    userId: string;
     type: NotificationType;
-    actorId?: number | null;
-    noteId?: number | null;
-    projectId?: number | null;
+    actorId?: string | null;
+    noteId?: string | null;
+    projectId?: string | null;
     accessLevel?: AccessLevel | null;
-    shareLinkId?: number | null;
-    projectShareLinkId?: number | null;
+    shareLinkId?: string | null;
+    projectShareLinkId?: string | null;
     status?: NotificationStatus | null;
   }): Promise<Notification> {
     const notification = this.repo.create(data);
@@ -41,7 +41,7 @@ export class NotificationsService {
     return saved;
   }
 
-  async findAllForUser(userId: number): Promise<Notification[]> {
+  async findAllForUser(userId: string): Promise<Notification[]> {
     return this.repo.find({
       where: { userId },
       relations: ['actor', 'note', 'project'],
@@ -50,11 +50,11 @@ export class NotificationsService {
     });
   }
 
-  async unreadCount(userId: number): Promise<number> {
+  async unreadCount(userId: string): Promise<number> {
     return this.repo.count({ where: { userId, isRead: false } });
   }
 
-  async markAsRead(id: number, userId: number): Promise<Notification> {
+  async markAsRead(id: string, userId: string): Promise<Notification> {
     const notification = await this.repo.findOneBy({ id, userId });
     if (!notification)
       throw new NotFoundException(
@@ -70,12 +70,12 @@ export class NotificationsService {
     return saved;
   }
 
-  async markAllAsRead(userId: number): Promise<void> {
+  async markAllAsRead(userId: string): Promise<void> {
     await this.repo.update({ userId, isRead: false }, { isRead: true });
     this.gateway.notifyUser(userId);
   }
 
-  async accept(id: number, userId: number): Promise<Notification> {
+  async accept(id: string, userId: string): Promise<Notification> {
     const notification = await this.repo.findOne({
       where: { id, userId },
       relations: ['shareLink', 'projectShareLink'],
@@ -144,7 +144,7 @@ export class NotificationsService {
     return saved;
   }
 
-  async decline(id: number, userId: number): Promise<Notification> {
+  async decline(id: string, userId: string): Promise<Notification> {
     const notification = await this.repo.findOneBy({ id, userId });
     if (
       !notification ||
@@ -185,7 +185,7 @@ export class NotificationsService {
     return saved;
   }
 
-  async markInviteAccepted(shareLinkId: number, userId: number): Promise<void> {
+  async markInviteAccepted(shareLinkId: string, userId: string): Promise<void> {
     await this.repo.update(
       {
         shareLinkId,
@@ -199,8 +199,8 @@ export class NotificationsService {
   }
 
   async markProjectInviteAccepted(
-    projectShareLinkId: number,
-    userId: number,
+    projectShareLinkId: string,
+    userId: string,
   ): Promise<void> {
     await this.repo.update(
       {

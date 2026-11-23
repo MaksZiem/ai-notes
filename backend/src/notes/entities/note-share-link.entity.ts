@@ -11,8 +11,8 @@ import { Note } from './note.entity';
 
 @Entity()
 export class NoteShareLink {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   token: string;
@@ -21,8 +21,8 @@ export class NoteShareLink {
   @ManyToOne(() => Note, { onDelete: 'CASCADE' })
   note: Note;
 
-  @Column()
-  noteId: number;
+  @Column('uuid')
+  noteId: string;
 
   @ApiProperty({ enum: AccessLevel })
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })
@@ -37,8 +37,8 @@ export class NoteShareLink {
   @Column({ default: false })
   revoked: boolean;
 
-  @Column()
-  createdByUserId: number;
+  @Column('uuid')
+  createdByUserId: string;
 
   @CreateDateColumn()
   createdAt: Date;

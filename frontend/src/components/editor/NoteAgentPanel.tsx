@@ -12,8 +12,8 @@ interface AgentPanelMessage {
 }
 
 interface NoteAgentPanelProps {
-  noteId: number;
-  projectId?: number;
+  noteId: string;
+  projectId?: string;
   editor: Editor;
   onTitleChange: (title: string) => void;
   onClose: () => void;
@@ -52,7 +52,7 @@ export function NoteAgentPanel({
           const updateStep = result.steps.find(
             (s) =>
               s.tool === "update_current_note" &&
-              (s.result as { id?: number } | undefined)?.id === noteId,
+              (s.result as { id?: string } | undefined)?.id === noteId,
           );
           if (updateStep) {
             const r = updateStep.result as { title: string; content: string };

@@ -4,10 +4,7 @@ export enum AccessLevel {
   DELETE = 'DELETE',
 }
 
-export function hasAccess(
-  owned: AccessLevel,
-  required: AccessLevel,
-): boolean {
+export function hasAccess(owned: AccessLevel, required: AccessLevel): boolean {
   const rank: Record<AccessLevel, number> = {
     [AccessLevel.VIEW]: 1,
     [AccessLevel.EDIT]: 2,

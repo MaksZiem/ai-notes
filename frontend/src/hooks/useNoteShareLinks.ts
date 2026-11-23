@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { NoteShareLink } from "../types/note-share-links";
 
-export function useNoteShareLinks(noteId: number) {
+export function useNoteShareLinks(noteId: string) {
   const queryClient = useQueryClient();
   const invalidate = () => {
     return queryClient.invalidateQueries({
@@ -26,7 +26,7 @@ export function useNoteShareLinks(noteId: number) {
   })
 
   const revokeShareLink = useMutation({
-    mutationFn: (linkId: number) => 
+    mutationFn: (linkId: string) => 
       api.delete(`/notes/${noteId}/share-links/${linkId}`),
       onSuccess: invalidate
   })

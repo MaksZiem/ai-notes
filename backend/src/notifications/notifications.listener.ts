@@ -51,7 +51,10 @@ export class NotificationsListener {
 
   @OnEvent(SHARE_LINK_CLAIMED_EVENT)
   async handleShareLinkClaimed(event: ShareLinkClaimedEvent) {
-    await this.notificationsService.markInviteAccepted(event.shareLinkId, event.claimerId);
+    await this.notificationsService.markInviteAccepted(
+      event.shareLinkId,
+      event.claimerId,
+    );
 
     if (event.ownerId === event.claimerId) return;
     await this.notificationsService.create({
@@ -101,7 +104,10 @@ export class NotificationsListener {
 
   @OnEvent(PROJECT_SHARE_LINK_CLAIMED_EVENT)
   async handleProjectShareLinkClaimed(event: ProjectShareLinkClaimedEvent) {
-    await this.notificationsService.markProjectInviteAccepted(event.shareLinkId, event.claimerId);
+    await this.notificationsService.markProjectInviteAccepted(
+      event.shareLinkId,
+      event.claimerId,
+    );
 
     if (event.ownerId === event.claimerId) return;
     await this.notificationsService.create({

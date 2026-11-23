@@ -15,8 +15,8 @@ export function NotificationRow({
 }: {
   notification: Notification;
   onOpen: (n: Notification) => void;
-  onAccept: (id: number) => void;
-  onDecline: (id: number) => void;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
   acceptPending?: boolean;
   declinePending?: boolean;
   compact?: boolean;

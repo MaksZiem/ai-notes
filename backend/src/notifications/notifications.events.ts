@@ -12,72 +12,72 @@ export const PROJECT_INVITE_EVENT = 'project.invite';
 
 export class NoteSharedEvent {
   constructor(
-    public readonly noteId: number,
-    public readonly recipientUserId: number,
-    public readonly actorId: number,
+    public readonly noteId: string,
+    public readonly recipientUserId: string,
+    public readonly actorId: string,
     public readonly accessLevel: AccessLevel,
   ) {}
 }
 
 export class NoteAccessRevokedEvent {
   constructor(
-    public readonly noteId: number,
-    public readonly recipientUserId: number,
-    public readonly actorId: number,
+    public readonly noteId: string,
+    public readonly recipientUserId: string,
+    public readonly actorId: string,
   ) {}
 }
 
 export class ShareLinkClaimedEvent {
   constructor(
-    public readonly noteId: number,
-    public readonly ownerId: number,
-    public readonly claimerId: number,
-    public readonly shareLinkId: number,
+    public readonly noteId: string,
+    public readonly ownerId: string,
+    public readonly claimerId: string,
+    public readonly shareLinkId: string,
   ) {}
 }
 
 export class NoteInviteEvent {
   constructor(
-    public readonly noteId: number,
-    public readonly shareLinkId: number,
-    public readonly recipientUserId: number,
-    public readonly actorId: number,
+    public readonly noteId: string,
+    public readonly shareLinkId: string,
+    public readonly recipientUserId: string,
+    public readonly actorId: string,
     public readonly accessLevel: AccessLevel,
   ) {}
 }
 
 export class ProjectSharedEvent {
   constructor(
-    public readonly projectId: number,
-    public readonly recipientUserId: number,
-    public readonly actorId: number,
+    public readonly projectId: string,
+    public readonly recipientUserId: string,
+    public readonly actorId: string,
     public readonly accessLevel: AccessLevel,
   ) {}
 }
 
 export class ProjectAccessRevokedEvent {
   constructor(
-    public readonly projectId: number,
-    public readonly recipientUserId: number,
-    public readonly actorId: number,
+    public readonly projectId: string,
+    public readonly recipientUserId: string,
+    public readonly actorId: string,
   ) {}
 }
 
 export class ProjectShareLinkClaimedEvent {
   constructor(
-    public readonly projectId: number,
-    public readonly ownerId: number,
-    public readonly claimerId: number,
-    public readonly shareLinkId: number,
+    public readonly projectId: string,
+    public readonly ownerId: string,
+    public readonly claimerId: string,
+    public readonly shareLinkId: string,
   ) {}
 }
 
 export class ProjectInviteEvent {
   constructor(
-    public readonly projectId: number,
-    public readonly shareLinkId: number,
-    public readonly recipientUserId: number,
-    public readonly actorId: number,
+    public readonly projectId: string,
+    public readonly shareLinkId: string,
+    public readonly recipientUserId: string,
+    public readonly actorId: string,
     public readonly accessLevel: AccessLevel,
   ) {}
 }

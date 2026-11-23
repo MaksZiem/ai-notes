@@ -14,7 +14,7 @@ interface NoteCardProps {
   onClick?: () => void;
 }
 
-function QuickActions({ noteId, pinned, favourite }: { noteId: number; pinned: boolean; favourite: boolean }) {
+function QuickActions({ noteId, pinned, favourite }: { noteId: string; pinned: boolean; favourite: boolean }) {
   const t = useTranslations("noteCard");
   const { togglePin, toggleFavourite } = useNoteQuickActions(noteId);
 

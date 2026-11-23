@@ -1,16 +1,16 @@
 import type { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-export const BEARER_AUTH = 'access-token';
+export const SESSION_AUTH = 'session-cookie';
 
 const TITLE = 'AI Notes API';
 
 const DESCRIPTION = `REST API aplikacji do notatek i projektów z funkcjami AI (pisanie, streszczenia, wyszukiwanie semantyczne, czat z notatkami, agent).
 
 ## Autoryzacja
-Większość endpointów wymaga tokenu JWT w nagłówku \`Authorization: Bearer <token>\`.
-Token zwracają **POST /auth/signup** i **POST /auth/signin**.
-Kliknij **Authorize** i wklej sam token (bez słowa "Bearer"), aby wywoływać chronione endpointy z tego widoku.
+Sesja jest trzymana w cookie \`notes_session\` (httpOnly, SameSite=Lax, ważne 7 dni).
+Cookie ustawiają **POST /auth/signup** i **POST /auth/signin**, a usuwa je **POST /auth/signout**.
+Po zalogowaniu z tego widoku (Try it out na /auth/signin) chronione endpointy działają od razu, bo przeglądarka sama dołącza cookie.
 
 ## Uprawnienia
 Dostęp do projektów i notatek ma poziomy **VIEW < EDIT < DELETE**. Nadaje się je członkom projektu, członkom pojedynczej notatki lub przez link udostępniania. Właściciel i admin mają pełny dostęp.
@@ -27,7 +27,9 @@ Każdy błąd ma spójny format JSON:
 \`\`\`
 - \`code\` to stały identyfikator błędu, na podstawie którego frontend wyświetla przetłumaczony komunikat (PL/EN), a \`params\` zawiera wartości do wstawienia w ten komunikat.
 - \`message\` jest po angielsku i służy do debugowania.
-- Błędy walidacji (400) zwracają w \`message\` tablicę komunikatów, po jednym na każde niepoprawne pole.
+- Błędy walidacji danych wejściowych mają kod \`VALIDATION_FAILED\` i zwracają w \`message\` tablicę komunikatów, po jednym na każde niepoprawne pole.
+- Identyfikator w ścieżce, który nie jest UUID, daje błąd 400 z kodem \`INVALID_ID\` (\`params.param\` to nazwa parametru).
+- Błędy bez własnego kodu (np. nieistniejąca ścieżka) dostają kod z nazwy statusu HTTP, np. \`NOT_FOUND\`.
 
 ## Limity AI
 Endpointy AI korzystają z darmowego limitu Gemini. Po jego wyczerpaniu zwracają 429 z kodem \`AI_QUOTA_EXCEEDED\`.
@@ -56,14 +58,15 @@ export function setupSwagger(app: INestApplication): void {
     .setTitle(TITLE)
     .setDescription(DESCRIPTION)
     .setVersion('1.0.0')
-    .addBearerAuth(
+    .addCookieAuth(
+      'notes_session',
       {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Token JWT z /auth/signin lub /auth/signup',
+        type: 'apiKey',
+        in: 'cookie',
+        description:
+          'Cookie sesji ustawiane przez /auth/signin lub /auth/signup',
       },
-      BEARER_AUTH,
+      SESSION_AUTH,
     );
 
   for (const [name, description] of TAGS) {

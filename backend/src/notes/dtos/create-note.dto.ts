@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateNoteDto {
   @ApiProperty({
@@ -37,11 +37,11 @@ export class CreateNoteDto {
   color?: string;
 
   @ApiPropertyOptional({
-    example: 1,
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description:
       'ID projektu nadrzędnego — jeśli pominięte, notatka jest prywatna (bez projektu)',
   })
-  @IsInt()
+  @IsUUID()
   @IsOptional()
-  projectId?: number;
+  projectId?: string;
 }

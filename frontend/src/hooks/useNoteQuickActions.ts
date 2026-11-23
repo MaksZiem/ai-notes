@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 
-export function useNoteQuickActions(noteId: number) {
+export function useNoteQuickActions(noteId: string) {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["notes"] });
 

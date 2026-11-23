@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Note } from "../types/note";
 
-export function useProjectNote(projectId: number, noteId: number) {
+export function useProjectNote(projectId: string, noteId: string) {
   const queryClient = useQueryClient();
   const base = `/projects/${projectId}/notes`;
 
@@ -45,13 +45,13 @@ export function useProjectNote(projectId: number, noteId: number) {
   });
 
   const grantAccess = useMutation({
-    mutationFn: ({ userId, accessLevel }: { userId: number; accessLevel?: string }) =>
+    mutationFn: ({ userId, accessLevel }: { userId: string; accessLevel?: string }) =>
       api.post(`${base}/${noteId}/members`, { userId, accessLevel }),
     onSuccess: invalidateNote,
   });
 
   const revokeAccess = useMutation({
-    mutationFn: (userId: number) =>
+    mutationFn: (userId: string) =>
       api.delete(`${base}/${noteId}/members/${userId}`),
     onSuccess: invalidateNote,
   });

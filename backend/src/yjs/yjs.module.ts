@@ -5,8 +5,8 @@ import { NotesModule } from 'src/notes/notes.module';
 import { YjsGateway } from './yjs.gateway';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Note]),  NotesModule],
+  imports: [TypeOrmModule.forFeature([Note]), NotesModule],
   providers: [YjsGateway],
-  exports: [YjsGateway]
+  exports: [YjsGateway],
 })
 export class YjsModule {}

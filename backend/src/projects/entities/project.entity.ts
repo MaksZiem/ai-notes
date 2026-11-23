@@ -14,8 +14,8 @@ import { Note } from 'src/notes/entities/note.entity';
 
 @Entity()
 export class Project {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   name: string;
@@ -32,8 +32,8 @@ export class Project {
   @ManyToOne(() => User, (user) => user.projects, { onDelete: 'CASCADE' })
   owner: User;
 
-  @Column()
-  ownerId: number;
+  @Column('uuid')
+  ownerId: string;
 
   @ApiHideProperty()
   @OneToMany(() => Note, (note) => note.project)

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Note } from "../types/note";
 
-export function useSemanticSearch(query: string, projectId?: number, enabled = true) {
+export function useSemanticSearch(query: string, projectId?: string, enabled = true) {
   return useQuery<Note[]>({
     queryKey: ["notes", "semantic-search", query, projectId],
     queryFn: async () => {

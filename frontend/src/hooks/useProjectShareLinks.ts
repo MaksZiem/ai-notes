@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { ProjectShareLink } from "../types/project-share-links";
 
-export function useProjectShareLinks(projectId: number) {
+export function useProjectShareLinks(projectId: string) {
   const queryClient = useQueryClient();
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -27,7 +27,7 @@ export function useProjectShareLinks(projectId: number) {
   });
 
   const revokeShareLink = useMutation({
-    mutationFn: (linkId: number) =>
+    mutationFn: (linkId: string) =>
       api.delete(`/projects/${projectId}/share-links/${linkId}`),
     onSuccess: invalidate,
   });

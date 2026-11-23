@@ -26,4 +26,3 @@ import { MailModule } from 'src/mail/mail.module';
   exports: [ProjectsService],
 })
 export class ProjectsModule {}
-

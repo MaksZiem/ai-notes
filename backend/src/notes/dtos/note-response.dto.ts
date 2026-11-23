@@ -20,7 +20,7 @@ export class AskNotesDto {
 
 export class NoteSourceDto {
   @ApiProperty({ example: 5 })
-  id: number;
+  id: string;
 
   @ApiProperty({ example: 'Wymagania funkcjonalne' })
   title: string;

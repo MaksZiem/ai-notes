@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -13,7 +13,7 @@ import {
   NotFoundErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { ProjectMember } from './entities/project-member.entity';
 import { SharedProjectDto } from './dtos/shared-project.dto';
 import { ProjectsService } from './projects.service';
@@ -45,7 +45,7 @@ export class PublicProjectShareController {
 
   @Post(':token/claim')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth(BEARER_AUTH)
+  @ApiCookieAuth(SESSION_AUTH)
   @ApiOperation({
     summary: 'Zaakceptuj zaproszenie do projektu',
     description:
@@ -61,7 +61,7 @@ export class PublicProjectShareController {
     type: ProjectMember,
   })
   @ApiUnauthorizedResponse({
-    description: 'Brak tokenu lub token nieprawidłowy',
+    description: 'Brak lub nieważne cookie sesji',
     type: UnauthorizedErrorDto,
   })
   @ApiNotFoundResponse({

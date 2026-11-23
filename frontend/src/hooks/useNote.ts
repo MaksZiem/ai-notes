@@ -3,7 +3,7 @@ import { api } from "../api/client";
 import type { Note } from "../types/note";
 import type { NoteMember } from "../types/note-member";
 
-export function useNote(noteId: number) {
+export function useNote(noteId: string) {
   const queryClient = useQueryClient();
 
   const invalidateNote = () =>
@@ -58,14 +58,14 @@ export function useNote(noteId: number) {
       userId,
       accessLevel,
     }: {
-      userId: number;
+      userId: string;
       accessLevel?: string;
     }) => api.post(`/notes/${noteId}/members`, { userId, accessLevel }),
     onSuccess: invalidateNote,
   });
 
   const revokeAccess = useMutation({
-    mutationFn: (userId: number) =>
+    mutationFn: (userId: string) =>
       api.delete(`/notes/${noteId}/members/${userId}`),
     onSuccess: invalidateNote,
   });
@@ -86,7 +86,7 @@ export function useNote(noteId: number) {
   });
 
   const moveNote = useMutation({
-    mutationFn: (projectId: number | null) =>
+    mutationFn: (projectId: string | null) =>
       api.patch(`/notes/${noteId}/move`, { projectId }),
     onSuccess: invalidateAll,
   });

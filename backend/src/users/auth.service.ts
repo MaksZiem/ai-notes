@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtService } from '@nestjs/jwt';
-import { randomBytes, scrypt as _scrypt, timingSafeEqual } from 'crypto';
+import { scrypt as _scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { hashPassword } from 'src/helpers/hash-password';
 import { errorBody } from 'src/common/error-body';
@@ -45,7 +45,7 @@ export class AuthService {
     };
     const access_token = await this.jwtService.signAsync(payload);
 
-    return { access_token };
+    return { access_token, user };
   }
 
   async signin(email: string, password: string) {
@@ -87,6 +87,6 @@ export class AuthService {
 
     const access_token = await this.jwtService.signAsync(payload);
 
-    return { access_token };
+    return { access_token, user };
   }
 }

@@ -7,7 +7,7 @@ import { useTranslations } from "use-intl";
 
 export default function SharedNotePage() {
   const { token = "" } = useParams<{ token: string }>();
-  const { token: authToken } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const t = useTranslations("shared");
   const [content, setContent] = useState<string | null>(null);
@@ -67,7 +67,7 @@ export default function SharedNotePage() {
             {note.owner &&
               t("sharedBy", { name: `${note.owner.name} ${note.owner.surname}` })}
           </div>
-          {authToken ? (
+          {isAuthenticated ? (
             <button
               onClick={handleClaim}
               disabled={claim.isPending}
@@ -106,7 +106,7 @@ export default function SharedNotePage() {
           </div>
         )}
 
-        {!authToken && (
+        {!isAuthenticated && (
           <p className="text-sm text-gray-500 mt-8">
             {t("hasAccount")}{" "}
             <Link to={`/login?shareToken=${token}`} className="text-indigo-400">

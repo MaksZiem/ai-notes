@@ -1,3 +1,5 @@
+import { errorBody } from 'src/common/error-body';
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import {
   Body,
   Controller,
@@ -5,16 +7,20 @@ import {
   ForbiddenException,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
+  HttpStatus,
+  HttpCode,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -28,8 +34,7 @@ import {
   NotFoundErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
-import { TokenResponseDto } from './dtos/token-response.dto';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { UsersService } from './users.service';
 import { AuthService } from './auth.service';
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -40,6 +45,11 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserDto } from './dtos/user.dto';
 import { SigninDto } from './dtos/signIn-user.dto';
 import { plainToInstance } from 'class-transformer';
+import {
+  clearSessionCookieOptions,
+  SESSION_COOKIE,
+  sessionCookieOptions,
+} from './session-cookie';
 import { AdminGuard } from 'src/guards/admin.guard';
 import { UserRole } from 'src/enums/user-role.enum';
 
@@ -53,14 +63,14 @@ export class UsersController {
 
   @Get('/context')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth(BEARER_AUTH)
+  @ApiCookieAuth(SESSION_AUTH)
   @ApiOperation({
     summary: 'Zwróć dane zalogowanego użytkownika',
     description:
       'Na podstawie tokenu JWT odczytuje ID użytkownika z payload i zwraca pełny rekord z bazy.',
   })
   @ApiUnauthorizedResponse({
-    description: 'Brak lub nieważny token JWT',
+    description: 'Brak lub nieważne cookie sesji',
     type: UnauthorizedErrorDto,
   })
   @ApiOkResponse({ description: 'Dane bieżącego użytkownika', type: UserDto })
@@ -73,41 +83,66 @@ export class UsersController {
   @ApiOperation({
     summary: 'Rejestracja nowego użytkownika',
     description:
-      'Tworzy konto, hashuje hasło algorytmem scrypt i zwraca JWT access_token gotowy do użycia.',
+      'Tworzy konto, hashuje hasło algorytmem scrypt i ustawia cookie sesji (httpOnly, ważne 7 dni).',
   })
   @ApiCreatedResponse({
-    description: 'Konto utworzone, zwraca token JWT',
-    type: TokenResponseDto,
+    description: 'Konto utworzone, cookie sesji ustawione',
+    type: UserDto,
   })
   @ApiBadRequestResponse({
     description:
       'Nieprawidłowe dane lub e-mail jest już zajęty (kod EMAIL_IN_USE)',
     type: BadRequestErrorDto,
   })
-  signUp(@Body() body: CreateUserDto) {
-    return this.authService.signup(
+  async signUp(
+    @Body() body: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { access_token, user } = await this.authService.signup(
       body.email,
       body.password,
       body.name,
       body.surname,
     );
+    res.cookie(SESSION_COOKIE, access_token, sessionCookieOptions());
+    return plainToInstance(UserDto, user, { excludeExtraneousValues: true });
   }
 
   @Post('/signin')
   @ApiOperation({
     summary: 'Logowanie użytkownika',
-    description: 'Weryfikuje hasło i zwraca JWT access_token ważny 7 dni.',
+    description:
+      'Weryfikuje hasło i ustawia cookie sesji (httpOnly, ważne 7 dni). Kolejne żądania z tej przeglądarki, także z tego widoku Swaggera, są uwierzytelniane automatycznie.',
   })
   @ApiCreatedResponse({
-    description: 'Zalogowano, zwraca token JWT',
-    type: TokenResponseDto,
+    description: 'Zalogowano, cookie sesji ustawione',
+    type: UserDto,
   })
   @ApiUnauthorizedResponse({
     description: 'Nieprawidłowy e-mail lub hasło (kod INVALID_CREDENTIALS)',
     type: UnauthorizedErrorDto,
   })
-  signin(@Body() body: SigninDto) {
-    return this.authService.signin(body.email, body.password);
+  async signin(
+    @Body() body: SigninDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { access_token, user } = await this.authService.signin(
+      body.email,
+      body.password,
+    );
+    res.cookie(SESSION_COOKIE, access_token, sessionCookieOptions());
+    return plainToInstance(UserDto, user, { excludeExtraneousValues: true });
+  }
+
+  @Post('/signout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Wylogowanie',
+    description: 'Usuwa cookie sesji.',
+  })
+  @ApiNoContentResponse({ description: 'Wylogowano' })
+  signout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(SESSION_COOKIE, clearSessionCookieOptions());
   }
 
   @Delete('/:id')
@@ -115,7 +150,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Usuń użytkownika po ID' })
   @ApiParam({
     name: 'id',
-    example: 3,
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'ID użytkownika do usunięcia',
   })
   @ApiNotFoundResponse({
@@ -123,21 +160,21 @@ export class UsersController {
     type: NotFoundErrorDto,
   })
   @ApiOkResponse({ description: 'Usunięty użytkownik', type: User })
-  @ApiBearerAuth(BEARER_AUTH)
+  @ApiCookieAuth(SESSION_AUTH)
   @ApiUnauthorizedResponse({
-    description: 'Brak tokenu lub token nieprawidłowy',
+    description: 'Brak lub nieważne cookie sesji',
     type: UnauthorizedErrorDto,
   })
   @ApiForbiddenResponse({
     description: 'Wymagana rola admina (kod ADMIN_REQUIRED)',
     type: ForbiddenErrorDto,
   })
-  removeUser(@Param('id', ParseIntPipe) id: number) {
+  removeUser(@Param('id', ParseIdPipe) id: string) {
     return this.usersService.remove(id);
   }
 
   @Patch('/:id')
-  @ApiBearerAuth(BEARER_AUTH)
+  @ApiCookieAuth(SESSION_AUTH)
   @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Zaktualizuj dane użytkownika',
@@ -145,7 +182,9 @@ export class UsersController {
   })
   @ApiParam({
     name: 'id',
-    example: 3,
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'ID użytkownika do aktualizacji',
   })
   @ApiNotFoundResponse({
@@ -154,7 +193,7 @@ export class UsersController {
   })
   @ApiOkResponse({ description: 'Zaktualizowany użytkownik', type: User })
   @ApiUnauthorizedResponse({
-    description: 'Brak tokenu lub token nieprawidłowy',
+    description: 'Brak lub nieważne cookie sesji',
     type: UnauthorizedErrorDto,
   })
   @ApiForbiddenResponse({
@@ -163,7 +202,7 @@ export class UsersController {
     type: ForbiddenErrorDto,
   })
   updateUser(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: UpdateUserDto,
     @CurrentUser() currentUser: User,
   ) {
@@ -171,10 +210,14 @@ export class UsersController {
     const isSelf = currentUser.id === id;
 
     if (!isAdmin && !isSelf) {
-      throw new ForbiddenException();
+      throw new ForbiddenException(
+        errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),
+      );
     }
     if (!isAdmin && body.role !== undefined) {
-      throw new ForbiddenException();
+      throw new ForbiddenException(
+        errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),
+      );
     }
     return this.usersService.update(id, body);
   }

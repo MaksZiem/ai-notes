@@ -1,14 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { AccessLevel } from 'src/enums/access-level.enum';
 
 export class GrantAccessDto {
   @ApiProperty({
-    example: 7,
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'ID użytkownika, któremu nadajemy lub aktualizujemy dostęp',
   })
-  @IsInt()
-  userId: number;
+  @IsUUID()
+  userId: string;
 
   @ApiPropertyOptional({
     enum: AccessLevel,

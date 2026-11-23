@@ -1,20 +1,20 @@
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   color?: string;
-  ownerId: number;
+  ownerId: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface ProjectMember {
-  id: number;
-  userId: number;
-  projectId: number;
+  id: string;
+  userId: string;
+  projectId: string;
   accessLevel: "VIEW" | "EDIT" | "DELETE";
   user: {
-    id: number;
+    id: string;
     name: string;
     surname: string;
     email: string;

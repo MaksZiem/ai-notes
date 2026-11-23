@@ -14,8 +14,8 @@ interface AgentChatResult {
 
 interface AgentChatPayload {
   message: string;
-  noteId?: number;
-  projectId?: number;
+  noteId?: string;
+  projectId?: string;
 }
 
 export function useAgentChat() {

@@ -33,8 +33,8 @@ describe('NotesService sharing', () => {
   beforeEach(() => {
     noteRepo = {
       findOneBy: jest.fn().mockResolvedValue({
-        id: 5,
-        ownerId: 10,
+        id: '5',
+        ownerId: '10',
         projectId: null,
         title: 'Budget',
       }),
@@ -43,13 +43,13 @@ describe('NotesService sharing', () => {
     memberRepo = {
       findOneBy: jest.fn().mockResolvedValue(null),
       create: jest.fn((data) => data),
-      save: jest.fn((data) => Promise.resolve({ id: 1, ...data })),
+      save: jest.fn((data) => Promise.resolve({ id: '1', ...data })),
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     shareLinkRepo = {
       findOneBy: jest.fn(),
       create: jest.fn((data) => data),
-      save: jest.fn((data) => Promise.resolve({ id: 77, ...data })),
+      save: jest.fn((data) => Promise.resolve({ id: '77', ...data })),
     };
     projectsService = { findOneRaw: jest.fn() };
     mailService = { sendNoteShareEmail: jest.fn() };
@@ -72,38 +72,52 @@ describe('NotesService sharing', () => {
 
   describe('who can manage access', () => {
     it('lets the owner of a private note share it', async () => {
-      await service.grantAccess(5, null, 10, UserRole.USER, { userId: 20 });
+      await service.grantAccess('5', null, '10', UserRole.USER, {
+        userId: '20',
+      });
 
       expect(memberRepo.save).toHaveBeenCalled();
     });
 
     it('blocks anyone else on a private note', async () => {
       await expect(
-        service.grantAccess(5, null, 20, UserRole.USER, { userId: 30 }),
+        service.grantAccess('5', null, '20', UserRole.USER, { userId: '30' }),
       ).rejects.toThrow(ForbiddenException);
       expect(memberRepo.save).not.toHaveBeenCalled();
     });
 
     it('requires the project owner for a note inside a project', async () => {
-      noteRepo.findOneBy.mockResolvedValue({ id: 5, ownerId: 20, projectId: 3 });
-      projectsService.findOneRaw.mockResolvedValue({ id: 3, ownerId: 10 });
+      noteRepo.findOneBy.mockResolvedValue({
+        id: '5',
+        ownerId: '20',
+        projectId: '3',
+      });
+      projectsService.findOneRaw.mockResolvedValue({ id: '3', ownerId: '10' });
 
       await expect(
-        service.grantAccess(5, null, 20, UserRole.USER, { userId: 30 }),
+        service.grantAccess('5', null, '20', UserRole.USER, { userId: '30' }),
       ).rejects.toThrow(ForbiddenException);
     });
 
     it('lets the project owner manage a note in their project', async () => {
-      noteRepo.findOneBy.mockResolvedValue({ id: 5, ownerId: 20, projectId: 3 });
-      projectsService.findOneRaw.mockResolvedValue({ id: 3, ownerId: 10 });
+      noteRepo.findOneBy.mockResolvedValue({
+        id: '5',
+        ownerId: '20',
+        projectId: '3',
+      });
+      projectsService.findOneRaw.mockResolvedValue({ id: '3', ownerId: '10' });
 
-      await service.grantAccess(5, null, 10, UserRole.USER, { userId: 30 });
+      await service.grantAccess('5', null, '10', UserRole.USER, {
+        userId: '30',
+      });
 
       expect(memberRepo.save).toHaveBeenCalled();
     });
 
     it('lets an admin skip the ownership check', async () => {
-      await service.grantAccess(5, null, 99, UserRole.ADMIN, { userId: 30 });
+      await service.grantAccess('5', null, '99', UserRole.ADMIN, {
+        userId: '30',
+      });
 
       expect(noteRepo.findOneBy).not.toHaveBeenCalled();
       expect(memberRepo.save).toHaveBeenCalled();
@@ -112,17 +126,17 @@ describe('NotesService sharing', () => {
 
   describe('grantAccess', () => {
     it('gives VIEW by default and notifies the user', async () => {
-      const member = await service.grantAccess(5, null, 10, UserRole.USER, {
-        userId: 20,
+      const member = await service.grantAccess('5', null, '10', UserRole.USER, {
+        userId: '20',
       });
 
       expect(member.accessLevel).toBe(AccessLevel.VIEW);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         NOTE_SHARED_EVENT,
         expect.objectContaining({
-          noteId: 5,
-          recipientUserId: 20,
-          actorId: 10,
+          noteId: '5',
+          recipientUserId: '20',
+          actorId: '10',
           accessLevel: AccessLevel.VIEW,
         }),
       );
@@ -130,14 +144,14 @@ describe('NotesService sharing', () => {
 
     it('updates an existing membership instead of creating a duplicate', async () => {
       memberRepo.findOneBy.mockResolvedValue({
-        id: 3,
-        noteId: 5,
-        userId: 20,
+        id: '3',
+        noteId: '5',
+        userId: '20',
         accessLevel: AccessLevel.VIEW,
       });
 
-      const member = await service.grantAccess(5, null, 10, UserRole.USER, {
-        userId: 20,
+      const member = await service.grantAccess('5', null, '10', UserRole.USER, {
+        userId: '20',
         accessLevel: AccessLevel.EDIT,
       });
 
@@ -147,18 +161,21 @@ describe('NotesService sharing', () => {
   });
 
   it('revokeAccess removes the membership and notifies the user', async () => {
-    await service.revokeAccess(5, null, 20, 10, UserRole.USER);
+    await service.revokeAccess('5', null, '20', '10', UserRole.USER);
 
-    expect(memberRepo.delete).toHaveBeenCalledWith({ noteId: 5, userId: 20 });
+    expect(memberRepo.delete).toHaveBeenCalledWith({
+      noteId: '5',
+      userId: '20',
+    });
     expect(eventEmitter.emit).toHaveBeenCalledWith(
       NOTE_ACCESS_REVOKED_EVENT,
-      expect.objectContaining({ noteId: 5, recipientUserId: 20 }),
+      expect.objectContaining({ noteId: '5', recipientUserId: '20' }),
     );
   });
 
   describe('leaveNote', () => {
     it('does not let the owner leave their own note', async () => {
-      await expect(service.leaveNote(5, null, 10)).rejects.toThrow(
+      await expect(service.leaveNote('5', null, '10')).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -166,21 +183,30 @@ describe('NotesService sharing', () => {
     it('fails when the user has no direct membership', async () => {
       memberRepo.delete.mockResolvedValue({ affected: 0 });
 
-      await expect(service.leaveNote(5, null, 20)).rejects.toThrow(
+      await expect(service.leaveNote('5', null, '20')).rejects.toThrow(
         ForbiddenException,
       );
     });
 
     it('removes the membership of a member', async () => {
-      await service.leaveNote(5, null, 20);
+      await service.leaveNote('5', null, '20');
 
-      expect(memberRepo.delete).toHaveBeenCalledWith({ noteId: 5, userId: 20 });
+      expect(memberRepo.delete).toHaveBeenCalledWith({
+        noteId: '5',
+        userId: '20',
+      });
     });
   });
 
   describe('createShareLink', () => {
     it('creates a random 64-character token with VIEW access and no expiry by default', async () => {
-      const link = await service.createShareLink(5, null, 10, UserRole.USER, {});
+      const link = await service.createShareLink(
+        '5',
+        null,
+        '10',
+        UserRole.USER,
+        {},
+      );
 
       expect(link.token).toMatch(/^[0-9a-f]{64}$/);
       expect(link.accessLevel).toBe(AccessLevel.VIEW);
@@ -189,8 +215,20 @@ describe('NotesService sharing', () => {
     });
 
     it('gives every link a different token', async () => {
-      const first = await service.createShareLink(5, null, 10, UserRole.USER, {});
-      const second = await service.createShareLink(5, null, 10, UserRole.USER, {});
+      const first = await service.createShareLink(
+        '5',
+        null,
+        '10',
+        UserRole.USER,
+        {},
+      );
+      const second = await service.createShareLink(
+        '5',
+        null,
+        '10',
+        UserRole.USER,
+        {},
+      );
 
       expect(first.token).not.toBe(second.token);
     });
@@ -198,9 +236,15 @@ describe('NotesService sharing', () => {
     it('sets the expiry date from expiresInDays', async () => {
       const before = Date.now();
 
-      const link = await service.createShareLink(5, null, 10, UserRole.USER, {
-        expiresInDays: 7,
-      });
+      const link = await service.createShareLink(
+        '5',
+        null,
+        '10',
+        UserRole.USER,
+        {
+          expiresInDays: 7,
+        },
+      );
 
       const expiresIn = link.expiresAt!.getTime() - before;
       expect(expiresIn).toBeGreaterThanOrEqual(7 * DAY);
@@ -208,12 +252,18 @@ describe('NotesService sharing', () => {
     });
 
     it('emails the link and sends an in-app invite when the email has an account', async () => {
-      usersService.find.mockResolvedValue([{ id: 30 }]);
+      usersService.find.mockResolvedValue([{ id: '30' }]);
 
-      const link = await service.createShareLink(5, null, 10, UserRole.USER, {
-        email: 'ola@example.com',
-        accessLevel: AccessLevel.EDIT,
-      });
+      const link = await service.createShareLink(
+        '5',
+        null,
+        '10',
+        UserRole.USER,
+        {
+          email: 'ola@example.com',
+          accessLevel: AccessLevel.EDIT,
+        },
+      );
 
       expect(mailService.sendNoteShareEmail).toHaveBeenCalledWith(
         'ola@example.com',
@@ -223,16 +273,16 @@ describe('NotesService sharing', () => {
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         NOTE_INVITE_EVENT,
         expect.objectContaining({
-          noteId: 5,
-          shareLinkId: 77,
-          recipientUserId: 30,
+          noteId: '5',
+          shareLinkId: '77',
+          recipientUserId: '30',
           accessLevel: AccessLevel.EDIT,
         }),
       );
     });
 
     it('only emails the link when the email has no account yet', async () => {
-      await service.createShareLink(5, null, 10, UserRole.USER, {
+      await service.createShareLink('5', null, '10', UserRole.USER, {
         email: 'new@example.com',
       });
 
@@ -242,7 +292,7 @@ describe('NotesService sharing', () => {
 
     it('is only available to the owner', async () => {
       await expect(
-        service.createShareLink(5, null, 20, UserRole.USER, {}),
+        service.createShareLink('5', null, '20', UserRole.USER, {}),
       ).rejects.toThrow(ForbiddenException);
       expect(shareLinkRepo.save).not.toHaveBeenCalled();
     });
@@ -252,35 +302,35 @@ describe('NotesService sharing', () => {
     it('rejects an unknown token', async () => {
       shareLinkRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.claimShareLink('nope', 20)).rejects.toThrow(
+      await expect(service.claimShareLink('nope', '20')).rejects.toThrow(
         ForbiddenException,
       );
     });
 
     it('rejects a revoked link', async () => {
       shareLinkRepo.findOneBy.mockResolvedValue({
-        id: 77,
-        noteId: 5,
+        id: '77',
+        noteId: '5',
         revoked: true,
         expiresAt: null,
         accessLevel: AccessLevel.VIEW,
       });
 
-      await expect(service.claimShareLink('abc', 20)).rejects.toThrow(
+      await expect(service.claimShareLink('abc', '20')).rejects.toThrow(
         ForbiddenException,
       );
     });
 
     it('rejects an expired link', async () => {
       shareLinkRepo.findOneBy.mockResolvedValue({
-        id: 77,
-        noteId: 5,
+        id: '77',
+        noteId: '5',
         revoked: false,
         expiresAt: new Date(Date.now() - 1000),
         accessLevel: AccessLevel.VIEW,
       });
 
-      await expect(service.claimShareLink('abc', 20)).rejects.toThrow(
+      await expect(service.claimShareLink('abc', '20')).rejects.toThrow(
         ForbiddenException,
       );
       expect(memberRepo.save).not.toHaveBeenCalled();
@@ -288,8 +338,8 @@ describe('NotesService sharing', () => {
 
     it('does not let a VIEW link edit the note', async () => {
       shareLinkRepo.findOneBy.mockResolvedValue({
-        id: 77,
-        noteId: 5,
+        id: '77',
+        noteId: '5',
         revoked: false,
         expiresAt: null,
         accessLevel: AccessLevel.VIEW,
@@ -303,8 +353,8 @@ describe('NotesService sharing', () => {
 
     it('lets an EDIT link edit the note', async () => {
       shareLinkRepo.findOneBy.mockResolvedValue({
-        id: 77,
-        noteId: 5,
+        id: '77',
+        noteId: '5',
         revoked: false,
         expiresAt: new Date(Date.now() + DAY),
         accessLevel: AccessLevel.EDIT,
@@ -323,8 +373,8 @@ describe('NotesService sharing', () => {
   describe('claimShareLink', () => {
     beforeEach(() => {
       shareLinkRepo.findOneBy.mockResolvedValue({
-        id: 77,
-        noteId: 5,
+        id: '77',
+        noteId: '5',
         revoked: false,
         expiresAt: null,
         accessLevel: AccessLevel.EDIT,
@@ -332,33 +382,33 @@ describe('NotesService sharing', () => {
     });
 
     it('turns the link into a membership and notifies the owner', async () => {
-      const member = await service.claimShareLink('abc', 20);
+      const member = await service.claimShareLink('abc', '20');
 
       expect(member).toMatchObject({
-        noteId: 5,
-        userId: 20,
+        noteId: '5',
+        userId: '20',
         accessLevel: AccessLevel.EDIT,
       });
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         SHARE_LINK_CLAIMED_EVENT,
         expect.objectContaining({
-          noteId: 5,
-          ownerId: 10,
-          claimerId: 20,
-          shareLinkId: 77,
+          noteId: '5',
+          ownerId: '10',
+          claimerId: '20',
+          shareLinkId: '77',
         }),
       );
     });
 
     it('updates an existing membership to the level of the link', async () => {
       memberRepo.findOneBy.mockResolvedValue({
-        id: 3,
-        noteId: 5,
-        userId: 20,
+        id: '3',
+        noteId: '5',
+        userId: '20',
         accessLevel: AccessLevel.VIEW,
       });
 
-      const member = await service.claimShareLink('abc', 20);
+      const member = await service.claimShareLink('abc', '20');
 
       expect(memberRepo.create).not.toHaveBeenCalled();
       expect(member.accessLevel).toBe(AccessLevel.EDIT);

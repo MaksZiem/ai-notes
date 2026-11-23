@@ -7,6 +7,6 @@ import { NotesModule } from 'src/notes/notes.module';
   imports: [forwardRef(() => NotesModule)],
   controllers: [AiController],
   providers: [AiService],
-  exports: [AiService]
+  exports: [AiService],
 })
 export class AiModule {}

@@ -14,7 +14,7 @@ import { extname, resolve } from 'path';
 import { randomUUID } from 'crypto';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
@@ -26,7 +26,7 @@ import {
   BadRequestErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { UploadResponseDto } from './dtos/upload-response.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { errorBody } from '../common/error-body';
@@ -48,9 +48,9 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 @ApiTags('uploads')
-@ApiBearerAuth(BEARER_AUTH)
+@ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
-  description: 'Brak tokenu lub token nieprawidłowy',
+  description: 'Brak lub nieważne cookie sesji',
   type: UnauthorizedErrorDto,
 })
 @UseGuards(AuthGuard)

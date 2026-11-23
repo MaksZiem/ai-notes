@@ -16,7 +16,7 @@ describe('AuthService', () => {
 
   describe('signup', () => {
     it('rejects an email that is already in use', async () => {
-      usersService.find.mockResolvedValue([{ id: 1 }]);
+      usersService.find.mockResolvedValue([{ id: '1' }]);
 
       await expect(
         service.signup('ola@example.com', 'secret123', 'Ola', 'Nowak'),
@@ -26,7 +26,7 @@ describe('AuthService', () => {
 
     it('stores a hashed password, never the plain one', async () => {
       usersService.find.mockResolvedValue([]);
-      usersService.create.mockResolvedValue({ id: 1 });
+      usersService.create.mockResolvedValue({ id: '1' });
 
       await service.signup('ola@example.com', 'secret123', 'Ola', 'Nowak');
 
@@ -38,7 +38,7 @@ describe('AuthService', () => {
     it('returns a token with the user data in the payload', async () => {
       usersService.find.mockResolvedValue([]);
       usersService.create.mockResolvedValue({
-        id: 1,
+        id: '1',
         email: 'ola@example.com',
         role: UserRole.USER,
         name: 'Ola',
@@ -52,9 +52,9 @@ describe('AuthService', () => {
         'Nowak',
       );
 
-      expect(result).toEqual({ access_token: 'jwt-token' });
+      expect(result.access_token).toBe('jwt-token');
       expect(jwtService.signAsync).toHaveBeenCalledWith({
-        id: 1,
+        id: '1',
         email: 'ola@example.com',
         role: UserRole.USER,
         name: 'Ola',
@@ -74,7 +74,7 @@ describe('AuthService', () => {
 
     it('rejects a wrong password', async () => {
       usersService.find.mockResolvedValue([
-        { id: 1, password: await hashPassword('secret123') },
+        { id: '1', password: await hashPassword('secret123') },
       ]);
 
       await expect(
@@ -86,7 +86,7 @@ describe('AuthService', () => {
     it('returns a token for the correct password', async () => {
       usersService.find.mockResolvedValue([
         {
-          id: 1,
+          id: '1',
           email: 'ola@example.com',
           role: UserRole.USER,
           password: await hashPassword('secret123'),
@@ -95,7 +95,7 @@ describe('AuthService', () => {
 
       const result = await service.signin('ola@example.com', 'secret123');
 
-      expect(result).toEqual({ access_token: 'jwt-token' });
+      expect(result.access_token).toBe('jwt-token');
     });
   });
 });

@@ -1,16 +1,16 @@
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import {
   BadRequestException,
   Body,
   Controller,
   Param,
-  ParseIntPipe,
   Post,
   UseGuards,
   HttpStatus,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -28,7 +28,7 @@ import {
   TooManyRequestsErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import {
   ContentDto,
   ContinuationDto,
@@ -42,7 +42,7 @@ import {
   TextDto,
   TitleDto,
 } from './dtos/ai.dto';
-import { AiService, RewriteMode } from './ai.service';
+import { AiService, type RewriteMode } from './ai.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { NotesService } from 'src/notes/notes.service';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
@@ -59,9 +59,9 @@ const REWRITE_MODES: RewriteMode[] = [
 
 @UseGuards(AuthGuard)
 @ApiTags('ai')
-@ApiBearerAuth(BEARER_AUTH)
+@ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
-  description: 'Brak tokenu lub token nieprawidłowy',
+  description: 'Brak lub nieważne cookie sesji',
   type: UnauthorizedErrorDto,
 })
 @ApiTooManyRequestsResponse({
@@ -202,7 +202,13 @@ export class AiController {
     description: 'Streszczenie projektu',
     type: SummaryDto,
   })
-  @ApiParam({ name: 'projectId', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'projectId',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiBadRequestResponse({
     description: 'Projekt nie ma notatek (kod PROJECT_HAS_NO_NOTES)',
     type: BadRequestErrorDto,
@@ -216,7 +222,7 @@ export class AiController {
     type: NotFoundErrorDto,
   })
   async generateProjectSummary(
-    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('projectId', ParseIdPipe) projectId: string,
     @CurrentUser() user: User,
   ) {
     const notes = await this.notesService.findAllNotesInProject(

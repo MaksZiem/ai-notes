@@ -17,7 +17,7 @@ import { useCurrentUser } from "../hooks/useCurrentUser";
 
 const PROJECT_DEFAULT_COLOR = "#6366f1";
 
-function useProjectQuickActions(projectId: number) {
+function useProjectQuickActions(projectId: string) {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["projects"] });
 
@@ -42,7 +42,7 @@ function useProjectQuickActions(projectId: number) {
 function QuickActions({
   projectId, pinned, favourite, canManage, onShare,
 }: {
-  projectId: number; pinned: boolean; favourite: boolean;
+  projectId: string; pinned: boolean; favourite: boolean;
   canManage: boolean; onShare: () => void;
 }) {
   const t = useTranslations();
@@ -206,7 +206,7 @@ export default function ProjectsPage() {
 
   const { isAdmin } = usePermissions();
   const { data: currentUser } = useCurrentUser();
-  const [shareProjectId, setShareProjectId] = useState<number | null>(null);
+  const [shareProjectId, setShareProjectId] = useState<string | null>(null);
 
   const canManageProject = (project: Project) =>
     isAdmin || project.ownerId === currentUser?.id;
@@ -215,7 +215,7 @@ export default function ProjectsPage() {
   const pinnedIds = new Set((pinnedProjects.data ?? []).map((p) => p.id));
   const favouriteIds = new Set((favouriteProjects.data ?? []).map((p) => p.id));
 
-  const handleProjectClick = (projectId: number) => {
+  const handleProjectClick = (projectId: string) => {
     navigate(`/projects/${projectId}/notes`);
   };
 

@@ -10,7 +10,7 @@ import { useAgentChat } from "../hooks/useAgentChat";
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
-  sources?: { id: number; title: string }[];
+  sources?: { id: string; title: string }[];
   steps?: { tool: string; args: unknown; result: unknown }[];
 }
 

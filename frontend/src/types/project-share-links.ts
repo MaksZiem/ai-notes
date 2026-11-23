@@ -1,9 +1,9 @@
 export type AccessLevel = "VIEW" | "EDIT" | "DELETE";
 
 export interface ProjectShareLink {
-  id: number;
+  id: string;
   token: string;
-  projectId: number;
+  projectId: string;
   accessLevel: AccessLevel;
   email: string | null;
   expiresAt: string | null;
@@ -12,7 +12,7 @@ export interface ProjectShareLink {
 }
 
 export interface ProjectInvite {
-  project: { id: number; name: string; description?: string };
+  project: { id: string; name: string; description?: string };
   invitedBy: { name: string; surname: string } | null;
   accessLevel: AccessLevel;
 }

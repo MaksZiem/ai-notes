@@ -12,14 +12,14 @@ import { Project } from './project.entity';
 @Entity()
 @Unique(['userId', 'projectId'])
 export class UserProjectPreference {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
-  userId: number;
+  @Column('uuid')
+  userId: string;
 
-  @Column()
-  projectId: number;
+  @Column('uuid')
+  projectId: string;
 
   @Column({ default: false })
   isPinned: boolean;

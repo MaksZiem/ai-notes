@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class AgentChatDto {
   @ApiProperty({
@@ -10,20 +10,20 @@ export class AgentChatDto {
   message: string;
 
   @ApiPropertyOptional({
-    example: 5,
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'Notatka otwarta w edytorze, jako kontekst',
   })
   @IsOptional()
-  @IsInt()
-  noteId?: number;
+  @IsUUID()
+  noteId?: string;
 
   @ApiPropertyOptional({
-    example: 1,
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'Projekt otwarty w aplikacji, jako kontekst',
   })
   @IsOptional()
-  @IsInt()
-  projectId?: number;
+  @IsUUID()
+  projectId?: string;
 }
 
 export class AgentStepDto {

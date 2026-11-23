@@ -1,3 +1,4 @@
+import { isUUID } from 'class-validator';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +7,7 @@ import { Server } from '@hocuspocus/server';
 import * as Y from 'yjs';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+import { readSessionToken } from 'src/users/session-cookie';
 import { NotesService } from 'src/notes/notes.service';
 import { Note } from 'src/notes/entities/note.entity';
 import { AccessLevel, hasAccess } from 'src/enums/access-level.enum';
@@ -27,13 +29,24 @@ export class YjsGateway implements OnModuleInit {
     const server = new Server({
       port,
 
-      onAuthenticate: async ({ token, documentName, connectionConfig }) => {
-        const noteId = Number(documentName);
-        if (!token || !noteId) {
-          throw new Error('Brak tokenu lub noteId');
+      onAuthenticate: async ({
+        documentName,
+        requestHeaders,
+        connectionConfig,
+      }) => {
+        const origin = requestHeaders.get('origin');
+        if (origin && origin !== this.config.get<string>('FRONTEND_URL')) {
+          throw new Error('Niedozwolony origin');
+        }
+        const noteId = documentName;
+        const token = readSessionToken(requestHeaders.get('cookie'));
+        if (!token || !isUUID(noteId)) {
+          throw new Error('Brak cookie sesji lub noteId');
         }
 
-        const payload = await this.jwtService.verifyAsync(token);
+        const payload = await this.jwtService.verifyAsync<{ id: string }>(
+          token,
+        );
         const user = await this.usersService.findOne(payload.id);
         if (!user) {
           throw new Error('Nieprawidłowy użytkownik');
@@ -52,22 +65,22 @@ export class YjsGateway implements OnModuleInit {
         return { userId: user.id };
       },
 
-      onLoadDocument: async ({documentName}) => {
-        const note = await this.noteRepo.findOneBy({id: Number(documentName)})
-        const doc = new Y.Doc()
+      onLoadDocument: async ({ documentName }) => {
+        const note = await this.noteRepo.findOneBy({ id: documentName });
+        const doc = new Y.Doc();
         if (note?.yjsState) {
           Y.applyUpdate(doc, note.yjsState);
         }
         return doc;
       },
 
-      onStoreDocument: async ({documentName, document}) => {
-        const state = Buffer.from(Y.encodeStateAsUpdate(document))
-        await this.noteRepo.update({id: Number(documentName)}, {yjsState: state})
-      }
+      onStoreDocument: async ({ documentName, document }) => {
+        const state = Buffer.from(Y.encodeStateAsUpdate(document));
+        await this.noteRepo.update({ id: documentName }, { yjsState: state });
+      },
     });
 
-    await server.listen()
+    await server.listen();
     this.logger.log(`Yjs (Hocuspocus) nasłuchuje na porcie ${port}`);
   }
 }

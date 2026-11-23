@@ -1,3 +1,4 @@
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import {
   BadRequestException,
   Body,
@@ -7,7 +8,6 @@ import {
   Get,
   Param,
   ParseBoolPipe,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -36,7 +36,7 @@ import {
   TooManyRequestsErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { Note } from './entities/note.entity';
 import { NoteMember } from './entities/note-member.entity';
 import { NoteShareLink } from './entities/note-share-link.entity';
@@ -61,9 +61,9 @@ import { CreateShareLinkDto } from './dtos/create-share-link.dto';
 import { errorBody } from '../common/error-body';
 
 @ApiTags('notes')
-@ApiBearerAuth(BEARER_AUTH)
+@ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
-  description: 'Brak tokenu lub token nieprawidłowy',
+  description: 'Brak lub nieważne cookie sesji',
   type: UnauthorizedErrorDto,
 })
 @UseGuards(AuthGuard)
@@ -108,7 +108,7 @@ export class SingleNoteController {
     pinned?: boolean,
     @Query('favourite', new DefaultValuePipe(false), ParseBoolPipe)
     favourite?: boolean,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('limit', new ParseIdPipe({ optional: true })) limit?: number,
     @Query('search') search?: string,
   ) {
     return this.notesService.findAllNotes(
@@ -156,8 +156,8 @@ export class SingleNoteController {
   async semanticSearch(
     @Query('q') query: string,
     @CurrentUser() user: User,
-    @Query('projectId', new ParseIntPipe({ optional: true }))
-    projectId?: number,
+    @Query('projectId', new ParseIdPipe({ optional: true }))
+    projectId?: string,
   ) {
     if (!query?.trim()) return [];
     return this.notesService.semanticSearch(
@@ -220,7 +220,13 @@ export class SingleNoteController {
       'Działa dla notatek prywatnych i projektowych. ' +
       'Dostęp: owner notatki / admin / NoteMember / dostęp przez projekt.',
   })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiForbiddenResponse({
     description: 'Brak dostępu',
     type: ForbiddenErrorDto,
@@ -234,7 +240,7 @@ export class SingleNoteController {
     type: NoteWithAccessDto,
   })
   async findOne(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @CurrentUser() user: User,
   ) {
     const [note, accessLevel] = await Promise.all([
@@ -246,7 +252,13 @@ export class SingleNoteController {
 
   @Post(':id/summarize')
   @ApiOperation({ summary: 'Wygeneruj krótkie streszczenie notatki' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiCreatedResponse({
     description: 'Streszczenie notatki',
     type: NoteSummaryResponseDto,
@@ -269,7 +281,7 @@ export class SingleNoteController {
     type: TooManyRequestsErrorDto,
   })
   async summarize(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @CurrentUser() user: User,
   ) {
     const note = await this.notesService.findOne(id, null, user.id, user.role);
@@ -287,7 +299,13 @@ export class SingleNoteController {
     summary: 'Zaktualizuj notatkę',
     description: 'Wymaga EDIT. Pola pominięte pozostają bez zmian.',
   })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiForbiddenResponse({
     description: 'Niewystarczający poziom dostępu',
     type: ForbiddenErrorDto,
@@ -298,7 +316,7 @@ export class SingleNoteController {
   })
   @ApiOkResponse({ description: 'Zaktualizowana notatka', type: Note })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: UpdateNoteDto,
     @CurrentUser() user: User,
   ) {
@@ -312,7 +330,13 @@ export class SingleNoteController {
       'Wymaga DELETE w projekcie, z którego notatka jest zabierana (jeśli obecnie w jakimś jest), ' +
       'oraz EDIT w projekcie docelowym (jeśli projectId nie jest null).',
   })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiForbiddenResponse({
     description:
       'Niewystarczający poziom dostępu w projekcie źródłowym lub docelowym',
@@ -320,7 +344,7 @@ export class SingleNoteController {
   })
   @ApiOkResponse({ description: 'Przeniesiona notatka', type: Note })
   moveNote(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: MoveNoteDto,
     @CurrentUser() user: User,
   ) {
@@ -334,7 +358,13 @@ export class SingleNoteController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Usuń notatkę', description: 'Wymaga DELETE.' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiForbiddenResponse({
     description: 'Niewystarczający poziom dostępu',
     type: ForbiddenErrorDto,
@@ -344,30 +374,42 @@ export class SingleNoteController {
     type: NotFoundErrorDto,
   })
   @ApiOkResponse({ description: 'Usunięta notatka', type: Note })
-  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  remove(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.notesService.remove(id, null, user.id, user.role);
   }
 
   @Patch(':id/pin')
   @ApiOperation({ summary: 'Toggle pin notatki (per-user)' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiOkResponse({
     description: 'Preferencje użytkownika dla notatki',
     type: UserNotePreference,
   })
-  togglePin(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  togglePin(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.notesService.togglePin(id, null, user.id, user.role);
   }
 
   @Patch(':id/favourite')
   @ApiOperation({ summary: 'Toggle favourite notatki (per-user)' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiOkResponse({
     description: 'Preferencje użytkownika dla notatki',
     type: UserNotePreference,
   })
   toggleFavourite(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @CurrentUser() user: User,
   ) {
     return this.notesService.toggleFavourite(id, null, user.id, user.role);
@@ -375,7 +417,13 @@ export class SingleNoteController {
 
   @Get(':id/members')
   @ApiOperation({ summary: 'Lista członków notatki' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiForbiddenResponse({
     description: 'Brak dostępu do notatki',
     type: ForbiddenErrorDto,
@@ -385,10 +433,7 @@ export class SingleNoteController {
     type: NoteMember,
     isArray: true,
   })
-  listMembers(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: User,
-  ) {
+  listMembers(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.notesService.listMembers(id, null, user.id, user.role);
   }
 
@@ -399,7 +444,13 @@ export class SingleNoteController {
       'Notatka prywatna: tylko owner notatki lub admin. ' +
       'Notatka projektowa: tylko owner projektu lub admin.',
   })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiForbiddenResponse({
     description: 'Brak uprawnień do zarządzania dostępem',
     type: ForbiddenErrorDto,
@@ -409,7 +460,7 @@ export class SingleNoteController {
     type: NoteMember,
   })
   grantAccess(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: GrantAccessDto,
     @CurrentUser() user: User,
   ) {
@@ -418,16 +469,28 @@ export class SingleNoteController {
 
   @Delete(':id/members/:userId')
   @ApiOperation({ summary: 'Odbierz bezpośredni dostęp do notatki' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
-  @ApiParam({ name: 'userId', example: 7, description: 'ID użytkownika' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
+  @ApiParam({
+    name: 'userId',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID użytkownika',
+  })
   @ApiForbiddenResponse({
     description: 'Brak uprawnień',
     type: ForbiddenErrorDto,
   })
   @ApiOkResponse({ description: 'Dostęp odebrany' })
   revokeAccess(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) targetUserId: number,
+    @Param('id', ParseIdPipe) id: string,
+    @Param('userId', ParseIdPipe) targetUserId: string,
     @CurrentUser() user: User,
   ) {
     return this.notesService.revokeAccess(
@@ -447,19 +510,31 @@ export class SingleNoteController {
       'Sama notatka pozostaje nietknięta u właściciela. ' +
       'Właściciel notatki nie może jej w ten sposób opuścić.',
   })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiForbiddenResponse({
     description: 'Jesteś właścicielem notatki lub nie masz do niej dostępu',
     type: ForbiddenErrorDto,
   })
   @ApiOkResponse({ description: 'Notatka opuszczona' })
-  leaveNote(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  leaveNote(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.notesService.leaveNote(id, null, user.id);
   }
 
   @Post(':id/share-links')
   @ApiOperation({ summary: 'Utwórz link do udostępnienia notatki bez konta' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiCreatedResponse({ description: 'Utworzony link', type: NoteShareLink })
   @ApiForbiddenResponse({
     description:
@@ -471,7 +546,7 @@ export class SingleNoteController {
     type: NotFoundErrorDto,
   })
   createShareLink(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: CreateShareLinkDto,
     @CurrentUser() user: User,
   ) {
@@ -486,7 +561,13 @@ export class SingleNoteController {
 
   @Get(':id/share-links')
   @ApiOperation({ summary: 'Lista aktywnych linków udostępniania notatki' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiOkResponse({
     description: 'Aktywne linki',
     type: NoteShareLink,
@@ -502,7 +583,7 @@ export class SingleNoteController {
     type: NotFoundErrorDto,
   })
   listShareLinks(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @CurrentUser() user: User,
   ) {
     return this.notesService.listShareLinks(id, null, user.id, user.role);
@@ -511,10 +592,18 @@ export class SingleNoteController {
   @Delete(':id/share-links/:linkId')
   @ApiOperation({ summary: 'Odwołaj link udostępniania' })
   @ApiOkResponse({ description: 'Link odwołany' })
-  @ApiParam({ name: 'id', example: 5, description: 'ID notatki' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID notatki',
+  })
   @ApiParam({
     name: 'linkId',
-    example: 3,
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'ID linku udostępniania',
   })
   @ApiForbiddenResponse({
@@ -527,8 +616,8 @@ export class SingleNoteController {
     type: NotFoundErrorDto,
   })
   revokeShareLink(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('linkId', ParseIntPipe) linkId: number,
+    @Param('id', ParseIdPipe) id: string,
+    @Param('linkId', ParseIdPipe) linkId: string,
     @CurrentUser() user: User,
   ) {
     return this.notesService.revokeShareLink(

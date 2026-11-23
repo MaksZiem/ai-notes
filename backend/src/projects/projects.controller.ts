@@ -1,3 +1,4 @@
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import {
   Body,
   Controller,
@@ -8,7 +9,6 @@ import {
   Inject,
   Param,
   ParseBoolPipe,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -16,14 +16,13 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -33,7 +32,7 @@ import {
   NotFoundErrorDto,
   UnauthorizedErrorDto,
 } from 'src/common/swagger/error-response.dto';
-import { BEARER_AUTH } from 'src/common/swagger/swagger.setup';
+import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { Project } from './entities/project.entity';
 import { ProjectMember } from './entities/project-member.entity';
 import { ProjectShareLink } from './entities/project-share-link.entity';
@@ -49,9 +48,9 @@ import { NotesService } from 'src/notes/notes.service';
 import { CreateProjectShareLinkDto } from './dtos/create-project-share-link.dto';
 
 @ApiTags('projects')
-@ApiBearerAuth(BEARER_AUTH)
+@ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
-  description: 'Brak tokenu lub token nieprawidłowy',
+  description: 'Brak lub nieważne cookie sesji',
   type: UnauthorizedErrorDto,
 })
 @UseGuards(AuthGuard)
@@ -71,7 +70,7 @@ export class ProjectsController {
       'Admin widzi wszystkie projekty w systemie.',
   })
   @ApiUnauthorizedResponse({
-    description: 'Brak lub nieważny token JWT',
+    description: 'Brak lub nieważne cookie sesji',
     type: UnauthorizedErrorDto,
   })
   @ApiOkResponse({
@@ -109,7 +108,13 @@ export class ProjectsController {
     description:
       'Dostęp mają: właściciel, admin oraz użytkownicy z co najmniej poziomem VIEW nadanym przez właściciela.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiForbiddenResponse({
     description: 'Brak dostępu do projektu',
     type: ForbiddenErrorDto,
@@ -119,7 +124,7 @@ export class ProjectsController {
     type: NotFoundErrorDto,
   })
   @ApiOkResponse({ description: 'Projekt', type: Project })
-  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  findOne(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.projectsService.findOne(id, user.id, user.role);
   }
 
@@ -144,7 +149,13 @@ export class ProjectsController {
     description:
       'Wymaga co najmniej poziomu EDIT. Właściciel i admin mogą edytować zawsze. Pola pominięte w body pozostają bez zmian.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiForbiddenResponse({
     description: 'Niewystarczający poziom dostępu (wymagany EDIT)',
     type: ForbiddenErrorDto,
@@ -155,7 +166,7 @@ export class ProjectsController {
   })
   @ApiOkResponse({ description: 'Zaktualizowany projekt', type: Project })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: UpdateProjectDto,
     @CurrentUser() user: User,
   ) {
@@ -169,7 +180,13 @@ export class ProjectsController {
       'Może wykonać wyłącznie właściciel projektu lub admin. ' +
       'Usunięcie projektu kaskadowo usuwa wszystkie notatki i wpisy dostępu.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiForbiddenResponse({
     description: 'Tylko właściciel lub admin może usunąć projekt',
     type: ForbiddenErrorDto,
@@ -179,30 +196,42 @@ export class ProjectsController {
     type: NotFoundErrorDto,
   })
   @ApiOkResponse({ description: 'Usunięty projekt', type: Project })
-  delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  delete(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.projectsService.remove(id, user.id, user.role);
   }
 
   @Patch(':id/pin')
   @ApiOperation({ summary: 'Toggle pin projekt (per-user)' })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiOkResponse({
     description: 'Preferencje użytkownika dla projektu',
     type: UserProjectPreference,
   })
-  togglePin(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+  togglePin(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.projectsService.togglePin(id, user.id, user.role);
   }
 
   @Patch(':id/favourite')
   @ApiOperation({ summary: 'Toggle favourite projektu (per-user)' })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiOkResponse({
     description: 'Preferencje użytkownika dla projektu',
     type: UserProjectPreference,
   })
   toggleFavourite(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @CurrentUser() user: User,
   ) {
     return this.projectsService.toggleFavourite(id, user.id, user.role);
@@ -215,7 +244,13 @@ export class ProjectsController {
       'Zwraca wszystkich użytkowników z nadanym dostępem do projektu wraz z ich poziomem (VIEW/EDIT/DELETE). ' +
       'Właściciel i admin widzą listę zawsze; member z VIEW również.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiForbiddenResponse({
     description: 'Brak dostępu do projektu',
     type: ForbiddenErrorDto,
@@ -225,10 +260,7 @@ export class ProjectsController {
     type: ProjectMember,
     isArray: true,
   })
-  listMembers(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: User,
-  ) {
+  listMembers(@Param('id', ParseIdPipe) id: string, @CurrentUser() user: User) {
     return this.projectsService.listMembers(id, user.id, user.role);
   }
 
@@ -239,7 +271,13 @@ export class ProjectsController {
       'Tylko właściciel lub admin może zarządzać dostępem. ' +
       'Jeśli użytkownik już ma dostęp, jego poziom zostanie nadpisany wartością z body.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiForbiddenResponse({
     description: 'Tylko właściciel lub admin może zarządzać dostępem',
     type: ForbiddenErrorDto,
@@ -249,7 +287,7 @@ export class ProjectsController {
     type: ProjectMember,
   })
   grantAccess(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: GrantAccessDto,
     @CurrentUser() user: User,
   ) {
@@ -262,10 +300,18 @@ export class ProjectsController {
     description:
       'Usuwa wpis ProjectMember dla wskazanego użytkownika. Tylko właściciel lub admin.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiParam({
     name: 'userId',
-    example: 7,
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'ID użytkownika, któremu odbieramy dostęp',
   })
   @ApiForbiddenResponse({
@@ -274,8 +320,8 @@ export class ProjectsController {
   })
   @ApiOkResponse({ description: 'Dostęp odebrany' })
   revokeAccess(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) targetUserId: number,
+    @Param('id', ParseIdPipe) id: string,
+    @Param('userId', ParseIdPipe) targetUserId: string,
     @CurrentUser() user: User,
   ) {
     return this.projectsService.revokeAccess(
@@ -294,14 +340,20 @@ export class ProjectsController {
       'Sam projekt pozostaje nietknięty u właściciela. ' +
       'Właściciel projektu nie może go w ten sposób opuścić.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiForbiddenResponse({
     description: 'Jesteś właścicielem projektu lub nie masz do niego dostępu',
     type: ForbiddenErrorDto,
   })
   @ApiOkResponse({ description: 'Projekt opuszczony' })
   leaveProject(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @CurrentUser() user: User,
   ) {
     return this.projectsService.leaveProject(id, user.id);
@@ -314,7 +366,13 @@ export class ProjectsController {
       'Tylko właściciel lub admin. Jeśli podano e-mail, link jest od razu wysyłany — ' +
       'a jeśli e-mail należy do zarejestrowanego konta, zaproszenie pojawia się też w powiadomieniach.',
   })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiCreatedResponse({
     description: 'Utworzone zaproszenie',
     type: ProjectShareLink,
@@ -328,7 +386,7 @@ export class ProjectsController {
     type: NotFoundErrorDto,
   })
   createShareLink(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @Body() body: CreateProjectShareLinkDto,
     @CurrentUser() user: User,
   ) {
@@ -337,7 +395,13 @@ export class ProjectsController {
 
   @Get(':id/share-links')
   @ApiOperation({ summary: 'Lista aktywnych zaproszeń do projektu' })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiOkResponse({
     description: 'Aktywne zaproszenia',
     type: ProjectShareLink,
@@ -352,7 +416,7 @@ export class ProjectsController {
     type: NotFoundErrorDto,
   })
   listShareLinks(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: string,
     @CurrentUser() user: User,
   ) {
     return this.projectsService.listShareLinks(id, user.id, user.role);
@@ -360,11 +424,19 @@ export class ProjectsController {
 
   @Delete(':id/share-links/:linkId')
   @ApiOperation({ summary: 'Odwołaj zaproszenie do projektu' })
-  @ApiParam({ name: 'id', example: 1, description: 'ID projektu' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
+    description: 'ID projektu',
+  })
   @ApiOkResponse({ description: 'Zaproszenie odwołane' })
   @ApiParam({
     name: 'linkId',
-    example: 3,
+    type: String,
+    format: 'uuid',
+    example: '3f2b8c1e-7a4d-4e9b-9c2a-5d6e7f8a9b0c',
     description: 'ID linku udostępniania',
   })
   @ApiForbiddenResponse({
@@ -376,8 +448,8 @@ export class ProjectsController {
     type: NotFoundErrorDto,
   })
   revokeShareLink(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('linkId', ParseIntPipe) linkId: number,
+    @Param('id', ParseIdPipe) id: string,
+    @Param('linkId', ParseIdPipe) linkId: string,
     @CurrentUser() user: User,
   ) {
     return this.projectsService.revokeShareLink(id, linkId, user.id, user.role);

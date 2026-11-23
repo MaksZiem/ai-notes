@@ -65,7 +65,9 @@
     "PROJECT_ACCESS_OWNER_ONLY": "Tylko właściciel lub administrator może zarządzać dostępem.",
     "IMAGE_TYPE_UNSUPPORTED": "Dozwolone są tylko pliki graficzne (PNG, JPEG, GIF, WEBP).",
     "FILE_REQUIRED": "Wybierz plik.",
-    "AI_QUOTA_EXCEEDED": "Wyczerpano dzienny limit zapytań do AI. Spróbuj ponownie później."
+    "AI_QUOTA_EXCEEDED": "Wyczerpano dzienny limit zapytań do AI. Spróbuj ponownie później.",
+    "INVALID_ID": "Nieprawidłowy identyfikator.",
+    "VALIDATION_FAILED": "Popraw wprowadzone dane i spróbuj ponownie."
   },
   "auth": {
     "signIn": {

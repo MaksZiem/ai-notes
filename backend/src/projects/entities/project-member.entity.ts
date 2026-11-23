@@ -17,15 +17,15 @@ import { AccessLevel } from 'src/enums/access-level.enum';
 @Entity()
 @Unique(['userId', 'projectId'])
 export class ProjectMember {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ApiPropertyOptional({ type: () => User })
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column()
-  userId: number;
+  @Column('uuid')
+  userId: string;
 
   @ApiHideProperty()
   @ManyToOne(() => Project, (project) => project.members, {
@@ -33,8 +33,8 @@ export class ProjectMember {
   })
   project: Project;
 
-  @Column()
-  projectId: number;
+  @Column('uuid')
+  projectId: string;
 
   @ApiProperty({ enum: AccessLevel })
   @Column({ type: 'enum', enum: AccessLevel, default: AccessLevel.VIEW })

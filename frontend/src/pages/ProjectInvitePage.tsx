@@ -7,7 +7,7 @@ import { useTranslations } from "use-intl";
 
 export default function ProjectInvitePage() {
   const { token = "" } = useParams<{ token: string }>();
-  const { token: authToken } = useAuth();
+  const { isAuthenticated } = useAuth();
   const t = useTranslations();
   const { invite, claim } = useSharedProject(token);
   const [claimed, setClaimed] = useState(false);
@@ -74,7 +74,7 @@ export default function ProjectInvitePage() {
                 {t("invite.toProjects")}
               </Link>
             </div>
-          ) : authToken ? (
+          ) : isAuthenticated ? (
             <button
               onClick={handleClaim}
               disabled={claim.isPending}

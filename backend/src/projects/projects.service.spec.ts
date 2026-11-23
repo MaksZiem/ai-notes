@@ -24,40 +24,40 @@ describe('ProjectsService.getAccessLevel', () => {
   });
 
   it('gives the owner full access', async () => {
-    projectRepo.findOneBy.mockResolvedValue({ id: 1, ownerId: 10 });
+    projectRepo.findOneBy.mockResolvedValue({ id: '1', ownerId: '10' });
 
-    const level = await service.getAccessLevel(1, 10, UserRole.USER);
+    const level = await service.getAccessLevel('1', '10', UserRole.USER);
 
     expect(level).toBe(AccessLevel.DELETE);
   });
 
   it('gives an admin full access to any project', async () => {
-    projectRepo.findOneBy.mockResolvedValue({ id: 1, ownerId: 10 });
+    projectRepo.findOneBy.mockResolvedValue({ id: '1', ownerId: '10' });
 
-    const level = await service.getAccessLevel(1, 99, UserRole.ADMIN);
+    const level = await service.getAccessLevel('1', '99', UserRole.ADMIN);
 
     expect(level).toBe(AccessLevel.DELETE);
   });
 
   it('returns the access level of a member', async () => {
-    projectRepo.findOneBy.mockResolvedValue({ id: 1, ownerId: 10 });
+    projectRepo.findOneBy.mockResolvedValue({ id: '1', ownerId: '10' });
     memberRepo.findOneBy.mockResolvedValue({ accessLevel: AccessLevel.VIEW });
 
-    const level = await service.getAccessLevel(1, 20, UserRole.USER);
+    const level = await service.getAccessLevel('1', '20', UserRole.USER);
 
     expect(level).toBe(AccessLevel.VIEW);
     expect(memberRepo.findOneBy).toHaveBeenCalledWith({
-      projectId: 1,
-      userId: 20,
+      projectId: '1',
+      userId: '20',
     });
   });
 
   it('blocks a stranger', async () => {
-    projectRepo.findOneBy.mockResolvedValue({ id: 1, ownerId: 10 });
+    projectRepo.findOneBy.mockResolvedValue({ id: '1', ownerId: '10' });
     memberRepo.findOneBy.mockResolvedValue(null);
 
     await expect(
-      service.getAccessLevel(1, 30, UserRole.USER),
+      service.getAccessLevel('1', '30', UserRole.USER),
     ).rejects.toThrow(ForbiddenException);
   });
 
@@ -65,7 +65,7 @@ describe('ProjectsService.getAccessLevel', () => {
     projectRepo.findOneBy.mockResolvedValue(null);
 
     await expect(
-      service.getAccessLevel(1, 10, UserRole.USER),
+      service.getAccessLevel('1', '10', UserRole.USER),
     ).rejects.toThrow(NotFoundException);
   });
 });

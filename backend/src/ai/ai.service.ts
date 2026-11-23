@@ -48,12 +48,12 @@ export class AiService {
     const prompt = [
       'Na podstawie tresci notatek wypisz mi najpierw podsumowanie o czym jest ten projekt.',
       'Nastepnie napisz krótkie podsumowanie kazdej noatki w podpunktach',
-      'Pisz w tym samym języku, w którym napisane są notatki.'
-    ].join('\n')
+      'Pisz w tym samym języku, w którym napisane są notatki.',
+    ].join('\n');
     const notesList: string[] = notes.map((note, i) => {
-      return `Notatka ${i + 1}: ${note.title} - tresc: ${note.content}`
-    })
-    return this.generateText([prompt, ...notesList].join('\n\n'))
+      return `Notatka ${i + 1}: ${note.title} - tresc: ${note.content}`;
+    });
+    return this.generateText([prompt, ...notesList].join('\n\n'));
   }
 
   async generateNoteContent(prompt: string): Promise<string> {
@@ -146,7 +146,7 @@ export class AiService {
 
   async answerFromContext(
     question: string,
-    notes: { id: number; title: string; content: string }[],
+    notes: { id: string; title: string; content: string }[],
   ): Promise<string> {
     const context = notes
       .map((n, i) => `[Notatka ${i + 1}: "${n.title}"]\n${n.content}`)

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import type { Note } from "../types/note";
 
-export function useProjectNotes(projectId: number, filters?: { pinned?: boolean; favourite?: boolean }) {
+export function useProjectNotes(projectId: string, filters?: { pinned?: boolean; favourite?: boolean }) {
   const queryClient = useQueryClient();
   const base = `/projects/${projectId}/notes`;
   const invalidate = () =>

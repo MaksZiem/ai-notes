@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../api/client";
 
-export function useProjectSummary(projectId: number) {
+export function useProjectSummary(projectId: string) {
   return useMutation({
     mutationFn: async () => {
       const { data } = await api.post<{ summary: string }>(

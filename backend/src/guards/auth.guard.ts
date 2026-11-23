@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { errorBody } from 'src/common/error-body';
+import { readSessionToken } from 'src/users/session-cookie';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -19,7 +20,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
+    const token = readSessionToken(request.headers.cookie);
 
     if (!token) {
       throw new UnauthorizedException(
@@ -31,10 +32,10 @@ export class AuthGuard implements CanActivate {
       );
     }
 
-    let payload: { id: number };
+    let payload: { id: string };
     try {
       payload = await this.jwtService.verifyAsync(token);
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException(
         errorBody(
           HttpStatus.UNAUTHORIZED,
@@ -56,10 +57,5 @@ export class AuthGuard implements CanActivate {
     }
     request['currentUser'] = user;
     return true;
-  }
-
-  private extractTokenFromHeader(request: Request): string | null {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : null;
   }
 }

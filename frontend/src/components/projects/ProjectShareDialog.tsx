@@ -10,7 +10,7 @@ export function ProjectShareDialog({
   projectId,
   onClose,
 }: {
-  projectId: number;
+  projectId: string;
   onClose: () => void;
 }) {
   const t = useTranslations("sharing");
@@ -22,7 +22,7 @@ export function ProjectShareDialog({
   const [accessLevel, setAccessLevel] = useState<AccessLevel>("VIEW");
   const [email, setEmail] = useState("");
   const [expiresInDays, setExpiresInDays] = useState("7");
-  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const buildUrl = (token: string) => `${window.location.origin}/project-invites/${token}`;
 
@@ -38,7 +38,7 @@ export function ProjectShareDialog({
     );
   };
 
-  const handleCopy = (id: number, token: string) => {
+  const handleCopy = (id: string, token: string) => {
     navigator.clipboard.writeText(buildUrl(token));
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
