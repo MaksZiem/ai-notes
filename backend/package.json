@@ -22,6 +22,8 @@
     "migration:generate": "npm run build && npm run typeorm -- migration:generate -d dist/database/data-source.js",
     "migration:run": "npm run build && npm run typeorm -- migration:run -d dist/database/data-source.js",
     "migration:run:prod": "npm run typeorm -- migration:run -d dist/database/data-source.js",
+    "seed:demo": "npm run build && npm run seed:demo:prod",
+    "seed:demo:prod": "node --env-file-if-exists=.env dist/database/seed-demo.js",
     "migration:revert": "npm run build && npm run typeorm -- migration:revert -d dist/database/data-source.js"
   },
   "dependencies": {

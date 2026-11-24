@@ -2,6 +2,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
+import { YjsGateway } from './yjs/yjs.gateway';
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { uploadDir } from './uploads/uploads.controller';
@@ -34,5 +35,6 @@ async function bootstrap() {
   setupSwagger(app);
 
   await app.listen(config.getOrThrow<number>('PORT'));
+  await app.get(YjsGateway).start();
 }
 void bootstrap();

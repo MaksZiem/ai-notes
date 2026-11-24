@@ -1,3 +1,4 @@
+import { AiUsageModule } from 'src/ai-usage/ai-usage.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { NotesController } from './notes.controller';
@@ -25,6 +26,7 @@ import { MailModule } from 'src/mail/mail.module';
     forwardRef(() => ProjectsModule),
     forwardRef(() => AiModule),
     MailModule,
+    AiUsageModule,
   ],
   controllers: [NotesController, SingleNoteController, PublicShareController],
   providers: [NotesService],

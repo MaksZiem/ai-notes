@@ -1,5 +1,5 @@
 import { isUUID } from 'class-validator';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,7 +13,7 @@ import { Note } from 'src/notes/entities/note.entity';
 import { AccessLevel, hasAccess } from 'src/enums/access-level.enum';
 
 @Injectable()
-export class YjsGateway implements OnModuleInit {
+export class YjsGateway {
   private readonly logger = new Logger(YjsGateway.name);
 
   constructor(
@@ -24,7 +24,7 @@ export class YjsGateway implements OnModuleInit {
     @InjectRepository(Note) private readonly noteRepo: Repository<Note>,
   ) {}
 
-  async onModuleInit() {
+  async start() {
     const port = Number(this.config.getOrThrow<string>('YJS_PORT'));
     const server = new Server({
       port,

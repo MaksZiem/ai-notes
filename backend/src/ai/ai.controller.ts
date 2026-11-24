@@ -44,6 +44,7 @@ import {
 } from './dtos/ai.dto';
 import { AiService, type RewriteMode } from './ai.service';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { AiLimitGuard } from 'src/ai-usage/ai-limit.guard';
 import { NotesService } from 'src/notes/notes.service';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
 import { User } from 'src/users/user.entity';
@@ -57,7 +58,7 @@ const REWRITE_MODES: RewriteMode[] = [
   'custom',
 ];
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, AiLimitGuard)
 @ApiTags('ai')
 @ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
@@ -65,7 +66,8 @@ const REWRITE_MODES: RewriteMode[] = [
   type: UnauthorizedErrorDto,
 })
 @ApiTooManyRequestsResponse({
-  description: 'Wyczerpany limit zapytań do AI (kod AI_QUOTA_EXCEEDED)',
+  description:
+    'Wyczerpany limit Gemini (kod AI_QUOTA_EXCEEDED) albo dzienny limit wywołań AI użytkownika (kod AI_DAILY_LIMIT)',
   type: TooManyRequestsErrorDto,
 })
 @Controller('ai')

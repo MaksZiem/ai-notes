@@ -1,3 +1,4 @@
+import { demoAccountLocked, isDemoAccount } from 'src/demo/demo-account';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import {
   Body,
@@ -390,6 +391,9 @@ export class ProjectsController {
     @Body() body: CreateProjectShareLinkDto,
     @CurrentUser() user: User,
   ) {
+    if (body.email && isDemoAccount(user)) {
+      throw demoAccountLocked('The demo account cannot send email invitations');
+    }
     return this.projectsService.createShareLink(id, user.id, user.role, body);
   }
 

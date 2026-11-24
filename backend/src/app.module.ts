@@ -22,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { Notification } from './notifications/entities/notification.entity';
 import { YjsModule } from './yjs/yjs.module';
 import { HealthModule } from './health/health.module';
+import { AiUsage } from './ai-usage/ai-usage.entity';
 import { createValidationPipe } from './common/pipes/validation.pipe';
 import { createDataSourceOptions } from './database/database.options';
 
@@ -47,6 +48,7 @@ import { createDataSourceOptions } from './database/database.options';
           UserProjectPreference,
           UserNotePreference,
           Notification,
+          AiUsage,
         ],
       }),
     }),

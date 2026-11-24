@@ -1,4 +1,5 @@
 import { errorBody } from 'src/common/error-body';
+import { demoAccountLocked, isDemoAccount } from 'src/demo/demo-account';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import {
   Body,
@@ -198,7 +199,7 @@ export class UsersController {
   })
   @ApiForbiddenResponse({
     description:
-      'Można edytować tylko własne konto, a rolę zmienia tylko admin',
+      'Można edytować tylko własne konto, rolę zmienia tylko admin, a konto demo nie może zmienić e-maila ani hasła (kod DEMO_ACCOUNT_LOCKED)',
     type: ForbiddenErrorDto,
   })
   updateUser(
@@ -209,6 +210,14 @@ export class UsersController {
     const isAdmin = currentUser.role === UserRole.ADMIN;
     const isSelf = currentUser.id === id;
 
+    if (
+      isDemoAccount(currentUser) &&
+      (body.email !== undefined || body.password !== undefined)
+    ) {
+      throw demoAccountLocked(
+        'The demo account email and password cannot be changed',
+      );
+    }
     if (!isAdmin && !isSelf) {
       throw new ForbiddenException(
         errorBody(HttpStatus.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'),

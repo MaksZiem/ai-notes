@@ -1,3 +1,4 @@
+import { demoAccountLocked, isDemoAccount } from 'src/demo/demo-account';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import {
   BadRequestException,
@@ -49,6 +50,7 @@ import {
   ReindexResponseDto,
 } from './dtos/note-response.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { AiLimitGuard } from 'src/ai-usage/ai-limit.guard';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
 import { User } from 'src/users/user.entity';
 import { NotesService } from './notes.service';
@@ -186,6 +188,7 @@ export class SingleNoteController {
   }
 
   @Post('chat')
+  @UseGuards(AiLimitGuard)
   @ApiOperation({ summary: 'Zadaj pytanie do własnych notatek (RAG chat)' })
   @ApiCreatedResponse({
     description: 'Odpowiedź ze źródłami',
@@ -251,6 +254,7 @@ export class SingleNoteController {
   }
 
   @Post(':id/summarize')
+  @UseGuards(AiLimitGuard)
   @ApiOperation({ summary: 'Wygeneruj krótkie streszczenie notatki' })
   @ApiParam({
     name: 'id',
@@ -550,6 +554,9 @@ export class SingleNoteController {
     @Body() body: CreateShareLinkDto,
     @CurrentUser() user: User,
   ) {
+    if (body.email && isDemoAccount(user)) {
+      throw demoAccountLocked('The demo account cannot send email invitations');
+    }
     return this.notesService.createShareLink(
       id,
       null,

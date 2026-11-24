@@ -67,7 +67,9 @@
     "FILE_REQUIRED": "Choose a file.",
     "AI_QUOTA_EXCEEDED": "The daily AI request limit has been reached. Try again later.",
     "INVALID_ID": "Invalid identifier.",
-    "VALIDATION_FAILED": "Check the data you entered and try again."
+    "VALIDATION_FAILED": "Check the data you entered and try again.",
+    "DEMO_ACCOUNT_LOCKED": "This action is disabled on the demo account.",
+    "AI_DAILY_LIMIT": "You've used today's AI limit. Try again tomorrow."
   },
   "auth": {
     "signIn": {

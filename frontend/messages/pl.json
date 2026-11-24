@@ -67,7 +67,9 @@
     "FILE_REQUIRED": "Wybierz plik.",
     "AI_QUOTA_EXCEEDED": "Wyczerpano dzienny limit zapytań do AI. Spróbuj ponownie później.",
     "INVALID_ID": "Nieprawidłowy identyfikator.",
-    "VALIDATION_FAILED": "Popraw wprowadzone dane i spróbuj ponownie."
+    "VALIDATION_FAILED": "Popraw wprowadzone dane i spróbuj ponownie.",
+    "DEMO_ACCOUNT_LOCKED": "Na koncie demo ta akcja jest wyłączona.",
+    "AI_DAILY_LIMIT": "Wykorzystano dzienny limit funkcji AI. Spróbuj ponownie jutro."
   },
   "auth": {
     "signIn": {

@@ -23,13 +23,14 @@ import {
 import { SESSION_AUTH } from 'src/common/swagger/swagger.setup';
 import { AgentChatResponseDto } from './dtos/agent-chat.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { AiLimitGuard } from 'src/ai-usage/ai-limit.guard';
 import { CurrentUser } from 'src/users/decorators/current-user.decorator';
 import { User } from 'src/users/user.entity';
 import { AgentService } from './agent.service';
 import { AgentChatDto } from './dtos/agent-chat.dto';
 import { errorBody } from '../common/error-body';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, AiLimitGuard)
 @ApiTags('agent')
 @ApiCookieAuth(SESSION_AUTH)
 @ApiUnauthorizedResponse({
@@ -37,7 +38,8 @@ import { errorBody } from '../common/error-body';
   type: UnauthorizedErrorDto,
 })
 @ApiTooManyRequestsResponse({
-  description: 'Wyczerpany limit zapytań do AI (kod AI_QUOTA_EXCEEDED)',
+  description:
+    'Wyczerpany limit Gemini (kod AI_QUOTA_EXCEEDED) albo dzienny limit wywołań AI użytkownika (kod AI_DAILY_LIMIT)',
   type: TooManyRequestsErrorDto,
 })
 @Controller('agent')
