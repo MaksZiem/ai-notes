@@ -164,7 +164,7 @@ sequenceDiagram
   NS->>DB: wszystkie notatki dostępne dla użytkownika
   NS->>NS: podobieństwo cosinusowe, score > 0.5, top 5
   NS->>AI: answerFromContext(question, top notatki)
-  AI->>G: "Odpowiadaj WYŁĄCZNIE na podstawie notatek; powiedz, jeśli brak"
+  AI->>G: "Odpowiadaj WYŁĄCZNIE na podstawie notatek – powiedz, jeśli brak"
   G-->>AI: odpowiedź
   NS-->>FE: {answer, sources: [{id, title}]}
   FE-->>U: odpowiedź + klikalne notatki źródłowe

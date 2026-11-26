@@ -164,7 +164,7 @@ sequenceDiagram
   NS->>DB: all notes the user can access
   NS->>NS: cosine similarity, score > 0.5, top 5
   NS->>AI: answerFromContext(question, top notes)
-  AI->>G: "Answer ONLY from these notes; say so if absent"
+  AI->>G: "Answer ONLY from these notes – say so if absent"
   G-->>AI: answer
   NS-->>FE: {answer, sources: [{id, title}]}
   FE-->>U: answer + clickable source notes
